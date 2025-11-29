@@ -5,7 +5,7 @@ enum AuthStatus {
   /// Initial state, checking if user is logged in
   unknown,
 
-  /// User is authenticated
+  /// User is authenticated , 
   authenticated,
 
   /// User is not authenticated
