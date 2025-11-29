@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
-import 'workouts_screen.dart';
-import 'main_shell.dart';
-import 'challenge_detail_screen.dart';
-import 'workout_player_screen.dart';
-import 'login_screen.dart';
-import 'signup_screen.dart';
-import 'workout_detail_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'providers/providers.dart';
+import 'screens/screens.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
