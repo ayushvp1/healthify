@@ -1,21 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SplashScreen extends StatefulWidget {
+import '../providers/providers.dart';
+
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/signup');
-    });
+    _navigateAfterDelay();
+  }
+
+  Future<void> _navigateAfterDelay() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final authState = ref.read(authProvider);
+    if (authState.status == AuthStatus.authenticated) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
 
   @override
@@ -28,7 +40,6 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // White rounded square with heart icon
               Container(
                 width: 136,
                 height: 136,
@@ -45,7 +56,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              // Title: Grown Health
               Text(
                 'Grown Health',
                 textAlign: TextAlign.center,
@@ -53,13 +63,12 @@ class _SplashScreenState extends State<SplashScreen> {
                   textStyle: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 39,
-                    height: 47 / 39, // line-height from Figma
+                    height: 47 / 39,
                     color: Colors.white,
                   ),
                 ),
               ),
               const SizedBox(height: 8),
-              // Subtitle: Your Health Journey Starts Here
               Text(
                 'Your Health Journey Starts Here',
                 textAlign: TextAlign.center,

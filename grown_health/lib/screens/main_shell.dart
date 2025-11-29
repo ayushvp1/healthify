@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'home_screen.dart';
-import 'nutrition_screen.dart';
-import 'mind_screen.dart';
-import 'help_screen.dart';
+import 'home/home_screen.dart';
+import 'nutrition/nutrition_screen.dart';
+import 'mind/mind_screen.dart';
+import 'help/help_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
