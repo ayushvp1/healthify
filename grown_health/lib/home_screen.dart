@@ -60,9 +60,23 @@ class HomeScreen extends StatelessWidget {
                               onPressed: () {},
                             ),
                             const SizedBox(width: 4),
-                            const CircleAvatar(
-                              radius: 18,
-                              backgroundColor: Colors.grey,
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(context, '/profile');
+                              },
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFCE4E8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.person_outline_rounded,
+                                  size: 20,
+                                  color: Color(0xFFAA3D50),
+                                ),
+                              ),
                             ),
                           ],
                         ),

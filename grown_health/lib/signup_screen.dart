@@ -49,9 +49,13 @@ class _SignupScreenState extends State<SignupScreen> {
       await AuthApi.register(email: email, password: password);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created, please log in')),
+        const SnackBar(
+          content: Text('Account created! Let\'s set up your profile.'),
+        ),
       );
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/profile_setup', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
