@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'mind_detail_screen.dart';
+
 class MindScreen extends StatelessWidget {
   const MindScreen({super.key});
 
@@ -33,7 +35,7 @@ class MindScreen extends StatelessWidget {
               const SizedBox(height: 8),
               _buildSectionHeader(),
               const SizedBox(height: 16),
-              _buildMeditationCard(),
+              _buildMeditationCard(context),
             ],
           ),
         ),
@@ -68,72 +70,80 @@ class MindScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMeditationCard() {
-    return Container(
-      height: 88,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE7F4FF),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.orange.shade300,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.self_improvement_rounded,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Morning Mindfulness',
-                  style: GoogleFonts.inter(
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '10 min',
-                  style: GoogleFonts.inter(
-                    textStyle: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
+  Widget _buildMeditationCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MindDetailScreen()),
+        );
+      },
+      child: Container(
+        height: 88,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE7F4FF),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade300,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
-                Icons.play_arrow_rounded,
+                Icons.self_improvement_rounded,
                 color: Colors.white,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Morning Mindfulness',
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '10 min',
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

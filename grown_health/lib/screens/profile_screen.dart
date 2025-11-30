@@ -2,12 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _userName = 'Ayush';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAndSaveUserName();
+  }
+
+  Future<void> _loadAndSaveUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('userName');
+    if (savedName != null && savedName.isNotEmpty) {
+      setState(() => _userName = savedName);
+    } else {
+      // Save the default name so HomeScreen can read it
+      await prefs.setString('userName', _userName);
+    }
+  }
 
   Future<void> _handleLogout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
+    await prefs.remove('userName');
 
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
@@ -63,7 +88,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // Name
             Text(
-              'Ayush',
+              _userName,
               style: GoogleFonts.inter(
                 textStyle: const TextStyle(
                   fontSize: 20,

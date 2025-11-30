@@ -12,8 +12,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // Prefill with test credentials for development
+  final _emailController = TextEditingController(text: 'test@example.com');
+  final _passwordController = TextEditingController(text: 'password123');
 
   @override
   void dispose() {

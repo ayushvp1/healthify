@@ -5,6 +5,7 @@ import 'home/home_screen.dart';
 import 'nutrition/nutrition_screen.dart';
 import 'mind/mind_screen.dart';
 import 'help/help_screen.dart';
+import 'workout/workouts_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -17,10 +18,11 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    HomeScreen(),
-    NutritionScreen(),
-    HelpScreen(),
-    MindScreen(),
+    HomeScreen(), // index 0: Home
+    WorkoutsScreen(), // index 1: Body (Workouts page)
+    NutritionScreen(), // index 2: Nutrition
+    HelpScreen(), // index 3: Help
+    MindScreen(), // index 4: Mind
   ];
 
   void _onTabTapped(int index) {
@@ -80,25 +82,25 @@ class _SharedBottomNav extends StatelessWidget {
             ),
             _BottomNavLabelShared(
               label: 'Body',
-              index: 0,
-              currentIndex: currentIndex,
-              onTap: onTap,
-            ),
-            _BottomNavLabelShared(
-              label: 'Nutrition',
               index: 1,
               currentIndex: currentIndex,
               onTap: onTap,
             ),
             _BottomNavLabelShared(
-              label: 'Help',
+              label: 'Nutrition',
               index: 2,
               currentIndex: currentIndex,
               onTap: onTap,
             ),
             _BottomNavLabelShared(
-              label: 'Mind',
+              label: 'Help',
               index: 3,
+              currentIndex: currentIndex,
+              onTap: onTap,
+            ),
+            _BottomNavLabelShared(
+              label: 'Mind',
+              index: 4,
               currentIndex: currentIndex,
               onTap: onTap,
             ),

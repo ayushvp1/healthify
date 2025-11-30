@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/providers.dart';
 import 'widgets/widgets.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final userEmail = authState.user?.email ?? 'User';
-    final displayName = userEmail.split('@').first;
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  String _displayName = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('userName');
+    if (savedName != null && savedName.isNotEmpty) {
+      setState(() => _displayName = savedName);
+    } else {
+      // Fallback to email prefix
+      final authState = ref.read(authProvider);
+      final userEmail = authState.user?.email ?? 'User';
+      setState(() => _displayName = userEmail.split('@').first);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = _displayName;
 
     return Scaffold(
       backgroundColor: Colors.white,

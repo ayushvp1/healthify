@@ -58,6 +58,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
 
+    // Save user name if provided
+    final name = _nameController.text.trim();
+    if (name.isNotEmpty) {
+      await prefs.setString('userName', name);
+    }
+
     if (!mounted) return;
     Navigator.of(
       context,
