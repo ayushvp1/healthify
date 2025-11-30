@@ -340,7 +340,7 @@ class NutritionScreen extends StatelessWidget {
             children: const [
               _HabitIcon(label: '8 Glasses', icon: Icons.local_drink_outlined),
               _HabitIcon(
-                label: 'Balanced Meal',
+                label: 'Balanced',
                 icon: Icons.emoji_food_beverage_outlined,
               ),
               _HabitIcon(
