@@ -8,14 +8,14 @@ class WaterReminderService {
   Timer? _timer;
   final WaterService _waterService;
   final BuildContext? _context;
-  
+
   WaterReminderService(this._waterService, [this._context]);
 
   /// Start checking water intake every hour
   void startReminders() {
     // Check immediately
     _checkWaterIntake();
-    
+
     // Then check every hour
     _timer = Timer.periodic(const Duration(hours: 1), (timer) {
       _checkWaterIntake();
@@ -32,7 +32,7 @@ class WaterReminderService {
   Future<void> _checkWaterIntake() async {
     try {
       final today = await _waterService.getTodayWaterIntake();
-      
+
       // If goal is not met and it's during waking hours (8 AM - 10 PM)
       final hour = DateTime.now().hour;
       if (!today.isCompleted && hour >= 8 && hour <= 22) {
@@ -47,9 +47,9 @@ class WaterReminderService {
 
   /// Show in-app reminder to drink water
   void _showWaterReminder(int remainingGlasses) {
-    if (_context == null || !_context!.mounted) return;
+    if (_context == null || !_context.mounted) return;
 
-    ScaffoldMessenger.of(_context!).showSnackBar(
+    ScaffoldMessenger.of(_context).showSnackBar(
       SnackBar(
         content: Row(
           children: [

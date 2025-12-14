@@ -6,6 +6,7 @@ class ProfileModel {
   final String? gender;
   final double? weight;
   final double? height;
+  final String? fitnessGoal;
   final String? profileImage;
   final bool? isProfileComplete;
   final DateTime? createdAt;
@@ -19,6 +20,7 @@ class ProfileModel {
     this.gender,
     this.weight,
     this.height,
+    this.fitnessGoal,
     this.profileImage,
     this.isProfileComplete,
     this.createdAt,
@@ -65,6 +67,7 @@ class ProfileModel {
       gender: data['gender'] as String?,
       weight: (data['weight'] as num?)?.toDouble(),
       height: (data['height'] as num?)?.toDouble(),
+      fitnessGoal: data['fitnessGoal'] as String?,
       profileImage: data['profileImage'] as String?,
       // Backend returns 'profileCompleted' not 'isProfileComplete'
       isProfileComplete:
@@ -83,6 +86,7 @@ class ProfileModel {
       if (gender != null) 'gender': gender,
       if (weight != null) 'weight': weight,
       if (height != null) 'height': height,
+      if (fitnessGoal != null) 'fitnessGoal': fitnessGoal,
       if (profileImage != null) 'profileImage': profileImage,
       if (isProfileComplete != null) 'isProfileComplete': isProfileComplete,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
@@ -98,6 +102,7 @@ class ProfileModel {
     String? gender,
     double? weight,
     double? height,
+    String? fitnessGoal,
     String? profileImage,
     bool? isProfileComplete,
     DateTime? createdAt,
@@ -111,6 +116,7 @@ class ProfileModel {
       gender: gender ?? this.gender,
       weight: weight ?? this.weight,
       height: height ?? this.height,
+      fitnessGoal: fitnessGoal ?? this.fitnessGoal,
       profileImage: profileImage ?? this.profileImage,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       createdAt: createdAt ?? this.createdAt,

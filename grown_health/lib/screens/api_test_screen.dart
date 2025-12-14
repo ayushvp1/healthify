@@ -5,12 +5,10 @@ import '../services/water_service.dart';
 import '../services/meditation_service.dart';
 import '../services/exercise_service.dart';
 import '../services/admin_service.dart';
-import '../models/profile_model.dart';
-import '../models/water_intake_model.dart';
 import '../providers/auth_provider.dart';
 
 class ApiTestScreen extends ConsumerStatefulWidget {
-  const ApiTestScreen({Key? key}) : super(key: key);
+  const ApiTestScreen({super.key});
 
   @override
   ConsumerState<ApiTestScreen> createState() => _ApiTestScreenState();
@@ -24,7 +22,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
     setState(() {
       _output += '\n$message';
     });
-    print(message);
+    debugPrint(message);
   }
 
   void _clearLog() {
@@ -35,7 +33,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
 
   Future<void> _testProfileService() async {
     final userToken = ref.read(authProvider).user?.token;
-    
+
     if (userToken == null) {
       _log('❌ Error: No token available. Please login first.');
       return;
@@ -69,7 +67,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
 
   Future<void> _testWaterService() async {
     final userToken = ref.read(authProvider).user?.token;
-    
+
     if (userToken == null) {
       _log('❌ Error: No token available. Please login first.');
       return;
@@ -128,7 +126,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
 
   Future<void> _testMeditationService() async {
     final userToken = ref.read(authProvider).user?.token;
-    
+
     setState(() => _loading = true);
     _log('\n🧪 Testing Meditation Service...');
 
@@ -153,7 +151,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
 
   Future<void> _testExerciseService() async {
     final userToken = ref.read(authProvider).user?.token;
-    
+
     setState(() => _loading = true);
     _log('\n🧪 Testing Exercise Service...');
 
@@ -178,7 +176,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
 
   Future<void> _testAdminService() async {
     final userToken = ref.read(authProvider).user?.token;
-    
+
     if (userToken == null) {
       _log('❌ Error: No token available. Please login first.');
       return;
@@ -222,7 +220,7 @@ class _ApiTestScreenState extends ConsumerState<ApiTestScreen> {
   @override
   Widget build(BuildContext context) {
     final userToken = ref.watch(authProvider).user?.token;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('API Test Screen'),

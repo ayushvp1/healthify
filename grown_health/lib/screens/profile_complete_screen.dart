@@ -8,7 +8,8 @@ class ProfileCompleteScreen extends ConsumerStatefulWidget {
   const ProfileCompleteScreen({super.key});
 
   @override
-  ConsumerState<ProfileCompleteScreen> createState() => _ProfileCompleteScreenState();
+  ConsumerState<ProfileCompleteScreen> createState() =>
+      _ProfileCompleteScreenState();
 }
 
 class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
@@ -17,7 +18,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
-  
+
   String _selectedGender = 'male';
   bool _loading = false;
 
@@ -57,7 +58,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Return the profile data so we can save it locally
         final profileData = {
           'name': _nameController.text.trim(),
@@ -69,7 +70,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
               : double.parse(_heightController.text.trim()),
           'isProfileComplete': true,
         };
-        
+
         Navigator.of(context).pop(profileData); // Return data
       }
     } catch (e) {
@@ -77,7 +78,9 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(
+              'Failed: ${e.toString().replaceFirst('Exception: ', '')}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -118,7 +121,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // Name
               TextFormField(
                 controller: _nameController,
@@ -136,7 +139,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Age
               TextFormField(
                 controller: _ageController,
@@ -159,10 +162,10 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Gender
               DropdownButtonFormField<String>(
-                value: _selectedGender,
+                initialValue: _selectedGender,
                 decoration: InputDecoration(
                   labelText: 'Gender *',
                   border: OutlineInputBorder(
@@ -181,7 +184,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Weight
               TextFormField(
                 controller: _weightController,
@@ -204,7 +207,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Height (optional)
               TextFormField(
                 controller: _heightController,
@@ -217,7 +220,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 32),
-              
+
               // Submit Button
               SizedBox(
                 height: 48,

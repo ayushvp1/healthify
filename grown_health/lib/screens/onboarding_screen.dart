@@ -80,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   width: isActive ? 18 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(isActive ? 1 : 0.4),
+                    color: Colors.white.withValues(alpha: isActive ? 1 : 0.4),
                     borderRadius: BorderRadius.circular(12),
                   ),
                 );
@@ -206,7 +206,7 @@ class _OnboardPage extends StatelessWidget {
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -243,7 +243,7 @@ class _OnboardPage extends StatelessWidget {
               textStyle: TextStyle(
                 fontSize: 14,
                 height: 1.4,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
             ),
           ),

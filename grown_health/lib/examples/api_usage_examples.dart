@@ -1,15 +1,11 @@
-/// This file demonstrates how to use all the API services in the app.
-/// Import this file to see usage examples for each service.
-
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:grown_health/services/profile_service.dart';
 import 'package:grown_health/services/water_service.dart';
 import 'package:grown_health/services/meditation_service.dart';
 import 'package:grown_health/services/exercise_service.dart';
 import 'package:grown_health/services/upload_service.dart';
 import 'package:grown_health/services/admin_service.dart';
-import 'package:grown_health/models/profile_model.dart';
-import 'package:grown_health/models/water_intake_model.dart';
-import 'dart:io';
 
 /// Example usage of ProfileService
 class ProfileServiceExample {
@@ -24,9 +20,9 @@ class ProfileServiceExample {
   Future<void> getUserProfile() async {
     try {
       final profile = await _profileService.getProfile();
-      print('Profile: ${profile.name}, Age: ${profile.age}');
+      debugPrint('Profile: ${profile.name}, Age: ${profile.age}');
     } catch (e) {
-      print('Error getting profile: $e');
+      debugPrint('Error getting profile: $e');
     }
   }
 
@@ -40,9 +36,9 @@ class ProfileServiceExample {
         weight: 70.5,
         height: 175.0,
       );
-      print('Profile completed: ${profile.name}');
+      debugPrint('Profile completed: ${profile.name}');
     } catch (e) {
-      print('Error completing profile: $e');
+      debugPrint('Error completing profile: $e');
     }
   }
 
@@ -53,9 +49,9 @@ class ProfileServiceExample {
         name: 'John Updated',
         weight: 72.0,
       );
-      print('Profile updated: ${profile.name}');
+      debugPrint('Profile updated: ${profile.name}');
     } catch (e) {
-      print('Error updating profile: $e');
+      debugPrint('Error updating profile: $e');
     }
   }
 
@@ -63,9 +59,9 @@ class ProfileServiceExample {
   Future<void> updateUserProfileImage(String imageUrl) async {
     try {
       final profile = await _profileService.updateProfileImage(imageUrl);
-      print('Profile image updated: ${profile.profileImage}');
+      debugPrint('Profile image updated: ${profile.profileImage}');
     } catch (e) {
-      print('Error updating profile image: $e');
+      debugPrint('Error updating profile image: $e');
     }
   }
 
@@ -73,9 +69,9 @@ class ProfileServiceExample {
   Future<void> checkProfileStatus() async {
     try {
       final status = await _profileService.getProfileStatus();
-      print('Profile complete: ${status['isProfileComplete']}');
+      debugPrint('Profile complete: ${status['isProfileComplete']}');
     } catch (e) {
-      print('Error checking profile status: $e');
+      debugPrint('Error checking profile status: $e');
     }
   }
 }
@@ -93,9 +89,9 @@ class WaterServiceExample {
   Future<void> getWaterGoal() async {
     try {
       final goal = await _waterService.getWaterGoal();
-      print('Water goal: $goal glasses');
+      debugPrint('Water goal: $goal glasses');
     } catch (e) {
-      print('Error getting water goal: $e');
+      debugPrint('Error getting water goal: $e');
     }
   }
 
@@ -103,9 +99,9 @@ class WaterServiceExample {
   Future<void> setWaterGoal(int goal) async {
     try {
       final result = await _waterService.setWaterGoal(goal);
-      print('Water goal set: $result');
+      debugPrint('Water goal set: $result');
     } catch (e) {
-      print('Error setting water goal: $e');
+      debugPrint('Error setting water goal: $e');
     }
   }
 
@@ -113,11 +109,13 @@ class WaterServiceExample {
   Future<void> getTodayWater() async {
     try {
       final today = await _waterService.getTodayWaterIntake();
-      print('Today: ${today.count}/${today.goal} glasses (${today.percentage}%)');
-      print('Remaining: ${today.remaining} glasses');
-      print('Completed: ${today.isCompleted}');
+      debugPrint(
+        'Today: ${today.count}/${today.goal} glasses (${today.percentage}%)',
+      );
+      debugPrint('Remaining: ${today.remaining} glasses');
+      debugPrint('Completed: ${today.isCompleted}');
     } catch (e) {
-      print('Error getting today\'s water: $e');
+      debugPrint('Error getting today\'s water: $e');
     }
   }
 
@@ -125,9 +123,9 @@ class WaterServiceExample {
   Future<void> drinkWater() async {
     try {
       final result = await _waterService.addWaterGlass();
-      print('Added water! Count: ${result.count}');
+      debugPrint('Added water! Count: ${result.count}');
     } catch (e) {
-      print('Error adding water: $e');
+      debugPrint('Error adding water: $e');
     }
   }
 
@@ -135,9 +133,9 @@ class WaterServiceExample {
   Future<void> undoDrinkWater() async {
     try {
       final result = await _waterService.removeWaterGlass();
-      print('Removed water! Count: ${result.count}');
+      debugPrint('Removed water! Count: ${result.count}');
     } catch (e) {
-      print('Error removing water: $e');
+      debugPrint('Error removing water: $e');
     }
   }
 
@@ -145,9 +143,9 @@ class WaterServiceExample {
   Future<void> setTodayWater(int count) async {
     try {
       final result = await _waterService.setTodayWaterCount(count);
-      print('Water count set to: ${result.count}');
+      debugPrint('Water count set to: ${result.count}');
     } catch (e) {
-      print('Error setting water count: $e');
+      debugPrint('Error setting water count: $e');
     }
   }
 
@@ -156,15 +154,15 @@ class WaterServiceExample {
     try {
       // Get last 30 days
       final history = await _waterService.getWaterHistory(days: 30);
-      print('Total days: ${history.totalDays}');
-      print('Average intake: ${history.averageIntake} glasses');
-      print('Total glasses: ${history.totalGlasses}');
-      
+      debugPrint('Total days: ${history.totalDays}');
+      debugPrint('Average intake: ${history.averageIntake} glasses');
+      debugPrint('Total glasses: ${history.totalGlasses}');
+
       for (var intake in history.data) {
-        print('${intake.date}: ${intake.count}/${intake.goal}');
+        debugPrint('${intake.date}: ${intake.count}/${intake.goal}');
       }
     } catch (e) {
-      print('Error getting water history: $e');
+      debugPrint('Error getting water history: $e');
     }
   }
 
@@ -172,9 +170,9 @@ class WaterServiceExample {
   Future<void> getWaterByDate(String date) async {
     try {
       final intake = await _waterService.getWaterIntakeByDate(date);
-      print('$date: ${intake.count}/${intake.goal} glasses');
+      debugPrint('$date: ${intake.count}/${intake.goal} glasses');
     } catch (e) {
-      print('Error getting water by date: $e');
+      debugPrint('Error getting water by date: $e');
     }
   }
 }
@@ -197,15 +195,15 @@ class MeditationServiceExample {
         searchQuery: 'relaxation',
         categoryId: 'some-category-id',
       );
-      
-      print('Total meditations: ${result.total}');
-      print('Page ${result.page} of ${result.totalPages}');
-      
+
+      debugPrint('Total meditations: ${result.total}');
+      debugPrint('Page ${result.page} of ${result.totalPages}');
+
       for (var meditation in result.meditations) {
-        print('${meditation.title} - ${meditation.duration}min');
+        debugPrint('${meditation.title} - ${meditation.duration}min');
       }
     } catch (e) {
-      print('Error getting meditations: $e');
+      debugPrint('Error getting meditations: $e');
     }
   }
 
@@ -213,11 +211,11 @@ class MeditationServiceExample {
   Future<void> getMeditationById(String id) async {
     try {
       final meditation = await _meditationService.getMeditationById(id);
-      print('Meditation: ${meditation.title}');
-      print('Description: ${meditation.description}');
-      print('Duration: ${meditation.duration}min');
+      debugPrint('Meditation: ${meditation.title}');
+      debugPrint('Description: ${meditation.description}');
+      debugPrint('Duration: ${meditation.duration}min');
     } catch (e) {
-      print('Error getting meditation: $e');
+      debugPrint('Error getting meditation: $e');
     }
   }
 }
@@ -240,16 +238,16 @@ class ExerciseServiceExample {
         searchQuery: 'push up',
         difficulty: 'beginner',
       );
-      
-      print('Total exercises: ${result.total}');
-      print('Page ${result.page} of ${result.totalPages}');
-      
+
+      debugPrint('Total exercises: ${result.total}');
+      debugPrint('Page ${result.page} of ${result.totalPages}');
+
       for (var exercise in result.exercises) {
-        print('${exercise.title} - ${exercise.difficulty}');
-        print('Equipment: ${exercise.equipmentList.join(", ")}');
+        debugPrint('${exercise.title} - ${exercise.difficulty}');
+        debugPrint('Equipment: ${exercise.equipmentList.join(", ")}');
       }
     } catch (e) {
-      print('Error getting exercises: $e');
+      debugPrint('Error getting exercises: $e');
     }
   }
 
@@ -257,12 +255,12 @@ class ExerciseServiceExample {
   Future<void> getExerciseById(String id) async {
     try {
       final exercise = await _exerciseService.getExerciseById(id);
-      print('Exercise: ${exercise.title}');
-      print('Description: ${exercise.description}');
-      print('Duration: ${exercise.duration}min');
-      print('Difficulty: ${exercise.difficulty}');
+      debugPrint('Exercise: ${exercise.title}');
+      debugPrint('Description: ${exercise.description}');
+      debugPrint('Duration: ${exercise.duration}min');
+      debugPrint('Difficulty: ${exercise.difficulty}');
     } catch (e) {
-      print('Error getting exercise: $e');
+      debugPrint('Error getting exercise: $e');
     }
   }
 }
@@ -280,23 +278,26 @@ class UploadServiceExample {
   Future<void> uploadImageFile(File imageFile) async {
     try {
       final imageUrl = await _uploadService.uploadImage(imageFile);
-      print('Image uploaded: $imageUrl');
-      
+      debugPrint('Image uploaded: $imageUrl');
+
       // Now you can use this URL to update profile image
       final profileService = ProfileService(userToken);
       await profileService.updateProfileImage(imageUrl);
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
     }
   }
 
   /// Upload image from bytes (for web)
   Future<void> uploadImageBytes(List<int> bytes, String filename) async {
     try {
-      final imageUrl = await _uploadService.uploadImageFromBytes(bytes, filename);
-      print('Image uploaded: $imageUrl');
+      final imageUrl = await _uploadService.uploadImageFromBytes(
+        bytes,
+        filename,
+      );
+      debugPrint('Image uploaded: $imageUrl');
     } catch (e) {
-      print('Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
     }
   }
 }
@@ -314,16 +315,16 @@ class AdminServiceExample {
   Future<void> getAdminSummary() async {
     try {
       final summary = await _adminService.getSummary();
-      print('Users: ${summary.users}');
-      print('Categories: ${summary.categories}');
-      print('Exercises: ${summary.exercises}');
-      print('Workouts: ${summary.workouts}');
-      print('Meditations: ${summary.meditations}');
-      print('Nutrition: ${summary.nutrition}');
-      print('Medicines: ${summary.medicines}');
-      print('FAQs: ${summary.faqs}');
+      debugPrint('Users: ${summary.users}');
+      debugPrint('Categories: ${summary.categories}');
+      debugPrint('Exercises: ${summary.exercises}');
+      debugPrint('Workouts: ${summary.workouts}');
+      debugPrint('Meditations: ${summary.meditations}');
+      debugPrint('Nutrition: ${summary.nutrition}');
+      debugPrint('Medicines: ${summary.medicines}');
+      debugPrint('FAQs: ${summary.faqs}');
     } catch (e) {
-      print('Error getting admin summary: $e');
+      debugPrint('Error getting admin summary: $e');
     }
   }
 }
@@ -335,14 +336,14 @@ class CompleteWorkflowExample {
       // 1. Register/Login (using existing AuthService)
       // final authService = AuthService();
       // final token = await authService.register(email: email, password: password);
-      
+
       // For this example, assume we have a token
       final token = 'your-jwt-token';
-      
+
       // 2. Check if profile is complete
       final profileService = ProfileService(token);
       final status = await profileService.getProfileStatus();
-      
+
       if (status['isProfileComplete'] == false) {
         // 3. Complete profile
         final profile = await profileService.completeProfile(
@@ -352,23 +353,22 @@ class CompleteWorkflowExample {
           weight: 70.5,
           height: 175.0,
         );
-        print('Profile completed for: ${profile.name}');
+        debugPrint('Profile completed for: ${profile.name}');
       }
-      
+
       // 4. Set water goal
       final waterService = WaterService(token);
       await waterService.setWaterGoal(8); // 8 glasses per day
-      
+
       // 5. Get today's water intake
       final today = await waterService.getTodayWaterIntake();
-      print('Water goal: ${today.goal} glasses');
-      
+      debugPrint('Water goal: ${today.goal} glasses');
+
       // 6. Drink water
       await waterService.addWaterGlass();
-      print('Added first glass of water!');
-      
+      debugPrint('Added first glass of water!');
     } catch (e) {
-      print('Error in onboarding flow: $e');
+      debugPrint('Error in onboarding flow: $e');
     }
   }
 }

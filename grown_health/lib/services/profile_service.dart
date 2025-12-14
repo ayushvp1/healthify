@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../api_config.dart';
 import '../models/profile_model.dart';
@@ -9,9 +10,9 @@ class ProfileService {
   ProfileService(this._token);
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
+    'Content-Type': 'application/json',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
 
   /// GET /api/profile/ - Get current user's full profile
   Future<ProfileModel> getProfile() async {
@@ -26,7 +27,8 @@ class ProfileService {
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
-            errorData['message'] ?? 'Failed to get profile (${res.statusCode})');
+          errorData['message'] ?? 'Failed to get profile (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -42,6 +44,7 @@ class ProfileService {
     required String gender,
     required double weight,
     double? height,
+    String? fitnessGoal,
   }) async {
     final uri = Uri.parse('$kBaseUrl/profile/complete');
 
@@ -51,6 +54,7 @@ class ProfileService {
       'gender': gender,
       'weight': weight,
       if (height != null) 'height': height,
+      if (fitnessGoal != null) 'fitnessGoal': fitnessGoal,
     };
 
     try {
@@ -60,15 +64,17 @@ class ProfileService {
         body: jsonEncode(body),
       );
 
-      print('📝 Complete Profile Response: ${res.body}');
+      debugPrint('📝 Complete Profile Response: ${res.body}');
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
         return ProfileModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to complete profile (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to complete profile (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -83,6 +89,7 @@ class ProfileService {
     String? gender,
     double? weight,
     double? height,
+    String? fitnessGoal,
     String? profileImage,
   }) async {
     final uri = Uri.parse('$kBaseUrl/profile');
@@ -93,6 +100,7 @@ class ProfileService {
       if (gender != null) 'gender': gender,
       if (weight != null) 'weight': weight,
       if (height != null) 'height': height,
+      if (fitnessGoal != null) 'fitnessGoal': fitnessGoal,
       if (profileImage != null) 'profileImage': profileImage,
     };
 
@@ -108,8 +116,10 @@ class ProfileService {
         return ProfileModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to update profile (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to update profile (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -135,8 +145,10 @@ class ProfileService {
         return ProfileModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to update profile image (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to update profile image (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -155,8 +167,10 @@ class ProfileService {
         return jsonDecode(res.body) as Map<String, dynamic>;
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get profile status (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get profile status (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;

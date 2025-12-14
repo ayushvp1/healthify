@@ -9,9 +9,10 @@ class WaterService {
   WaterService(this._token);
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
+    'Content-Type': 'application/json',
+    'Bypass-Tunnel-Reminder': 'true',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
 
   /// GET /api/water/goal - Get user's daily water goal (number of glasses)
   Future<int> getWaterGoal() async {
@@ -22,11 +23,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return data['goal'] as int;
+        return data['data']['waterGoal'] as int;
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get water goal (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get water goal (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -51,8 +54,10 @@ class WaterService {
         return jsonDecode(res.body) as Map<String, dynamic>;
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to set water goal (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to set water goal (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -69,11 +74,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data);
+        return WaterTodayResponse.fromJson(data['data']);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get today\'s water intake (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get today\'s water intake (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -90,11 +97,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data);
+        return WaterTodayResponse.fromJson(data['data']);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to add water glass (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to add water glass (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -111,11 +120,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data);
+        return WaterTodayResponse.fromJson(data['data']);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to remove water glass (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to remove water glass (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -138,11 +149,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data);
+        return WaterTodayResponse.fromJson(data['data']);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to set water count (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to set water count (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -162,8 +175,9 @@ class WaterService {
       if (endDate != null) 'endDate': endDate,
     };
 
-    final uri = Uri.parse('$kBaseUrl/water/history')
-        .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+    final uri = Uri.parse(
+      '$kBaseUrl/water/history',
+    ).replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -173,8 +187,10 @@ class WaterService {
         return WaterHistoryResponse.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get water history (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get water history (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -191,11 +207,13 @@ class WaterService {
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterIntakeModel.fromJson(data);
+        return WaterIntakeModel.fromJson(data['data']);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get water intake for date (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get water intake for date (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;

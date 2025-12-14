@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,10 +25,22 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
+  final _heightController = TextEditingController(); // Added height
   String? _selectedGender;
 
   // Step 2 selection
   String? _selectedGoal;
+
+  final List<Map<String, dynamic>> _goals = [
+    {'id': 'fit', 'label': 'Get fit', 'icon': Icons.fitness_center_rounded},
+    {'id': 'active', 'label': 'Be Active', 'icon': Icons.favorite_rounded},
+    {
+      'id': 'health',
+      'label': 'Be Healthy',
+      'icon': Icons.health_and_safety_rounded,
+    },
+    {'id': 'balance', 'label': 'Find Balance', 'icon': Icons.balance_rounded},
+  ];
 
   @override
   void dispose() {
@@ -36,6 +48,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     _nameController.dispose();
     _ageController.dispose();
     _weightController.dispose();
+    _heightController.dispose();
     super.dispose();
   }
 
@@ -46,6 +59,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         final name = _nameController.text.trim();
         final age = _ageController.text.trim();
         final weight = _weightController.text.trim();
+        final height = _heightController.text.trim(); // Added height validation
 
         if (name.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -62,6 +76,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         if (weight.isEmpty || double.tryParse(weight) == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please enter a valid weight')),
+          );
+          return;
+        }
+        if (height.isEmpty || double.tryParse(height) == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please enter a valid height')),
           );
           return;
         }
@@ -113,7 +133,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     final name = _nameController.text.trim();
     final age = int.tryParse(_ageController.text.trim()) ?? 25;
     final weight = double.tryParse(_weightController.text.trim()) ?? 70.0;
+    final height = double.tryParse(_heightController.text.trim());
     final gender = _mapGenderToBackend(_selectedGender);
+
+    String? fitnessGoal;
+    if (_selectedGoal != null) {
+      final goalObj = _goals.firstWhere(
+        (g) => g['id'] == _selectedGoal,
+        orElse: () => {},
+      );
+      if (goalObj.isNotEmpty) {
+        fitnessGoal = goalObj['label'] as String;
+      }
+    }
 
     setState(() => _isLoading = true);
 
@@ -127,6 +159,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           age: age,
           gender: gender,
           weight: weight,
+          height: height,
+          fitnessGoal: fitnessGoal,
         );
         debugPrint('✅ Profile completed on backend');
       }
@@ -145,6 +179,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         'age': age,
         'gender': gender,
         'weight': weight,
+        'height': height,
+        'fitnessGoal': fitnessGoal,
         'isProfileComplete': true,
         'profileCompleted': true,
       };
@@ -209,6 +245,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           'age': age,
           'gender': gender,
           'weight': weight,
+          'height': height,
+          'fitnessGoal': fitnessGoal,
           'isProfileComplete': true,
           'profileCompleted': true,
         };
@@ -496,6 +534,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             label: 'Your Weight',
             keyboardType: TextInputType.number,
           ),
+          const SizedBox(height: 16),
+          _buildInputField(
+            controller: _heightController,
+            hint: 'Enter height (cm)',
+            label: 'Your Height',
+            keyboardType: TextInputType.number,
+          ),
         ],
       ),
     );
@@ -540,16 +585,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   }
 
   Widget _buildStep2() {
-    final goals = [
-      {'id': 'fit', 'label': 'Get fit', 'icon': Icons.fitness_center_rounded},
-      {'id': 'active', 'label': 'Be Active', 'icon': Icons.favorite_rounded},
-      {
-        'id': 'health',
-        'label': 'Be Health',
-        'icon': Icons.health_and_safety_rounded,
-      },
-      {'id': 'balance', 'label': 'Find Balance', 'icon': Icons.balance_rounded},
-    ];
+    // Removed local goals variable, using _goals
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -574,7 +610,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
             childAspectRatio: 1.1,
-            children: goals.map((goal) {
+            children: _goals.map((goal) {
               final isSelected = _selectedGoal == goal['id'];
               return GestureDetector(
                 onTap: () {

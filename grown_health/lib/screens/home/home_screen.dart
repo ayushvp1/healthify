@@ -18,7 +18,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _displayName = 'User';
   String _greeting = 'Good Morning!';
-  String _selectedBundleGroup = 'Arm';
+
   String _searchQuery = '';
 
   @override
@@ -33,7 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Start water reminders after a short delay to ensure context is ready
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
-      
+
       final token = ref.read(authProvider).user?.token;
       if (token != null) {
         final waterService = WaterService(token);
@@ -96,16 +96,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 16),
                     _buildSearchBar(),
                     const SizedBox(height: 24),
-                    _buildMedicineReminder(),
-                    const SizedBox(height: 12),
-                    const WaterTrackingWidget(),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 3, child: _buildMedicineReminder()),
+                        const SizedBox(width: 12),
+                        const Expanded(flex: 2, child: WaterTrackingWidget()),
+                      ],
+                    ),
                     const SizedBox(height: 24),
                     _buildTodaysPlan(context),
                     const SizedBox(height: 24),
-                    _buildWorkoutBundlesHeader(),
-                    const SizedBox(height: 12),
-                    _buildTabs(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -116,8 +118,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildBundlesList(context),
-                    const SizedBox(height: 24),
                     _buildRecommendedSection(),
                     const SizedBox(height: 32),
                   ],
@@ -175,16 +175,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               builder: (context) => GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/profile'),
                 child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFCE4E8),
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF5F6), // Even lighter pink
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFE5BCC5), // Thinner, softer border
+                      width: 1.5,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.person_outline_rounded,
-                    size: 20,
-                    color: Color(0xFFAA3D50),
+                  child: const Center(
+                    child: Icon(
+                      Icons.account_circle_rounded,
+                      size: 30,
+                      color: Color(0xFF5B0C23),
+                    ),
                   ),
                 ),
               ),
@@ -196,21 +202,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      onChanged: (value) {
-        setState(() {
-          _searchQuery = value.trim().toLowerCase();
-        });
-      },
-      decoration: InputDecoration(
-        hintText: 'Search Workouts',
-        prefixIcon: const Icon(Icons.search),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0F5), // Light pink background
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.trim().toLowerCase();
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Search Workouts',
+          hintStyle: GoogleFonts.inter(
+            color: Colors.grey.shade500,
+            fontSize: 16,
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: Color(0xFF5B0C23), // Dark Burgundy
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.search, color: Colors.white, size: 22),
+            ),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
       ),
     );
@@ -240,42 +262,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'See all',
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    color: Color(0xFF1E8842), // Green
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          'No medicine reminders set',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-          ),
-        ),
-        const SizedBox(height: 4),
-        GestureDetector(
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Add medicine reminder - coming soon!'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-          child: Text(
-            'Add',
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 14,
-                color: Colors.redAccent,
-                fontWeight: FontWeight.w500,
+        const SizedBox(height: 8),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                'No medicine reminders set',
+                style: GoogleFonts.inter(
+                  textStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
               ),
             ),
-          ),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pushNamed('/medicine_reminders');
+              },
+              child: Text(
+                'Add',
+                style: GoogleFonts.inter(
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1E8842), // Green
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -322,226 +347,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildWorkoutBundlesHeader() {
-    return Text(
-      'Workout Bundles',
-      style: GoogleFonts.inter(
-        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _buildTabs() {
-    return SizedBox(
-      height: 32,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _TabPill(
-            label: 'Arm',
-            selected: _selectedBundleGroup == 'Arm',
-            onTap: () => setState(() => _selectedBundleGroup = 'Arm'),
-          ),
-          _TabPill(
-            label: 'Chest',
-            selected: _selectedBundleGroup == 'Chest',
-            onTap: () => setState(() => _selectedBundleGroup = 'Chest'),
-          ),
-          _TabPill(
-            label: 'Leg',
-            selected: _selectedBundleGroup == 'Leg',
-            onTap: () => setState(() => _selectedBundleGroup = 'Leg'),
-          ),
-          _TabPill(
-            label: 'Shoulder',
-            selected: _selectedBundleGroup == 'Shoulder',
-            onTap: () => setState(() => _selectedBundleGroup = 'Shoulder'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBundlesList(BuildContext context) {
-    // For now, show different hardcoded bundles per group and filter by search.
-    // These can later be driven by API.
-    if (_selectedBundleGroup == 'Arm') {
-      final items = [
-        {
-          'title': '30 Days Arm Challenge',
-          'subtitle': '7 Workouts  •  7 Exercises',
-          'days': '30 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFAA3D50),
-          'onTap': () => Navigator.of(context).pushNamed('/challenge'),
-        },
-        {
-          'title': '10 Days Arm Blast',
-          'subtitle': '5 Workouts  •  20 mins',
-          'days': '10 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFD46A7A),
-        },
-        {
-          'title': '5 Days Quick Arms',
-          'subtitle': '3 Workouts  •  10 mins',
-          'days': '5 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFF2C3CC),
-        },
-      ];
-
-      final filtered = _filterBundles(items);
-      if (filtered.isEmpty) {
-        return _buildNoSearchResults();
-      }
-
-      return Column(
-        children: [
-          for (var i = 0; i < filtered.length; i++) ...[
-            BundleCard(
-              title: filtered[i]['title'] as String,
-              subtitle: filtered[i]['subtitle'] as String,
-              days: filtered[i]['days'] as String,
-              level: filtered[i]['level'] as String,
-              color: filtered[i]['color'] as Color,
-              onTap: filtered[i]['onTap'] as void Function()?,
-            ),
-            if (i != filtered.length - 1) const SizedBox(height: 12),
-          ],
-        ],
-      );
-    } else if (_selectedBundleGroup == 'Chest') {
-      final items = [
-        {
-          'title': 'Chest Strength Builder',
-          'subtitle': '5 Workouts  •  15 mins',
-          'days': '14 Days',
-          'level': 'Intermediate',
-          'color': const Color(0xFFAA3D50),
-        },
-        {
-          'title': 'Push-up Power',
-          'subtitle': '4 Workouts  •  12 mins',
-          'days': '7 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFD46A7A),
-        },
-      ];
-      final filtered = _filterBundles(items);
-      if (filtered.isEmpty) {
-        return _buildNoSearchResults();
-      }
-      return Column(
-        children: [
-          for (var i = 0; i < filtered.length; i++) ...[
-            BundleCard(
-              title: filtered[i]['title'] as String,
-              subtitle: filtered[i]['subtitle'] as String,
-              days: filtered[i]['days'] as String,
-              level: filtered[i]['level'] as String,
-              color: filtered[i]['color'] as Color,
-            ),
-            if (i != filtered.length - 1) const SizedBox(height: 12),
-          ],
-        ],
-      );
-    } else if (_selectedBundleGroup == 'Leg') {
-      final items = [
-        {
-          'title': 'Leg Day Essentials',
-          'subtitle': '6 Workouts  •  18 mins',
-          'days': '21 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFAA3D50),
-        },
-        {
-          'title': 'Glutes & Thighs',
-          'subtitle': '5 Workouts  •  20 mins',
-          'days': '10 Days',
-          'level': 'Intermediate',
-          'color': const Color(0xFFD46A7A),
-        },
-      ];
-      final filtered = _filterBundles(items);
-      if (filtered.isEmpty) {
-        return _buildNoSearchResults();
-      }
-      return Column(
-        children: [
-          for (var i = 0; i < filtered.length; i++) ...[
-            BundleCard(
-              title: filtered[i]['title'] as String,
-              subtitle: filtered[i]['subtitle'] as String,
-              days: filtered[i]['days'] as String,
-              level: filtered[i]['level'] as String,
-              color: filtered[i]['color'] as Color,
-            ),
-            if (i != filtered.length - 1) const SizedBox(height: 12),
-          ],
-        ],
-      );
-    } else {
-      // Shoulder
-      final items = [
-        {
-          'title': 'Strong Shoulders',
-          'subtitle': '4 Workouts  •  15 mins',
-          'days': '12 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFAA3D50),
-        },
-        {
-          'title': 'Posture Fix',
-          'subtitle': '3 Workouts  •  10 mins',
-          'days': '7 Days',
-          'level': 'Beginner',
-          'color': const Color(0xFFD46A7A),
-        },
-      ];
-      final filtered = _filterBundles(items);
-      if (filtered.isEmpty) {
-        return _buildNoSearchResults();
-      }
-      return Column(
-        children: [
-          for (var i = 0; i < filtered.length; i++) ...[
-            BundleCard(
-              title: filtered[i]['title'] as String,
-              subtitle: filtered[i]['subtitle'] as String,
-              days: filtered[i]['days'] as String,
-              level: filtered[i]['level'] as String,
-              color: filtered[i]['color'] as Color,
-            ),
-            if (i != filtered.length - 1) const SizedBox(height: 12),
-          ],
-        ],
-      );
-    }
-  }
-
-  List<Map<String, Object?>> _filterBundles(List<Map<String, Object?>> items) {
-    if (_searchQuery.isEmpty) return items;
-    return items
-        .where(
-          (item) =>
-              (item['title'] as String).toLowerCase().contains(_searchQuery),
-        )
-        .toList();
-  }
-
-  Widget _buildNoSearchResults() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Text(
-        'No workouts match your search',
-        style: GoogleFonts.inter(
-          textStyle: const TextStyle(fontSize: 14, color: Colors.black54),
-        ),
-      ),
-    );
-  }
-
   Widget _buildRecommendedSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -578,39 +383,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           accentColor: Color(0xFFAA3D50),
         ),
       ],
-    );
-  }
-}
-
-class _TabPill extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  const _TabPill({required this.label, this.selected = false, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFAA3D50) : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.inter(
-            textStyle: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: selected ? Colors.white : Colors.black,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

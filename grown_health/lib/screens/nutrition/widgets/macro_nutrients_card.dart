@@ -94,12 +94,7 @@ class _MacroItem extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: Color.fromRGBO(
-              iconColor.red,
-              iconColor.green,
-              iconColor.blue,
-              0.12,
-            ),
+            color: iconColor.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 20, color: iconColor),

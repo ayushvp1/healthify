@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../api_config.dart';
 
@@ -84,7 +84,7 @@ class AuthService {
         }),
       );
 
-      print('📝 Signup Response: ${res.body}');
+      debugPrint('📝 Signup Response: ${res.body}');
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;

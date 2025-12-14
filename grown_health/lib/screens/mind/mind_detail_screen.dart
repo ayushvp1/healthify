@@ -257,7 +257,6 @@ class MindDetailScreen extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // TODO: Start meditation / play audio
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Starting meditation...'),

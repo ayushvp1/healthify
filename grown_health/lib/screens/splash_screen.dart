@@ -40,7 +40,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFAA3D50),
+      backgroundColor: const Color(0xFF5B0C23), // Darker burgundy from design
       body: SafeArea(
         child: Center(
           child: Column(
@@ -48,18 +48,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 136,
-                height: 136,
+                width: 140,
+                height: 140,
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(27),
+                  borderRadius: BorderRadius.circular(30),
                 ),
                 child: Center(
-                  child: SizedBox(
-                    width: 69,
-                    height: 69,
-                    child: Image.asset('assets/heart.png', fit: BoxFit.contain),
-                  ),
+                  child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                 ),
               ),
               const SizedBox(height: 32),
@@ -68,23 +65,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 39,
-                    height: 47 / 39,
+                    fontWeight: FontWeight.w700, // Make it bolder
+                    fontSize: 32,
                     color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'Your Health Journey Starts Here',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontWeight: FontWeight.w400,
-                    fontSize: 20,
-                    height: 24 / 20,
-                    color: Colors.white,
+                    fontSize: 16,
+                    color: Colors.white70,
                   ),
                 ),
               ),
