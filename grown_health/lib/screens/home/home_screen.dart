@@ -184,12 +184,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       color: const Color(0xFFE5BCC5), // Thinner, softer border
                       width: 1.5,
                     ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.account_circle_rounded,
-                      size: 30,
-                      color: Color(0xFF5B0C23),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/profile_icon.png'),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -204,8 +201,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF0F5), // Light pink background
+        color: const Color(0xFFFFF5F8), // Very light pinkish-white
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(
+              0xFF5B0C23,
+            ).withOpacity(0.08), // Subtle burgundy shadow
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: TextField(
         onChanged: (value) {
@@ -213,26 +220,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             _searchQuery = value.trim().toLowerCase();
           });
         },
+        style: GoogleFonts.inter(
+          color: Colors.black87,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
           hintText: 'Search Workouts',
           hintStyle: GoogleFonts.inter(
-            color: Colors.grey.shade500,
+            color: Colors.grey.shade700, // Darker text as requested
             fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
           prefixIcon: Padding(
-            padding: const EdgeInsets.all(6.0),
+            padding: const EdgeInsets.all(
+              8.0,
+            ), // Slightly more padding for the icon container
             child: Container(
-              width: 40,
-              height: 40,
+              width: 44, // Slightly larger touch target
+              height: 44,
               decoration: const BoxDecoration(
                 color: Color(0xFF5B0C23), // Dark Burgundy
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.search, color: Colors.white, size: 22),
+              child: const Icon(Icons.search, color: Colors.white, size: 24),
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
@@ -263,7 +278,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF1E8842), // Green
+                    color: Color(0xFF5B0C23), // Dark Burgundy
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -294,7 +309,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF1E8842), // Green
+                    color: Color(0xFF5B0C23), // Dark Burgundy
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -327,8 +342,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: GoogleFonts.inter(
                 textStyle: const TextStyle(
                   fontSize: 14,
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF5B0C23), // Dark Burgundy
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

@@ -55,60 +55,62 @@ class _SharedBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        height: 80,
         decoration: BoxDecoration(
-          color: const Color(0xFFAA3D50),
-          borderRadius: BorderRadius.circular(32),
+          color: const Color(0xFFA03E4E), // Deep dusty red/maroon
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-              child: _BottomNavItem(
-                label: 'Home',
-                index: 0,
-                currentIndex: currentIndex,
-                onTap: onTap,
-                icon: Icons.home_rounded,
-              ),
+            _BottomNavItem(
+              label: 'Home',
+              index: 0,
+              currentIndex: currentIndex,
+              onTap: onTap,
+              icon: Icons.home_filled,
+              selectedIcon: Icons.home_filled,
             ),
-            Expanded(
-              child: _BottomNavItem(
-                label: 'Body',
-                index: 1,
-                currentIndex: currentIndex,
-                onTap: onTap,
-                icon: Icons.person_outline_rounded,
-              ),
+            _BottomNavItem(
+              label: 'Body',
+              index: 1,
+              currentIndex: currentIndex,
+              onTap: onTap,
+              icon: Icons.accessibility_new_rounded,
+              selectedIcon: Icons.accessibility_new_rounded,
             ),
-            Expanded(
-              child: _BottomNavItem(
-                label: 'Nutrition',
-                index: 2,
-                currentIndex: currentIndex,
-                onTap: onTap,
-                icon: Icons.rice_bowl_outlined,
-              ),
+            _BottomNavItem(
+              label: 'Nutrition',
+              index: 2,
+              currentIndex: currentIndex,
+              onTap: onTap,
+              icon: Icons.rice_bowl_outlined,
+              selectedIcon: Icons.rice_bowl,
             ),
-            Expanded(
-              child: _BottomNavItem(
-                label: 'Help',
-                index: 3,
-                currentIndex: currentIndex,
-                onTap: onTap,
-                icon: Icons.account_circle_outlined,
-              ),
+            _BottomNavItem(
+              label: 'Help',
+              index: 3,
+              currentIndex: currentIndex,
+              onTap: onTap,
+              icon: Icons.account_circle_outlined,
+              selectedIcon: Icons.account_circle,
             ),
-            Expanded(
-              child: _BottomNavItem(
-                label: 'Mind',
-                index: 4,
-                currentIndex: currentIndex,
-                onTap: onTap,
-                icon: Icons.emoji_emotions_outlined,
-              ),
+            _BottomNavItem(
+              label: 'Mind',
+              index: 4,
+              currentIndex: currentIndex,
+              onTap: onTap,
+              icon: Icons.sentiment_satisfied_rounded,
+              selectedIcon: Icons.sentiment_satisfied_rounded,
             ),
           ],
         ),
@@ -123,6 +125,7 @@ class _BottomNavItem extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final IconData icon;
+  final IconData selectedIcon;
 
   const _BottomNavItem({
     required this.label,
@@ -130,34 +133,39 @@ class _BottomNavItem extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.icon,
+    required this.selectedIcon,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isSelected = index == currentIndex;
 
+    // Selected State: White Stadium/Capsule with Icon + Name
     if (isSelected) {
-      // White pill for selected tab
       return GestureDetector(
         onTap: () => onTap(index),
         child: Container(
-          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 20, color: const Color(0xFFAA3D50)),
-              const SizedBox(width: 4),
+              Icon(
+                selectedIcon,
+                size: 20,
+                color: const Color(0xFFA03E4E), // Match nav background
+              ),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFFAA3D50),
+                    color: Color(0xFFA03E4E),
                   ),
                 ),
               ),
@@ -167,25 +175,12 @@ class _BottomNavItem extends StatelessWidget {
       );
     }
 
-    // Unselected state: simple icon + label
+    // Unselected State: Icon only
     return GestureDetector(
       onTap: () => onTap(index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 4),
-          Icon(icon, size: 20, color: const Color(0xFFF6C5CF)),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFFF6C5CF),
-              ),
-            ),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Icon(icon, size: 26, color: Colors.white.withOpacity(0.6)),
       ),
     );
   }

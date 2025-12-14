@@ -62,6 +62,7 @@ flutter:
     - assets/heart.png
     - assets/todays_plan.jpg
     - assets/mind/morning_mindfulness.png
+    - assets/images/
     - assets/logo.png
   # fonts:
   #   - family: Inter
