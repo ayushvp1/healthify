@@ -39,6 +39,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Clear any previous user's data first
+      await _storageService.clearAuth();
+      
       final token = await _authService.login(
         email: email,
         password: password,
@@ -68,6 +71,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Clear any previous user's data first
+      await _storageService.clearAuth();
+      
       final token = await _authService.register(
         email: email,
         password: password,

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/auth_provider.dart';
+import '../services/profile_service.dart';
+import '../models/profile_model.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  String _userName = 'Ayush';
-  String _age = '23 years';
-  String _gender = 'Male';
-  String _weight = '90 kg';
-  String _goal = 'Get fit';
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  ProfileModel? _profile;
+  bool _loading = true;
+  String? _error;
+  
+  // Health metrics (not in Profile API, stored locally)
   String _cholesterol = 'Not set';
   String _bloodSugar = 'Not set';
   String _bloodPressure = 'Not set';
@@ -23,55 +28,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
+    _loadHealthMetrics();
   }
-
-  Future<void> _loadProfile() async {
+  
+  Future<void> _loadHealthMetrics() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedName = prefs.getString('userName');
-    if (savedName != null && savedName.isNotEmpty) {
-      setState(() => _userName = savedName);
-    } else {
-      // Save the default name so HomeScreen can read it
-      await prefs.setString('userName', _userName);
-    }
-
-    final savedAge = prefs.getString('userAge');
-    final savedGender = prefs.getString('userGender');
-    final savedWeight = prefs.getString('userWeight');
-    final savedGoal = prefs.getString('userGoal');
-    final savedChol = prefs.getString('userCholesterol');
-    final savedSugar = prefs.getString('userBloodSugar');
-    final savedBp = prefs.getString('userBloodPressure');
-
+    final userEmail = ref.read(authProvider).user?.email ?? '';
+    
     setState(() {
-      if (savedAge != null && savedAge.isNotEmpty) _age = savedAge;
-      if (savedGender != null && savedGender.isNotEmpty) _gender = savedGender;
-      if (savedWeight != null && savedWeight.isNotEmpty) _weight = savedWeight;
-      if (savedGoal != null && savedGoal.isNotEmpty) _goal = savedGoal;
-      if (savedChol != null && savedChol.isNotEmpty) _cholesterol = savedChol;
-      if (savedSugar != null && savedSugar.isNotEmpty) _bloodSugar = savedSugar;
-      if (savedBp != null && savedBp.isNotEmpty) _bloodPressure = savedBp;
+      _cholesterol = prefs.getString('${userEmail}_cholesterol') ?? 'Not set';
+      _bloodSugar = prefs.getString('${userEmail}_bloodSugar') ?? 'Not set';
+      _bloodPressure = prefs.getString('${userEmail}_bloodPressure') ?? 'Not set';
     });
   }
 
-  Future<void> _handleLogout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
-    await prefs.remove('userName');
-    await prefs.remove('userAge');
-    await prefs.remove('userGender');
-    await prefs.remove('userWeight');
-    await prefs.remove('userGoal');
-    await prefs.remove('userCholesterol');
-    await prefs.remove('userBloodSugar');
-    await prefs.remove('userBloodPressure');
+  Future<void> _loadProfile() async {
+    final token = ref.read(authProvider).user?.token;
+    
+    if (token == null) {
+      setState(() {
+        _error = 'Not logged in';
+        _loading = false;
+      });
+      return;
+    }
 
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final profileService = ProfileService(token);
+      final profile = await profileService.getProfile();
+      
+      // Debug: Print what we received
+      debugPrint('📱 Profile loaded:');
+      debugPrint('  Name: ${profile.name}');
+      debugPrint('  Email: ${profile.email}');
+      debugPrint('  Age: ${profile.age}');
+      debugPrint('  Gender: ${profile.gender}');
+      debugPrint('  Weight: ${profile.weight}');
+      debugPrint('  Height: ${profile.height}');
+      
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _loading = false;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Profile error: $e');
+      
+      // Check if it's a "profile not found" error
+      final errorMsg = e.toString().toLowerCase();
+      if (errorMsg.contains('not found') || errorMsg.contains('404')) {
+        // Profile doesn't exist - navigate to complete profile screen
+        if (mounted) {
+          final completed = await Navigator.of(context).pushNamed('/profile-complete');
+          if (completed == true) {
+            // Profile was completed, reload
+            _loadProfile();
+          } else {
+            setState(() {
+              _error = 'Profile not completed';
+              _loading = false;
+            });
+          }
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _error = e.toString().replaceFirst('Exception: ', '');
+            _loading = false;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    // Use auth provider's logout which clears all data
+    await ref.read(authProvider.notifier).logout();
+    
     if (!context.mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final userEmail = ref.watch(authProvider).user?.email ?? '';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -97,108 +145,179 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? _buildErrorView()
+              : _buildProfileView(userEmail),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 24),
-            // Avatar
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFCE4E8),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person_outline_rounded,
-                size: 50,
-                color: Color(0xFFAA3D50),
-              ),
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            // Name
             Text(
-              _userName,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Email
-            Text(
-              'avpdoppler@gmail.com',
-              style: GoogleFonts.inter(
-                textStyle: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-            ),
-            const SizedBox(height: 32),
-            // Health Metrics Section
-            _buildSectionHeader(
-              'Health Metrics',
-              editable: true,
-              onEdit: _showEditHealthMetricsDialog,
-            ),
-            const SizedBox(height: 16),
-            _buildMetricRow(
-              Icons.monitor_heart_outlined,
-              'Cholesterol',
-              _cholesterol,
-            ),
-            _buildMetricRow(
-              Icons.water_drop_outlined,
-              'Blood Sugar - Fasting',
-              _bloodSugar,
-            ),
-            _buildMetricRow(
-              Icons.favorite_outline_rounded,
-              'Blood Pressure',
-              _bloodPressure,
+              _error ?? 'Failed to load profile',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(fontSize: 16),
             ),
             const SizedBox(height: 24),
-            // Personal Information Section
-            _buildSectionHeader(
-              'Personal Information',
-              editable: true,
-              onEdit: _showEditPersonalInfoDialog,
-            ),
-            const SizedBox(height: 16),
-            _buildMetricRow(Icons.cake_outlined, 'Age', _age),
-            _buildMetricRow(Icons.person_outline_rounded, 'Gender', _gender),
-            _buildMetricRow(Icons.fitness_center_rounded, 'Weight', _weight),
-            _buildMetricRow(Icons.flag_outlined, 'Goal', _goal),
-            const SizedBox(height: 40),
-            // Logout Button
-            SizedBox(
-              width: 140,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () => _handleLogout(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFAA3D50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Logout',
-                  style: GoogleFonts.inter(
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+            ElevatedButton(
+              onPressed: _loadProfile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFAA3D50),
               ),
+              child: const Text('Retry'),
             ),
-            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileView(String userEmail) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 24),
+          // Avatar
+          Container(
+            width: 100,
+            height: 100,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFCE4E8),
+              shape: BoxShape.circle,
+            ),
+            child: _profile?.profileImage != null
+                ? ClipOval(
+                    child: Image.network(
+                      _profile!.profileImage!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person_outline_rounded,
+                        size: 50,
+                        color: Color(0xFFAA3D50),
+                      ),
+                    ),
+                  )
+                : const Icon(
+                    Icons.person_outline_rounded,
+                    size: 50,
+                    color: Color(0xFFAA3D50),
+                  ),
+          ),
+          const SizedBox(height: 16),
+          // Name
+          Text(
+            _profile?.name != null && _profile!.name!.isNotEmpty
+                ? _profile!.name!
+                : userEmail.split('@').first, // Use email prefix if no name
+            style: GoogleFonts.inter(
+              textStyle: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Email
+          Text(
+            userEmail,
+            style: GoogleFonts.inter(
+              textStyle: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Health Metrics Section
+          _buildSectionHeader(
+            'Health Metrics',
+            editable: true,
+            onEdit: _showEditHealthMetricsDialog,
+          ),
+          const SizedBox(height: 16),
+          _buildMetricRow(
+            Icons.monitor_heart_outlined,
+            'Cholesterol',
+            _cholesterol,
+          ),
+          _buildMetricRow(
+            Icons.water_drop_outlined,
+            'Blood Sugar - Fasting',
+            _bloodSugar,
+          ),
+          _buildMetricRow(
+            Icons.favorite_outline_rounded,
+            'Blood Pressure',
+            _bloodPressure,
+          ),
+          const SizedBox(height: 24),
+          // Personal Information Section
+          _buildSectionHeader(
+            'Personal Information',
+            editable: true,
+            onEdit: _showEditPersonalInfoDialog,
+          ),
+          const SizedBox(height: 16),
+          _buildMetricRow(
+            Icons.cake_outlined,
+            'Age',
+            _profile?.age != null ? '${_profile!.age} years' : 'Not set',
+          ),
+          _buildMetricRow(
+            Icons.person_outline_rounded,
+            'Gender',
+            _profile?.gender ?? 'Not set',
+          ),
+          _buildMetricRow(
+            Icons.fitness_center_rounded,
+            'Weight',
+            _profile?.weight != null ? '${_profile!.weight} kg' : 'Not set',
+          ),
+          _buildMetricRow(
+            Icons.height_rounded,
+            'Height',
+            _profile?.height != null ? '${_profile!.height} cm' : 'Not set',
+          ),
+          _buildMetricRow(
+            Icons.flag_outlined,
+            'Goal',
+            'Not set', // Not in Profile API
+          ),
+          const SizedBox(height: 40),
+          // Logout Button
+          SizedBox(
+            width: 140,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () => _handleLogout(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFAA3D50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Logout',
+                style: GoogleFonts.inter(
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
@@ -249,10 +368,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showEditPersonalInfoDialog() async {
-    final ageController = TextEditingController(text: _age);
-    final genderController = TextEditingController(text: _gender);
-    final weightController = TextEditingController(text: _weight);
-    final goalController = TextEditingController(text: _goal);
+    final ageController = TextEditingController(
+      text: _profile?.age?.toString() ?? '',
+    );
+    final genderController = TextEditingController(
+      text: _profile?.gender ?? '',
+    );
+    final weightController = TextEditingController(
+      text: _profile?.weight?.toString() ?? '',
+    );
+    final heightController = TextEditingController(
+      text: _profile?.height?.toString() ?? '',
+    );
 
     final result = await showDialog<bool>(
       context: context,
@@ -266,6 +393,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextField(
                   controller: ageController,
                   decoration: const InputDecoration(labelText: 'Age'),
+                  keyboardType: TextInputType.number,
                 ),
                 TextField(
                   controller: genderController,
@@ -273,11 +401,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 TextField(
                   controller: weightController,
-                  decoration: const InputDecoration(labelText: 'Weight'),
+                  decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                  keyboardType: TextInputType.number,
                 ),
                 TextField(
-                  controller: goalController,
-                  decoration: const InputDecoration(labelText: 'Goal'),
+                  controller: heightController,
+                  decoration: const InputDecoration(labelText: 'Height (cm)'),
+                  keyboardType: TextInputType.number,
                 ),
               ],
             ),
@@ -297,33 +427,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result == true) {
-      final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _age = ageController.text.trim().isEmpty
-            ? _age
-            : ageController.text.trim();
-        _gender = genderController.text.trim().isEmpty
-            ? _gender
-            : genderController.text.trim();
-        _weight = weightController.text.trim().isEmpty
-            ? _weight
-            : weightController.text.trim();
-        _goal = goalController.text.trim().isEmpty
-            ? _goal
-            : goalController.text.trim();
-      });
-
-      await prefs.setString('userAge', _age);
-      await prefs.setString('userGender', _gender);
-      await prefs.setString('userWeight', _weight);
-      await prefs.setString('userGoal', _goal);
+      await _updateProfile(
+        age: int.tryParse(ageController.text.trim()),
+        gender: genderController.text.trim().isEmpty
+            ? null
+            : genderController.text.trim(),
+        weight: double.tryParse(weightController.text.trim()),
+        height: double.tryParse(heightController.text.trim()),
+      );
     }
   }
 
   Future<void> _showEditHealthMetricsDialog() async {
-    final cholController = TextEditingController(text: _cholesterol);
-    final sugarController = TextEditingController(text: _bloodSugar);
-    final bpController = TextEditingController(text: _bloodPressure);
+    final cholController = TextEditingController(text: _cholesterol == 'Not set' ? '' : _cholesterol);
+    final sugarController = TextEditingController(text: _bloodSugar == 'Not set' ? '' : _bloodSugar);
+    final bpController = TextEditingController(text: _bloodPressure == 'Not set' ? '' : _bloodPressure);
 
     final result = await showDialog<bool>(
       context: context,
@@ -340,12 +458,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     labelText: 'Cholesterol (e.g. 180 mg/dL)',
                   ),
                 ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: sugarController,
                   decoration: const InputDecoration(
                     labelText: 'Blood Sugar - Fasting (e.g. 95 mg/dL)',
                   ),
                 ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: bpController,
                   decoration: const InputDecoration(
@@ -371,21 +491,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (result == true) {
       final prefs = await SharedPreferences.getInstance();
+      final userEmail = ref.read(authProvider).user?.email ?? '';
+      
+      final newChol = cholController.text.trim().isEmpty ? 'Not set' : cholController.text.trim();
+      final newSugar = sugarController.text.trim().isEmpty ? 'Not set' : sugarController.text.trim();
+      final newBp = bpController.text.trim().isEmpty ? 'Not set' : bpController.text.trim();
+      
+      await prefs.setString('${userEmail}_cholesterol', newChol);
+      await prefs.setString('${userEmail}_bloodSugar', newSugar);
+      await prefs.setString('${userEmail}_bloodPressure', newBp);
+      
       setState(() {
-        _cholesterol = cholController.text.trim().isEmpty
-            ? _cholesterol
-            : cholController.text.trim();
-        _bloodSugar = sugarController.text.trim().isEmpty
-            ? _bloodSugar
-            : sugarController.text.trim();
-        _bloodPressure = bpController.text.trim().isEmpty
-            ? _bloodPressure
-            : bpController.text.trim();
+        _cholesterol = newChol;
+        _bloodSugar = newSugar;
+        _bloodPressure = newBp;
       });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Health metrics updated!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
 
-      await prefs.setString('userCholesterol', _cholesterol);
-      await prefs.setString('userBloodSugar', _bloodSugar);
-      await prefs.setString('userBloodPressure', _bloodPressure);
+  Future<void> _updateProfile({
+    String? name,
+    int? age,
+    String? gender,
+    double? weight,
+    double? height,
+  }) async {
+    final token = ref.read(authProvider).user?.token;
+    if (token == null) return;
+
+    setState(() => _loading = true);
+
+    try {
+      final profileService = ProfileService(token);
+      await profileService.updateProfile(
+        name: name,
+        age: age,
+        gender: gender,
+        weight: weight,
+        height: height,
+      );
+
+      debugPrint('✅ Profile update sent to backend');
+      debugPrint('🔄 Reloading profile from API...');
+
+      // Force clear current profile
+      if (mounted) {
+        setState(() {
+          _profile = null;
+          _loading = true;
+        });
+      }
+
+      // Small delay to ensure backend is updated
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Reload the profile from API to get fresh data
+      final freshProfile = await profileService.getProfile();
+      
+      debugPrint('📱 Fresh profile loaded:');
+      debugPrint('  Name: ${freshProfile.name}');
+      debugPrint('  Age: ${freshProfile.age}');
+      debugPrint('  Gender: ${freshProfile.gender}');
+      debugPrint('  Weight: ${freshProfile.weight}');
+      debugPrint('  Height: ${freshProfile.height}');
+
+      if (mounted) {
+        setState(() {
+          _profile = freshProfile;
+          _loading = false;
+          _error = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Profile update failed: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update: ${e.toString().replaceFirst('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

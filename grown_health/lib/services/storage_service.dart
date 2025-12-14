@@ -38,5 +38,14 @@ class StorageService {
   Future<void> clearAuth() async {
     await _prefs.remove(_tokenKey);
     await _prefs.remove(_emailKey);
+    // Also clear any other user-specific data
+    await _prefs.remove('userName');
+    // Clear all keys that start with 'user_' or 'profile_'
+    final keys = _prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith('user_') || key.startsWith('profile_')) {
+        await _prefs.remove(key);
+      }
+    }
   }
 }

@@ -6,6 +6,8 @@ import 'providers/providers.dart';
 import 'screens/screens.dart';
 import 'screens/medicine/medicine_reminders_screen.dart';
 import 'screens/medicine/add_medicine_screen.dart';
+import 'screens/api_test_screen.dart';
+import 'screens/profile_complete_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,8 +41,10 @@ class MyApp extends StatelessWidget {
         '/workout_detail': (context) => const WorkoutDetailScreen(),
         '/profile_setup': (context) => const ProfileSetupScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/profile-complete': (context) => const ProfileCompleteScreen(),
         '/medicine_reminders': (context) => const MedicineRemindersScreen(),
         '/add_medicine': (context) => const AddMedicineScreen(),
+        '/api_test': (context) => const ApiTestScreen(),
       },
     );
   }

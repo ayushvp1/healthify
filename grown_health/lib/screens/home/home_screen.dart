@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/providers.dart';
 import 'widgets/widgets.dart';
+import '../../services/water_service.dart';
+import '../../services/water_reminder_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     _updateGreeting();
     _loadUserName();
+    _startWaterReminders();
+  }
+
+  void _startWaterReminders() {
+    // Start water reminders after a short delay to ensure context is ready
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      
+      final token = ref.read(authProvider).user?.token;
+      if (token != null) {
+        final waterService = WaterService(token);
+        WaterReminderManager.start(waterService, context);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    WaterReminderManager.stop();
+    super.dispose();
   }
 
   Future<void> _loadUserName() async {
@@ -75,6 +97,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     _buildSearchBar(),
                     const SizedBox(height: 24),
                     _buildMedicineReminder(),
+                    const SizedBox(height: 12),
+                    const WaterTrackingWidget(),
                     const SizedBox(height: 24),
                     _buildTodaysPlan(context),
                     const SizedBox(height: 24),
