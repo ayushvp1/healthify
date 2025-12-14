@@ -121,7 +121,7 @@ class _HelpScreenState extends State<HelpScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.08), blurRadius: 10),
         ],
       ),
       child: Padding(

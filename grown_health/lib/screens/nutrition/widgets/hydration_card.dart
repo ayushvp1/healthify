@@ -23,7 +23,7 @@ class HydrationCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(27),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 9),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 9),
         ],
       ),
       child: Row(

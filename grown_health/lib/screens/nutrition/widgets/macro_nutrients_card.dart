@@ -27,7 +27,7 @@ class MacroNutrientsCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(27),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 9),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 9),
         ],
       ),
       child: Column(
@@ -94,7 +94,12 @@ class _MacroItem extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.12),
+            color: Color.fromRGBO(
+              iconColor.red,
+              iconColor.green,
+              iconColor.blue,
+              0.12,
+            ),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 20, color: iconColor),

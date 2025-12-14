@@ -37,7 +37,7 @@ class RecommendedCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: const Color.fromRGBO(255, 255, 255, 0.18),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
@@ -130,7 +130,7 @@ class RecommendedCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: const Color.fromRGBO(255, 255, 255, 0.3),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Container(

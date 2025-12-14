@@ -31,7 +31,10 @@ class MealCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.13), blurRadius: 6),
+            const BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.13),
+              blurRadius: 6,
+            ),
           ],
         ),
         child: Padding(
@@ -96,7 +99,11 @@ class MealCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.edit_note_rounded, size: 20, color: buttonColor),
+                      Icon(
+                        Icons.edit_note_rounded,
+                        size: 20,
+                        color: buttonColor,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         buttonLabel,

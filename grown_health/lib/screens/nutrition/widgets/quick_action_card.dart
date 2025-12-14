@@ -22,7 +22,10 @@ class QuickActionCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6),
+            const BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.08),
+              blurRadius: 6,
+            ),
           ],
         ),
         child: Column(
@@ -32,7 +35,9 @@ class QuickActionCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.inter(textStyle: const TextStyle(fontSize: 13)),
+              style: GoogleFonts.inter(
+                textStyle: const TextStyle(fontSize: 13),
+              ),
             ),
           ],
         ),

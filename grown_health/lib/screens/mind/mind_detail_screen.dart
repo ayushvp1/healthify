@@ -215,7 +215,7 @@ class MindDetailScreen extends StatelessWidget {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: const Color.fromRGBO(0, 0, 0, 0.06),
                   blurRadius: 12,
                   offset: const Offset(0, -2),
                 ),

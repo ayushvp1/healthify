@@ -112,7 +112,7 @@ class WorkoutsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: const Color.fromRGBO(0, 0, 0, 0.05),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -328,20 +328,17 @@ class _ProgressRow extends StatelessWidget {
 }
 
 class _WorkoutRow extends StatelessWidget {
-  final VoidCallback? onTap;
   final String title;
 
-  const _WorkoutRow({this.onTap, required this.title});
+  const _WorkoutRow({required this.title});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap:
-          onTap ??
-          () {
-            // Default behaviour: open workout detail when tapping a row.
-            Navigator.of(context).pushNamed('/workout_detail');
-          },
+      onTap: () {
+        // Open workout detail when tapping a row
+        Navigator.of(context).pushNamed('/workout_detail');
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),

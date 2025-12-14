@@ -87,7 +87,7 @@ class NutritionScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 7),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 7),
         ],
       ),
       child: Stack(
@@ -207,7 +207,7 @@ class NutritionScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 7),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 7),
         ],
       ),
       child: Column(
@@ -481,7 +481,7 @@ class _GoalCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 7),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 7),
         ],
       ),
       child: Row(
@@ -566,7 +566,10 @@ class _HabitIcon extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6),
+              const BoxShadow(
+                color: Color.fromRGBO(0, 0, 0, 0.08),
+                blurRadius: 6,
+              ),
             ],
           ),
           child: Icon(icon, color: const Color(0xFFAA3D50)),
@@ -598,7 +601,7 @@ class _TipCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.06), blurRadius: 6),
         ],
       ),
       child: Text(

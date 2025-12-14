@@ -55,20 +55,34 @@ class _MedicineRemindersScreenState extends State<MedicineRemindersScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFFAA3D50),
-        onPressed: () async {
-          final result = await Navigator.of(context).pushNamed('/add_medicine');
-          if (result is Map<String, dynamic>) {
-            setState(() {
-              _medicines.add(result);
-            });
+        onPressed: () {
+          // Store the context in a local variable to use after async operations
+          final currentContext = context;
+
+          // Use a local function to handle the async operation
+          void handleAddMedicine() async {
+            final result = await Navigator.of(
+              currentContext,
+            ).pushNamed('/add_medicine');
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Medicine added successfully!'),
-                duration: Duration(seconds: 2),
-              ),
-            );
+
+            if (result is Map<String, dynamic>) {
+              setState(() {
+                _medicines.add(result);
+              });
+
+              if (!mounted) return;
+              ScaffoldMessenger.of(currentContext).showSnackBar(
+                const SnackBar(
+                  content: Text('Medicine added successfully!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           }
+
+          // Call the async function
+          handleAddMedicine();
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -246,7 +260,7 @@ class _MedicineCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8),
+          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.06), blurRadius: 8),
         ],
       ),
       child: Row(

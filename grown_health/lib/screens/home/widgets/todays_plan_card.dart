@@ -29,7 +29,7 @@ class TodaysPlanCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: const Color.fromRGBO(0, 0, 0, 0.05),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),

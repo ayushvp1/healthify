@@ -36,6 +36,9 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
 
   int _currentIndex = 0;
   int _remainingSeconds = 0;
+  int _totalDuration = 0;
+  bool _isPaused = false;
+  bool _isResting = false;
   Timer? _timer;
 
   @override
@@ -54,11 +57,15 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
     _timer?.cancel();
     final step = _steps[_currentIndex];
     setState(() {
+      _isPaused = false;
+      _isResting = step.isRest;
+      _totalDuration = step.durationSeconds;
       _remainingSeconds = step.durationSeconds;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
+      if (_isPaused) return;
       if (_remainingSeconds <= 1) {
         timer.cancel();
         _goToNextStep();
@@ -67,6 +74,12 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
           _remainingSeconds--;
         });
       }
+    });
+  }
+
+  void _togglePause() {
+    setState(() {
+      _isPaused = !_isPaused;
     });
   }
 
@@ -100,8 +113,12 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
               total: _steps.length,
             ),
             const SizedBox(height: 8),
-            _buildIllustration(step),
-            _buildExerciseInfo(step),
+            if (_isResting)
+              _buildRestView()
+            else ...[
+              _buildIllustration(step),
+              _buildExerciseInfo(step),
+            ],
             _buildNextUpCard(isLast: isLast),
           ],
         ),
@@ -199,6 +216,47 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
     );
   }
 
+  Widget _buildRestView() {
+    final bool hasNext = _currentIndex + 1 < _steps.length;
+    final String nextName = hasNext
+        ? _steps[_currentIndex + 1].name
+        : 'Finished';
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'REST',
+              style: GoogleFonts.inter(
+                textStyle: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Next: $nextName',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNextUpCard({required bool isLast}) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -218,7 +276,15 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
             const SizedBox(width: 12),
             _buildNextUpInfo(isLast: isLast),
             if (!isLast)
-              const Icon(Icons.fast_forward_rounded, color: Color(0xFFAA3D50)),
+              GestureDetector(
+                onTap: () {
+                  _goToNextStep();
+                },
+                child: const Icon(
+                  Icons.fast_forward_rounded,
+                  color: Color(0xFFAA3D50),
+                ),
+              ),
           ],
         ),
       ),
@@ -226,23 +292,45 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
   }
 
   Widget _buildTimer() {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFAA3D50), width: 3),
-      ),
-      child: Center(
-        child: Text(
-          '$_remainingSeconds',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFFAA3D50),
+    final percent = _totalDuration > 0
+        ? _remainingSeconds / _totalDuration
+        : 0.0;
+
+    return GestureDetector(
+      onTap: _togglePause,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFAA3D50), width: 3),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                value: percent,
+                strokeWidth: 3,
+                backgroundColor: Colors.white,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFFAA3D50),
+                ),
+              ),
             ),
-          ),
+            Text(
+              _isPaused ? '||' : '$_remainingSeconds',
+              style: GoogleFonts.inter(
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFAA3D50),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
