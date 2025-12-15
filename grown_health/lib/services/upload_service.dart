@@ -9,12 +9,7 @@ class UploadService {
   UploadService(this._token);
 
   Future<String> uploadImage(File file) async {
-    // Note: Backend route is /uploads/image (plural uploads)
-    // Checking routes/uploads.js, it says "api/uploads/image" IF mounted at /api/uploads
-    // I need to check server.js where it is mounted.
-    // If mounted as app.use('/api/uploads', require('./routes/uploads')), then URI is correct.
-    // Assuming standard convention.
-    final uri = Uri.parse('$kBaseUrl/uploads/image');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/uploads/image');
 
     final request = http.MultipartRequest('POST', uri);
 
@@ -48,7 +43,7 @@ class UploadService {
   }
 
   Future<String> uploadImageFromBytes(List<int> bytes, String filename) async {
-    final uri = Uri.parse('$kBaseUrl/uploads/image');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/uploads/image');
     final request = http.MultipartRequest('POST', uri);
 
     if (_token != null) {

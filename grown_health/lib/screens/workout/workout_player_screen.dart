@@ -10,27 +10,23 @@ class WorkoutPlayerScreen extends StatefulWidget {
 }
 
 class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
-  // Simple hardcoded flow for now: exercise -> rest -> exercise ...
   final List<_ExerciseStep> _steps = const [
     _ExerciseStep(
-      name: 'V-Up',
+      name: 'JUMPING JACKS',
       description:
-          'Lie flat on your back with arms extended overhead and legs straight. Simultaneously lift your upper and lower body, reaching your hands toward your feet to form a "V" shape.',
+          'Start with feet together and hands by your sides. Jump while raising arms and separating legs. Return to start.',
       durationSeconds: 30,
-      isRest: false,
     ),
     _ExerciseStep(
-      name: 'Rest',
-      description: 'Catch your breath and get ready for the next movement.',
-      durationSeconds: 15,
-      isRest: true,
+      name: 'RUSSIAN TWIST',
+      description:
+          'Sit on floor, lean back slightly, rotate torso side to side.',
+      durationSeconds: 30,
     ),
     _ExerciseStep(
-      name: 'Abdominal Crunches',
-      description:
-          'Lie on your back with knees bent and feet flat on the floor. Lift your shoulders off the ground using your core, then slowly lower back down.',
-      durationSeconds: 30,
-      isRest: false,
+      name: 'PLANK',
+      description: 'Hold a push-up position with weight on forearms.',
+      durationSeconds: 45,
     ),
   ];
 
@@ -38,7 +34,6 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
   int _remainingSeconds = 0;
   int _totalDuration = 0;
   bool _isPaused = false;
-  bool _isResting = false;
   Timer? _timer;
 
   @override
@@ -58,7 +53,6 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
     final step = _steps[_currentIndex];
     setState(() {
       _isPaused = false;
-      _isResting = step.isRest;
       _totalDuration = step.durationSeconds;
       _remainingSeconds = step.durationSeconds;
     });
@@ -66,7 +60,7 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
       if (_isPaused) return;
-      if (_remainingSeconds <= 1) {
+      if (_remainingSeconds <= 0) {
         timer.cancel();
         _goToNextStep();
       } else {
@@ -90,17 +84,52 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
       });
       _startCurrentStep();
     } else {
-      // Finished all steps
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      // Finish
+      _showCompletionDialog();
     }
+  }
+
+  void _goToPreviousStep() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+      _startCurrentStep();
+    }
+  }
+
+  void _showCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Workout Completed!'),
+        content: const Text('Great job! You finished the workout.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Finish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _formattedTime {
+    final minutes = (_remainingSeconds / 60).floor().toString().padLeft(2, '0');
+    final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   @override
   Widget build(BuildContext context) {
     final step = _steps[_currentIndex];
-    final isLast = _currentIndex == _steps.length - 1;
+    final progress = _totalDuration > 0
+        ? 1 - (_remainingSeconds / _totalDuration)
+        : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -112,14 +141,22 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
               stepIndex: _currentIndex,
               total: _steps.length,
             ),
-            const SizedBox(height: 8),
-            if (_isResting)
-              _buildRestView()
-            else ...[
-              _buildIllustration(step),
-              _buildExerciseInfo(step),
-            ],
-            _buildNextUpCard(isLast: isLast),
+            const Spacer(),
+            _buildIllustration(),
+            const Spacer(),
+            Text(
+              step.name,
+              style: GoogleFonts.inter(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 30),
+            _buildBigTimer(progress),
+            const Spacer(),
+            _buildControls(),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -136,237 +173,191 @@ class _WorkoutPlayerScreenState extends State<WorkoutPlayerScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            icon: const Icon(Icons.close_rounded),
-            onPressed: () => Navigator.of(context).pop(),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 18,
+                color: Colors.black,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
           ),
           Text(
             '${stepIndex + 1}/$total',
             style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.help_outline_rounded),
-            onPressed: () {},
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.question_mark_rounded,
+                size: 20,
+                color: Colors.black,
+              ),
+              onPressed: _showHowTo,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildIllustration(_ExerciseStep step) {
-    return Expanded(
+  void _showHowTo() {
+    final step = _steps[_currentIndex];
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('How to: ${step.name}'),
+          content: Text(step.description),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Got it'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildIllustration() {
+    return SizedBox(
+      height: 250,
+      width: double.infinity,
       child: Center(
-        child: Container(
-          width: 260,
-          height: 180,
-          decoration: BoxDecoration(
-            color: Colors.orange.shade100,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Icon(
-            step.isRest
-                ? Icons.airline_seat_flat_rounded
-                : Icons.self_improvement_rounded,
-            size: 80,
-            color: Colors.deepOrange,
+        child: Image.asset(
+          'assets/workout_illustration.png', // Placeholder
+          height: 220,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.accessibility_new_rounded,
+                size: 100,
+                color: Colors.deepOrange,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBigTimer(double progress) {
+    return Container(
+      width: 200,
+      height: 200,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: const Color(0xFF1B5E20), // Dark Green Border
+          width: 5,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          _formattedTime,
+          style: GoogleFonts.inter(
+            fontSize: 48,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1B5E20), // Dark Green Text
           ),
         ),
       ),
     );
   }
 
-  Widget _buildExerciseInfo(_ExerciseStep step) {
+  Widget _buildControls() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            step.isRest ? 'REST' : step.name,
-            style: GoogleFonts.inter(
-              textStyle: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: step.isRest ? Colors.redAccent : Colors.black,
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _togglePause,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5B0C23), // Dark Maroon
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            step.isRest
-                ? 'NEXT: ${_currentIndex + 1 < _steps.length ? _steps[_currentIndex + 1].name : 'Finished'}'
-                : step.description,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 14,
-                height: 1.4,
-                color: Colors.black87,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _isPaused ? 'Resume' : 'Pause',
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                    color: Colors.white,
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRestView() {
-    final bool hasNext = _currentIndex + 1 < _steps.length;
-    final String nextName = hasNext
-        ? _steps[_currentIndex + 1].name
-        : 'Finished';
-
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'REST',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.redAccent,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                onPressed: _currentIndex > 0 ? _goToPreviousStep : null,
+                icon: const Icon(
+                  Icons.skip_previous_rounded,
+                  color: Colors.grey,
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Next: $nextName',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                label: Text(
+                  'Previous',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 ),
+                style: TextButton.styleFrom(foregroundColor: Colors.grey),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNextUpCard({required bool isLast}) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            _buildTimer(),
-            const SizedBox(width: 12),
-            _buildNextUpInfo(isLast: isLast),
-            if (!isLast)
-              GestureDetector(
-                onTap: () {
-                  _goToNextStep();
-                },
-                child: const Icon(
-                  Icons.fast_forward_rounded,
-                  color: Color(0xFFAA3D50),
+              TextButton.icon(
+                onPressed: _goToNextStep,
+                label: Text(
+                  'Skip',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
                 ),
+                icon: const Icon(Icons.skip_next_rounded, color: Colors.grey),
+                style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                // icon alignment? flutter text button icon is usually left.
+                // We'll use Directionality for RTL icon or just Row.
+                // TextButton.icon puts icon on left. For 'Skip >', we want icon on right.
               ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimer() {
-    final percent = _totalDuration > 0
-        ? _remainingSeconds / _totalDuration
-        : 0.0;
-
-    return GestureDetector(
-      onTap: _togglePause,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFAA3D50), width: 3),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                value: percent,
-                strokeWidth: 3,
-                backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFFAA3D50),
-                ),
-              ),
-            ),
-            Text(
-              _isPaused ? '||' : '$_remainingSeconds',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFAA3D50),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNextUpInfo({required bool isLast}) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isLast ? 'FINISHING' : 'NEXT UP',
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 11,
-                letterSpacing: 0.5,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            isLast
-                ? 'Great job!'
-                : (_currentIndex + 1 < _steps.length
-                      ? _steps[_currentIndex + 1].name
-                      : 'Finished'),
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -378,12 +369,10 @@ class _ExerciseStep {
   final String name;
   final String description;
   final int durationSeconds;
-  final bool isRest;
 
   const _ExerciseStep({
     required this.name,
     required this.description,
     required this.durationSeconds,
-    required this.isRest,
   });
 }

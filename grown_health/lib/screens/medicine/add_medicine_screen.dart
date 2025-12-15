@@ -14,23 +14,88 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   final _dosageController = TextEditingController();
   final _instructionsController = TextEditingController();
 
+  List<TimeOfDay> _times = [const TimeOfDay(hour: 8, minute: 0)];
   String _frequency = 'DAILY';
-  TimeOfDay _time = const TimeOfDay(hour: 8, minute: 0);
   DateTime _startDate = DateTime.now();
   DateTime? _endDate;
 
+  bool _isInit = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _dosageController.addListener(_onDosageChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null) {
+        _nameController.text = args['name'] ?? '';
+        _dosageController.text = args['dosage'] ?? '';
+        _instructionsController.text = args['instructions'] ?? '';
+        _frequency = args['frequency'] ?? 'DAILY';
+
+        if (args['startDate'] is DateTime) {
+          _startDate = args['startDate'];
+        }
+        if (args['endDate'] is DateTime) {
+          _endDate = args['endDate'];
+        }
+
+        if (args['times'] is List<TimeOfDay>) {
+          _times = List<TimeOfDay>.from(args['times']);
+        } else if (args['time'] is TimeOfDay) {
+          _times = [args['time']];
+        }
+      }
+      _isInit = false;
+    }
+  }
+
   @override
   void dispose() {
+    _dosageController.removeListener(_onDosageChanged);
     _nameController.dispose();
     _dosageController.dispose();
     _instructionsController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
+  void _onDosageChanged() {
+    final text = _dosageController.text.trim();
+    if (text.isEmpty) return;
+
+    final count = int.tryParse(text);
+    if (count != null && count > 0 && count <= 10) {
+      // Limit to 10 for sanity
+      setState(() {
+        // Resize _times list
+        if (count > _times.length) {
+          // Add more times (defaulting to last time or 8am)
+          final lastTime = _times.isNotEmpty
+              ? _times.last
+              : const TimeOfDay(hour: 8, minute: 0);
+          for (int i = _times.length; i < count; i++) {
+            _times.add(lastTime);
+          }
+        } else if (count < _times.length) {
+          _times = _times.sublist(0, count);
+        }
+      });
+    }
+  }
+
+  Future<void> _pickTime(int index) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _times[index],
+    );
     if (picked != null) {
-      setState(() => _time = picked);
+      setState(() => _times[index] = picked);
     }
   }
 
@@ -66,7 +131,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       'dosage': _dosageController.text.trim(),
       'instructions': _instructionsController.text.trim(),
       'frequency': _frequency,
-      'time': _time,
+      'times': _times, // Return List<TimeOfDay>
       'startDate': _startDate,
       'endDate': _endDate,
     });
@@ -134,13 +199,22 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _buildTimeCard()),
-                  const SizedBox(width: 12),
                   Expanded(child: _buildStartDateCard()),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildEndDateCard()),
                 ],
               ),
-              const SizedBox(height: 12),
-              _buildEndDateCard(),
+              const SizedBox(height: 16),
+              Text(
+                'Reminder Times (${_times.length})',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildTimeSlots(),
               const SizedBox(height: 16),
               _buildInstructionsField(),
               const SizedBox(height: 32),
@@ -187,6 +261,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       child: TextFormField(
         controller: controller,
         validator: validator,
+        keyboardType: label == 'Dosage'
+            ? TextInputType.number
+            : TextInputType.text,
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: const Color(0xFFAA3D50)),
           hintText: label,
@@ -227,14 +304,43 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     );
   }
 
-  Widget _buildTimeCard() {
-    return GestureDetector(
-      onTap: _pickTime,
-      child: _InfoCard(
-        icon: Icons.access_time,
-        title: 'Time',
-        value: _formatTime(_time),
-      ),
+  Widget _buildTimeSlots() {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: List.generate(_times.length, (index) {
+        return GestureDetector(
+          onTap: () => _pickTime(index),
+          child: Container(
+            width: 100,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFCE4E8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFAA3D50).withOpacity(0.3),
+              ),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 18,
+                  color: Color(0xFFAA3D50),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatTime(_times[index]),
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 

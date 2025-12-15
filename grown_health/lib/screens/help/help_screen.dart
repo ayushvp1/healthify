@@ -9,59 +9,151 @@ class HelpScreen extends StatefulWidget {
 }
 
 class _HelpScreenState extends State<HelpScreen> {
-  int _questionIndex = 0;
+  int _currentCategoryIndex = 0;
+  int _currentQuestionIndex = 0;
   int? _selectedOption;
 
-  final List<_QuestionData> _questions = const [
-    _QuestionData(
-      title: 'Question 1',
-      body: 'What is your primary fitness goal?',
-      options: ['Weight Loss', 'Muscle Gain', 'General Health', 'Endurance'],
-    ),
-    _QuestionData(
-      title: 'Question 2',
-      body: 'How many days per week can you exercise?',
-      options: ['1-2 days', '3-4 days', '5-6 days', 'Everyday'],
-    ),
-    _QuestionData(
-      title: 'Question 3',
-      body: 'What is your current activity level?',
-      options: ['Sedentary', 'Lightly Active', 'Active', 'Very Active'],
-    ),
-    _QuestionData(
-      title: 'Question 4',
-      body: 'What type of workouts do you prefer?',
-      options: ['Bodyweight', 'Weights', 'Cardio', 'Mix of all'],
-    ),
-  ];
+  final List<String> _categories = ['Body', 'Mind', 'Nutrition', 'Lifestyle'];
+
+  // Define questions for each category
+  final Map<String, List<_QuestionData>> _questionsByCategory = {
+    'Body': [
+      _QuestionData(
+        title: 'Question 1',
+        body: 'What is your primary fitness goal?',
+        options: ['Weight Loss', 'Muscle Gain', 'General Health', 'Endurance'],
+      ),
+      _QuestionData(
+        title: 'Question 2',
+        body: 'How many days per week can you exercise?',
+        options: ['1-2 days', '3-4 days', '5-6 days', 'Everyday'],
+      ),
+    ],
+    'Mind': [
+      _QuestionData(
+        title: 'Question 1',
+        body: 'How would you rate your daily stress levels?',
+        options: ['Low', 'Moderate', 'High', 'Very High'],
+      ),
+      _QuestionData(
+        title: 'Question 2',
+        body: 'Do you practice meditation or mindfulness?',
+        options: ['Daily', 'Sometimes', 'Rarely', 'Never'],
+      ),
+    ],
+    'Nutrition': [
+      _QuestionData(
+        title: 'Question 1',
+        body: 'How many meals do you eat per day?',
+        options: ['2 meals', '3 meals', '4-5 meals', 'Irregular'],
+      ),
+      _QuestionData(
+        title: 'Question 2',
+        body: 'Do you follow any specific diet?',
+        options: ['Vegan', 'Keto', 'Vegetarian', 'None'],
+      ),
+    ],
+    'Lifestyle': [
+      _QuestionData(
+        title: 'Question 1',
+        body: 'How many hours of sleep do you get?',
+        options: ['Less than 5', '5-6 hours', '7-8 hours', 'More than 8'],
+      ),
+      _QuestionData(
+        title: 'Question 2',
+        body: 'Do you smoke or consume alcohol?',
+        options: ['Frequently', 'Occasionally', 'Rarely', 'Never'],
+      ),
+    ],
+  };
 
   void _goNext() {
-    // Require the user to select an option before proceeding
     if (_selectedOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an answer before continuing.'),
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 1),
         ),
       );
       return;
     }
 
-    if (_questionIndex < _questions.length - 1) {
+    final currentCategory = _categories[_currentCategoryIndex];
+    final currentQuestions = _questionsByCategory[currentCategory]!;
+
+    if (_currentQuestionIndex < currentQuestions.length - 1) {
+      // Next question in same category
       setState(() {
-        _questionIndex++;
+        _currentQuestionIndex++;
         _selectedOption = null;
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Assessment completed.')));
+      // Finished current category
+      if (_currentCategoryIndex < _categories.length - 1) {
+        // Move to next category
+        _showCategoryCompletionDialog(_categories[_currentCategoryIndex + 1]);
+      } else {
+        // Finished all categories
+        _showFinalCompletionDialog();
+      }
     }
+  }
+
+  void _showCategoryCompletionDialog(String nextCategory) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Section Completed!'),
+        content: Text('Moving on to the $nextCategory assessment.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              setState(() {
+                _currentCategoryIndex++;
+                _currentQuestionIndex = 0;
+                _selectedOption = null;
+              });
+            },
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFinalCompletionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Assessment Complete!'),
+        content: const Text('Assessment is completed for now.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Close dialog only
+              // Do NOT close the screen, just stay here so user sees the message.
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Assessment is completed for now.'),
+                ),
+              );
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final question = _questions[_questionIndex];
+    final currentCategory = _categories[_currentCategoryIndex];
+    final currentQuestions = _questionsByCategory[currentCategory]!;
+    final question = currentQuestions[_currentQuestionIndex];
+    const maroonColor = Color(0xFF5B0C23);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,152 +161,143 @@ class _HelpScreenState extends State<HelpScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        leading: const BackButton(color: Colors.black),
         title: Text(
           'Health Assessment',
           style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
-        foregroundColor: Colors.black,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 8),
-              _buildTopTabs(),
-              const SizedBox(height: 16),
-              _buildQuestionCard(question),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopTabs() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: const [
-        _TopTab(
-          label: 'Body',
-          icon: Icons.fitness_center_rounded,
-          selected: true,
-        ),
-        _TopTab(label: 'Mind', icon: Icons.self_improvement_rounded),
-        _TopTab(label: 'Nutrition', icon: Icons.rice_bowl_outlined),
-        _TopTab(label: 'Lifestyle', icon: Icons.bedtime_outlined),
-      ],
-    );
-  }
-
-  Widget _buildQuestionCard(_QuestionData question) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.08), blurRadius: 10),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildQuestionHeader(question.title),
-            const SizedBox(height: 12),
-            Text(
-              question.body,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+            const SizedBox(height: 20),
+            // Top Tabs
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _TopTab(
+                    label: 'Body',
+                    iconPath: 'assets/images/icon_body.png',
+                    selected: _currentCategoryIndex == 0,
+                    color: maroonColor,
+                  ),
+                  _TopTab(
+                    label: 'Mind',
+                    iconPath: 'assets/images/icon_mind.png',
+                    selected: _currentCategoryIndex == 1,
+                    color: maroonColor,
+                  ),
+                  _TopTab(
+                    label: 'Nutrition',
+                    iconPath: 'assets/images/icon_nutrition.png',
+                    selected: _currentCategoryIndex == 2,
+                    color: maroonColor,
+                  ),
+                  _TopTab(
+                    label: 'Lifestyle',
+                    iconPath: 'assets/images/icon_lifestyle.png',
+                    selected: _currentCategoryIndex == 3,
+                    color: maroonColor,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Question Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Question Header
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9), // Light Green
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Image.asset(
+                            'assets/images/icon_body.png',
+                            color: const Color(0xFF2E7D32), // Dark Green
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          question.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      question.body,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Options
+                    ...List.generate(question.options.length, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _OptionButton(
+                          label: question.options[index],
+                          selected: _selectedOption == index,
+                          onTap: () => setState(() => _selectedOption = index),
+                        ),
+                      );
+                    }),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildOptions(question.options),
-            const SizedBox(height: 8),
-            _buildNextButton(),
+
+            // Bottom Button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _goNext,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: maroonColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Next',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuestionHeader(String title) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE6F4FF),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.fitness_center_rounded,
-            size: 18,
-            color: Color(0xFF2196F3),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOptions(List<String> options) {
-    return Column(
-      children: [
-        for (int i = 0; i < options.length; i++) ...[
-          _OptionButton(
-            label: options[i],
-            selected: _selectedOption == i,
-            onTap: () => setState(() => _selectedOption = i),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildNextButton() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: ElevatedButton(
-        onPressed: _goNext,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFAA3D50),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        ),
-        child: Text(
-          _questionIndex < _questions.length - 1 ? 'Next' : 'Finish',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
         ),
       ),
     );
@@ -235,43 +318,44 @@ class _QuestionData {
 
 class _TopTab extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final String iconPath;
   final bool selected;
+  final Color color;
 
   const _TopTab({
     required this.label,
-    required this.icon,
+    required this.iconPath,
     this.selected = false,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color activeColor = const Color(0xFFAA3D50);
-
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: selected ? activeColor : Colors.grey.shade400,
+        Image.asset(
+          iconPath,
+          width: 28,
+          height: 28,
+          color: selected ? color : Colors.grey.shade400,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           label,
           style: GoogleFonts.inter(
-            textStyle: TextStyle(
-              fontSize: 13,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected ? activeColor : Colors.grey.shade600,
-            ),
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? color : Colors.grey.shade500,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Container(
           width: 40,
-          height: 2,
-          color: selected ? activeColor : Colors.transparent,
+          height: 3,
+          decoration: BoxDecoration(
+            color: selected ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
       ],
     );
@@ -294,30 +378,42 @@ class _OptionButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFAA3D50) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? const Color(0xFFAA3D50) : Colors.grey.shade300,
-            width: 1.2,
+            color: selected ? const Color(0xFF5B0C23) : Colors.grey.shade300,
+            width: selected ? 1.5 : 1,
           ),
+          boxShadow: [
+            if (!selected)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+          ],
         ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                textStyle: TextStyle(
-                  fontSize: 14,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: selected ? Colors.white : Colors.black,
+                  color: Colors.black87,
                 ),
               ),
             ),
-          ),
+            if (selected)
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF5B0C23),
+                size: 20,
+              ),
+          ],
         ),
       ),
     );

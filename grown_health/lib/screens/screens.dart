@@ -28,3 +28,4 @@ export 'workout/workouts_screen.dart';
 export 'workout/challenge_detail_screen.dart';
 export 'workout/workout_detail_screen.dart';
 export 'workout/workout_player_screen.dart';
+export 'workout/workout_plan_screen.dart';

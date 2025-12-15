@@ -1,7 +1,5 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import '../api_config.dart';
 
 class CategoryModel {
@@ -20,9 +18,9 @@ class CategoryModel {
   }
 }
 
-class CategoriesService {
+class CategoryService {
   Future<List<CategoryModel>> fetchCategories() async {
-    final uri = Uri.parse('$kBaseUrl/categories');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/categories');
 
     final res = await http.get(uri);
 

@@ -100,7 +100,7 @@ class TodaysPlanCard extends StatelessWidget {
                         child: _MetricBadge(
                           icon: Icons.timer_rounded,
                           label: duration,
-                          color: const Color(0xFF1E8842), // Green
+                          color: const Color(0xFF1B5E20), // Darker Green
                           backgroundColor: const Color(0xFFE8F5E9),
                         ),
                       ),

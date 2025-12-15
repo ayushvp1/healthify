@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_config.dart';
-import '../models/exercise_model.dart';
+import '../models/exercise_model.dart'; // Ensure this model exists
 
 class ExerciseService {
   final String? _token;
@@ -9,9 +9,9 @@ class ExerciseService {
   ExerciseService(this._token);
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
+    'Content-Type': 'application/json',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
 
   /// GET /api/exercises/ - List exercises with pagination, search, category and difficulty filters
   Future<ExerciseListResponse> getExercises({
@@ -29,8 +29,9 @@ class ExerciseService {
       if (difficulty != null && difficulty.isNotEmpty) 'difficulty': difficulty,
     };
 
-    final uri =
-        Uri.parse('$kBaseUrl/exercises').replace(queryParameters: queryParams);
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/exercises',
+    ).replace(queryParameters: queryParams);
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -40,8 +41,9 @@ class ExerciseService {
         return ExerciseListResponse.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get exercises (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ?? 'Failed to get exercises (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -51,7 +53,7 @@ class ExerciseService {
 
   /// GET /api/exercises/:id - Get a single exercise by id
   Future<ExerciseModel> getExerciseById(String id) async {
-    final uri = Uri.parse('$kBaseUrl/exercises/$id');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/exercises/$id');
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -61,8 +63,9 @@ class ExerciseService {
         return ExerciseModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get exercise (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ?? 'Failed to get exercise (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -80,7 +83,7 @@ class ExerciseService {
     dynamic equipment,
     String? image,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/exercises');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/exercises');
 
     final body = <String, dynamic>{
       'title': title,
@@ -104,8 +107,10 @@ class ExerciseService {
         return ExerciseModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to create exercise (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to create exercise (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -115,8 +120,10 @@ class ExerciseService {
 
   /// PUT /api/exercises/:id - Update an exercise (Admin only)
   Future<ExerciseModel> updateExercise(
-      String id, Map<String, dynamic> updates) async {
-    final uri = Uri.parse('$kBaseUrl/exercises/$id');
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/exercises/$id');
 
     try {
       final res = await http.put(
@@ -130,8 +137,10 @@ class ExerciseService {
         return ExerciseModel.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to update exercise (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to update exercise (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -141,7 +150,7 @@ class ExerciseService {
 
   /// DELETE /api/exercises/:id - Delete an exercise (Admin only)
   Future<void> deleteExercise(String id) async {
-    final uri = Uri.parse('$kBaseUrl/exercises/$id');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/exercises/$id');
 
     try {
       final res = await http.delete(uri, headers: _headers);
@@ -150,8 +159,10 @@ class ExerciseService {
         return;
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to delete exercise (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to delete exercise (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;

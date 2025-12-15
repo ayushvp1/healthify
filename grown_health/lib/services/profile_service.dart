@@ -16,7 +16,7 @@ class ProfileService {
 
   /// GET /api/profile/ - Get current user's full profile
   Future<ProfileModel> getProfile() async {
-    final uri = Uri.parse('$kBaseUrl/profile');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/profile');
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -46,7 +46,7 @@ class ProfileService {
     double? height,
     String? fitnessGoal,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/profile/complete');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/profile/complete');
 
     final body = {
       'name': name,
@@ -92,7 +92,7 @@ class ProfileService {
     String? fitnessGoal,
     String? profileImage,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/profile');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/profile');
 
     final body = <String, dynamic>{
       if (name != null) 'name': name,
@@ -129,7 +129,7 @@ class ProfileService {
 
   /// PUT /api/profile/image - Update profile image URL only
   Future<ProfileModel> updateProfileImage(String profileImageUrl) async {
-    final uri = Uri.parse('$kBaseUrl/profile/image');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/profile/image');
 
     final body = {'profileImage': profileImageUrl};
 
@@ -158,7 +158,7 @@ class ProfileService {
 
   /// GET /api/profile/status - Check if user has completed profile setup
   Future<Map<String, dynamic>> getProfileStatus() async {
-    final uri = Uri.parse('$kBaseUrl/profile/status');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/profile/status');
 
     try {
       final res = await http.get(uri, headers: _headers);

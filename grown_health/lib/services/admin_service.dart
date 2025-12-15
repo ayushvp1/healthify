@@ -56,13 +56,13 @@ class AdminService {
   AdminService(this._token);
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      };
+    'Content-Type': 'application/json',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
 
   /// GET /api/admin/summary/ - Get counts for all entities (Admin only)
   Future<AdminSummary> getSummary() async {
-    final uri = Uri.parse('$kBaseUrl/admin/summary');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/admin/summary');
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -72,8 +72,10 @@ class AdminService {
         return AdminSummary.fromJson(data);
       } else {
         final errorData = jsonDecode(res.body);
-        throw Exception(errorData['message'] ??
-            'Failed to get admin summary (${res.statusCode})');
+        throw Exception(
+          errorData['message'] ??
+              'Failed to get admin summary (${res.statusCode})',
+        );
       }
     } catch (e) {
       if (e is Exception) rethrow;

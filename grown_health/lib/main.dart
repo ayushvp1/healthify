@@ -39,6 +39,7 @@ class MyApp extends StatelessWidget {
         '/challenge': (context) => const ChallengeDetailScreen(),
         '/player': (context) => const WorkoutPlayerScreen(),
         '/workout_detail': (context) => const WorkoutDetailScreen(),
+        '/workout_plan': (context) => const WorkoutPlanScreen(),
         '/profile_setup': (context) => const ProfileSetupScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/profile-complete': (context) => const ProfileCompleteScreen(),

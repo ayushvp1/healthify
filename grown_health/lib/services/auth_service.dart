@@ -9,7 +9,7 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/auth/login');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/auth/login');
 
     try {
       final res = await http.post(
@@ -71,7 +71,7 @@ class AuthService {
     required String password,
     String? name,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/auth/register');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/auth/register');
 
     try {
       final res = await http.post(

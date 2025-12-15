@@ -67,7 +67,7 @@ class HealthMetricsService {
 
   /// GET /api/health-metrics - Get current user's health metrics
   Future<HealthMetricsModel> getHealthMetrics() async {
-    final uri = Uri.parse('$kBaseUrl/health-metrics');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/health-metrics/latest');
 
     try {
       final res = await http.get(uri, headers: _headers);
@@ -94,7 +94,7 @@ class HealthMetricsService {
     String? bloodSugar,
     String? bloodPressure,
   }) async {
-    final uri = Uri.parse('$kBaseUrl/health-metrics');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/health-metrics');
 
     final body = <String, dynamic>{
       if (cholesterol != null) 'cholesterol': cholesterol,
@@ -127,7 +127,7 @@ class HealthMetricsService {
 
   /// PATCH /api/health-metrics/:type - Update individual metric
   Future<void> updateMetric(String type, String value) async {
-    final uri = Uri.parse('$kBaseUrl/health-metrics/$type');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/health-metrics/$type');
 
     try {
       final res = await http.patch(

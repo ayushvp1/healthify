@@ -9,10 +9,10 @@ class WaterTrackingWidget extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<WaterTrackingWidget> createState() =>
-      _WaterTrackingWidgetState();
+      WaterTrackingWidgetState();
 }
 
-class _WaterTrackingWidgetState extends ConsumerState<WaterTrackingWidget> {
+class WaterTrackingWidgetState extends ConsumerState<WaterTrackingWidget> {
   bool _loading = false;
   int _currentGlasses = 0;
   int _totalGlasses = 8;
@@ -52,7 +52,7 @@ class _WaterTrackingWidgetState extends ConsumerState<WaterTrackingWidget> {
     }
   }
 
-  Future<void> _addWater() async {
+  Future<void> addWater() async {
     final token = ref.read(authProvider).user?.token;
     if (token == null) return;
 
@@ -207,7 +207,7 @@ class _WaterTrackingWidgetState extends ConsumerState<WaterTrackingWidget> {
 
         // Battery Indicator
         GestureDetector(
-          onTap: _loading ? null : _addWater,
+          onTap: _loading ? null : addWater,
           onLongPress: _loading ? null : _removeWater,
           child: Row(
             children: [

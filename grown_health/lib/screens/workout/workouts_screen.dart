@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../providers/providers.dart';
-
 class WorkoutsScreen extends ConsumerWidget {
   const WorkoutsScreen({super.key});
 
@@ -19,36 +17,37 @@ class WorkoutsScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Workouts',
                 style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 'Continue where you left off',
                 style: GoogleFonts.inter(
-                  textStyle: const TextStyle(fontSize: 14, color: Colors.grey),
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildSearchBar(),
-              const SizedBox(height: 16),
-              _buildFilterChips(context),
               const SizedBox(height: 20),
+              _buildSearchBar(),
+              const SizedBox(height: 20),
+              _buildRefinedFilterChips(context),
+              const SizedBox(height: 24),
               _buildProgressCard(),
               const SizedBox(height: 24),
-              _buildCategoriesHeader(),
-              const SizedBox(height: 12),
-              _buildCategoriesList(ref),
+              _buildSectionHeader('Abs', 'See all'),
+              const SizedBox(height: 16),
+              _buildExercisesList(context),
             ],
           ),
         ),
@@ -57,64 +56,94 @@ class WorkoutsScreen extends ConsumerWidget {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search Workouts',
-        prefixIcon: const Icon(Icons.search),
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        contentPadding: const EdgeInsets.symmetric(vertical: 0),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF5F6),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFilterChips(BuildContext context) {
-    return SizedBox(
-      height: 70,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _FilterChipCard(
-            label: 'Start',
-            icon: Icons.play_arrow_rounded,
-            onTap: () {
-              // Quick start: go straight to the workout player.
-              Navigator.of(context).pushNamed('/player');
-            },
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF5B0C23), // Dark Maroon
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search, color: Colors.white, size: 20),
           ),
-          const _FilterChipCard(
-            label: 'Categories',
-            icon: Icons.category_outlined,
-            highlighted: true,
-          ),
-          const _FilterChipCard(
-            label: 'Body Scan',
-            icon: Icons.favorite_border_rounded,
-          ),
-          const _FilterChipCard(
-            label: 'Steps',
-            icon: Icons.directions_walk_rounded,
+          const SizedBox(width: 12),
+          Text(
+            'Search Workouts',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildRefinedFilterChips(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _CustomChip(
+          label: 'Start',
+          icon: Icons.search,
+          color: const Color(0xFFFFF0F3), // Light Pink
+          iconColor: const Color(0xFFAA3D50),
+          textColor: const Color(0xFFAA3D50),
+          onTap: () => Navigator.of(context).pushNamed('/player'),
+        ),
+        _CustomChip(
+          label: 'Categories',
+          icon: Icons.search,
+          color: const Color(0xFFE3F2FD), // Light Blue
+          iconColor: const Color(0xFF1976D2),
+          textColor: const Color(0xFF1565C0),
+          onTap: () {},
+        ),
+        _CustomChip(
+          label: 'Body Scan',
+          icon: Icons.search,
+          color: const Color(0xFFF5F5F5), // Light Grey
+          iconColor: Colors.black54,
+          textColor: Colors.black87,
+          onTap: () {},
+        ),
+        _CustomChip(
+          label: 'Steps',
+          icon: Icons.search,
+          color: const Color(0xFFFFEBEE), // Light Red/Pink
+          iconColor: const Color(0xFFD32F2F),
+          textColor: const Color(0xFFC62828),
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+
   Widget _buildProgressCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -123,38 +152,41 @@ class WorkoutsScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.show_chart_rounded, color: Colors.redAccent),
-              const SizedBox(width: 8),
+              const Icon(
+                Icons.show_chart_rounded,
+                color: Color(0xFF5B0C23),
+                size: 24,
+              ),
+              const SizedBox(width: 10),
               Text(
                 "Today's Progress",
                 style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           const _ProgressRow(
             label: 'Workouts',
             valueText: '3/5',
-            color: Color(0xFFAA3D50),
+            color: Color(0xFF880E4F), // Deep Maroon
             progress: 0.6,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           const _ProgressRow(
             label: 'Calories',
             valueText: '1,240/2,000',
-            color: Color(0xFFFF9800),
+            color: Color(0xFFFF9800), // Orange
             progress: 0.62,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
           const _ProgressRow(
             label: 'Steps',
             valueText: '8.2K/10K',
-            color: Color(0xFF4CAF50),
+            color: Color(0xFF2E7D32), // Dark Green
             progress: 0.82,
           ),
         ],
@@ -162,116 +194,87 @@ class WorkoutsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCategoriesHeader() {
+  Widget _buildSectionHeader(String title, String action) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Exercise Categories',
+          title,
           style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
           ),
         ),
         Text(
-          'See all',
+          action,
           style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 14,
-              color: Colors.redAccent,
-              fontWeight: FontWeight.w500,
-            ),
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF5B0C23),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCategoriesList(WidgetRef ref) {
-    final asyncCategories = ref.watch(categoriesProvider);
-
-    return asyncCategories.when(
-      data: (categories) {
-        if (categories.isEmpty) {
-          return Text(
-            'No categories yet. Add some in the admin panel.',
-            style: GoogleFonts.inter(
-              textStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-          );
-        }
-
-        return Column(
-          children: [for (final c in categories) _WorkoutRow(title: c.name)],
-        );
-      },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: CircularProgressIndicator(),
-        ),
-      ),
-      error: (err, stack) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Text(
-          'Failed to load categories',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(fontSize: 13, color: Colors.redAccent),
-          ),
+  Widget _buildExercisesList(BuildContext context) {
+    // Hardcoded list to match visual for now, as requested "exactly layout"
+    // In a real app, this would come from the API/Provider
+    return Column(
+      children: List.generate(
+        5,
+        (index) => _WorkoutRow(
+          title: 'Russian Twist',
+          onTap: () => Navigator.of(context).pushNamed('/workout_detail'),
         ),
       ),
     );
   }
 }
 
-class _FilterChipCard extends StatelessWidget {
+class _CustomChip extends StatelessWidget {
   final String label;
   final IconData icon;
-  final bool highlighted;
+  final Color color;
+  final Color iconColor;
+  final Color? textColor;
   final VoidCallback? onTap;
 
-  const _FilterChipCard({
+  const _CustomChip({
     required this.label,
     required this.icon,
-    this.highlighted = false,
+    required this.color,
+    required this.iconColor,
+    this.textColor,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color borderColor = highlighted
-        ? const Color(0xFFAA3D50)
-        : Colors.grey.shade200;
-    final Color iconColor = highlighted
-        ? const Color(0xFFAA3D50)
-        : Colors.grey.shade500;
-
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 88,
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: highlighted ? 1.2 : 1),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: iconColor),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(fontSize: 11),
-              ),
+      child: Column(
+        children: [
+          Container(
+            width: 70, // Slightly square
+            height: 70,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(20),
             ),
-          ],
-        ),
+            child: Icon(icon, color: iconColor, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor ?? Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -301,26 +304,43 @@ class _ProgressRow extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.inter(
-                textStyle: const TextStyle(fontSize: 13),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
               ),
             ),
             Text(
               valueText,
               style: GoogleFonts.inter(
-                textStyle: const TextStyle(fontSize: 13),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress.clamp(0.0, 1.0),
-            minHeight: 6,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
+        const SizedBox(height: 8),
+        Stack(
+          children: [
+            Container(
+              height: 10,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            FractionallySizedBox(
+              widthFactor: progress,
+              child: Container(
+                height: 10,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -329,34 +349,45 @@ class _ProgressRow extends StatelessWidget {
 
 class _WorkoutRow extends StatelessWidget {
   final String title;
+  final VoidCallback onTap;
 
-  const _WorkoutRow({required this.title});
+  const _WorkoutRow({required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Open workout detail when tapping a row
-        Navigator.of(context).pushNamed('/workout_detail');
-      },
+      onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Color(0xFFECECEC))),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          // border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFF7D4DD),
+                color: const Color(0xFFFFF0F3), // Light Pink bg
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.fitness_center, color: Color(0xFFAA3D50)),
+              child: const Icon(
+                Icons.fitness_center_rounded,
+                color: Color(0xFFAA3D50),
+                size: 24,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,26 +395,48 @@ class _WorkoutRow extends StatelessWidget {
                   Text(
                     title,
                     style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '30s   •   Beginner',
-                    style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '30s',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(
+                          Icons.circle,
+                          size: 4,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                      Text(
+                        'Beginner',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),

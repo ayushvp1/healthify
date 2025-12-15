@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_config.dart';
-import '../models/water_intake_model.dart';
 
 class WaterService {
   final String? _token;
@@ -10,214 +9,174 @@ class WaterService {
 
   Map<String, String> get _headers => {
     'Content-Type': 'application/json',
-    'Bypass-Tunnel-Reminder': 'true',
     if (_token != null) 'Authorization': 'Bearer $_token',
   };
 
-  /// GET /api/water/goal - Get user's daily water goal (number of glasses)
-  Future<int> getWaterGoal() async {
-    final uri = Uri.parse('$kBaseUrl/water/goal');
+  /// GET /api/water/today - Get today's water intake
+  Future<Map<String, dynamic>> getTodayWater() async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/water/today');
 
     try {
       final res = await http.get(uri, headers: _headers);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return data['data']['waterGoal'] as int;
+        final data = jsonDecode(res.body);
+        if (data is Map<String, dynamic> && data['data'] != null) {
+          return data['data'] as Map<String, dynamic>;
+        }
+        return {};
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
           errorData['message'] ??
-              'Failed to get water goal (${res.statusCode})',
+              'Failed to get water data (${res.statusCode})',
         );
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to get water goal');
+      throw Exception('Network error: Unable to get water data');
     }
   }
 
-  /// PUT /api/water/goal - Set user's daily water goal
-  Future<Map<String, dynamic>> setWaterGoal(int goal) async {
-    final uri = Uri.parse('$kBaseUrl/water/goal');
-
-    final body = {'goal': goal};
+  /// POST /api/water/add - Add water intake
+  Future<Map<String, dynamic>> addWater(int amountMl) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/water/add');
 
     try {
-      final res = await http.put(
+      final res = await http.post(
         uri,
         headers: _headers,
-        body: jsonEncode(body),
+        body: jsonEncode({'amount': amountMl}),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        return jsonDecode(res.body) as Map<String, dynamic>;
+        final data = jsonDecode(res.body);
+        return data['data'] as Map<String, dynamic>;
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
-          errorData['message'] ??
-              'Failed to set water goal (${res.statusCode})',
+          errorData['message'] ?? 'Failed to add water (${res.statusCode})',
         );
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to set water goal');
+      throw Exception('Network error: Unable to add water');
     }
   }
 
-  /// GET /api/water/today - Get today's water intake progress
-  Future<WaterTodayResponse> getTodayWaterIntake() async {
-    final uri = Uri.parse('$kBaseUrl/water/today');
-
-    try {
-      final res = await http.get(uri, headers: _headers);
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data['data']);
-      } else {
-        final errorData = jsonDecode(res.body);
-        throw Exception(
-          errorData['message'] ??
-              'Failed to get today\'s water intake (${res.statusCode})',
-        );
-      }
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to get today\'s water intake');
-    }
-  }
-
-  /// POST /api/water/drink - Add one glass of water (+1)
-  Future<WaterTodayResponse> addWaterGlass() async {
-    final uri = Uri.parse('$kBaseUrl/water/drink');
+  /// POST /api/water/remove - Remove recent water intake (undo)
+  Future<Map<String, dynamic>> removeWater() async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/water/remove');
 
     try {
       final res = await http.post(uri, headers: _headers);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data['data']);
+        final data = jsonDecode(res.body);
+        return data['data'] as Map<String, dynamic>;
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
-          errorData['message'] ??
-              'Failed to add water glass (${res.statusCode})',
+          errorData['message'] ?? 'Failed to remove water (${res.statusCode})',
         );
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to add water glass');
+      throw Exception('Network error: Unable to remove water');
     }
   }
 
-  /// DELETE /api/water/drink - Remove one glass of water (-1)
-  Future<WaterTodayResponse> removeWaterGlass() async {
-    final uri = Uri.parse('$kBaseUrl/water/drink');
-
-    try {
-      final res = await http.delete(uri, headers: _headers);
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data['data']);
-      } else {
-        final errorData = jsonDecode(res.body);
-        throw Exception(
-          errorData['message'] ??
-              'Failed to remove water glass (${res.statusCode})',
-        );
-      }
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to remove water glass');
-    }
-  }
-
-  /// PUT /api/water/today - Set today's water count to a specific value
-  Future<WaterTodayResponse> setTodayWaterCount(int count) async {
-    final uri = Uri.parse('$kBaseUrl/water/today');
-
-    final body = {'count': count};
+  /// PUT /api/water/goal - Update daily water goal
+  Future<Map<String, dynamic>> updateGoal(int goalAmount) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/water/goal');
 
     try {
       final res = await http.put(
         uri,
         headers: _headers,
-        body: jsonEncode(body),
+        body: jsonEncode({'goal': goalAmount}),
       );
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterTodayResponse.fromJson(data['data']);
+        final data = jsonDecode(res.body);
+        return data['data'] as Map<String, dynamic>;
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
-          errorData['message'] ??
-              'Failed to set water count (${res.statusCode})',
+          errorData['message'] ?? 'Failed to update goal (${res.statusCode})',
         );
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to set water count');
+      throw Exception('Network error: Unable to update goal');
     }
   }
 
-  /// GET /api/water/history - Get water intake history for calendar/graph view
-  Future<WaterHistoryResponse> getWaterHistory({
-    int? days,
-    String? startDate,
-    String? endDate,
-  }) async {
-    final queryParams = <String, String>{
-      if (days != null) 'days': days.toString(),
-      if (startDate != null) 'startDate': startDate,
-      if (endDate != null) 'endDate': endDate,
-    };
-
-    final uri = Uri.parse(
-      '$kBaseUrl/water/history',
-    ).replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+  /// GET /api/water/history - Get water history (e.g. for charts)
+  Future<List<Map<String, dynamic>>> getWaterHistory({int days = 7}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/water/history?days=$days');
 
     try {
       final res = await http.get(uri, headers: _headers);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterHistoryResponse.fromJson(data);
+        final data = jsonDecode(res.body);
+        if (data['data'] is List) {
+          return (data['data'] as List)
+              .map((e) => e as Map<String, dynamic>)
+              .toList();
+        }
+        return [];
       } else {
         final errorData = jsonDecode(res.body);
         throw Exception(
-          errorData['message'] ??
-              'Failed to get water history (${res.statusCode})',
+          errorData['message'] ?? 'Failed to get history (${res.statusCode})',
         );
       }
     } catch (e) {
       if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to get water history');
+      throw Exception('Network error: Unable to get history');
     }
   }
 
-  /// GET /api/water/date/:date - Get water intake for a specific date
-  Future<WaterIntakeModel> getWaterIntakeByDate(String date) async {
-    final uri = Uri.parse('$kBaseUrl/water/date/$date');
-
-    try {
-      final res = await http.get(uri, headers: _headers);
-
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return WaterIntakeModel.fromJson(data['data']);
-      } else {
-        final errorData = jsonDecode(res.body);
-        throw Exception(
-          errorData['message'] ??
-              'Failed to get water intake for date (${res.statusCode})',
-        );
-      }
-    } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Network error: Unable to get water intake for date');
-    }
+  // Compatibility methods for existing UI widgets
+  Future<WaterTodayResponse> getTodayWaterIntake() async {
+    final data = await getTodayWater();
+    return WaterTodayResponse.fromJson(data);
   }
+
+  Future<WaterTodayResponse> addWaterGlass() async {
+    final data = await addWater(250);
+    return WaterTodayResponse.fromJson(data);
+  }
+
+  Future<WaterTodayResponse> removeWaterGlass() async {
+    final data = await removeWater();
+    return WaterTodayResponse.fromJson(data);
+  }
+
+  Future<WaterTodayResponse> setWaterGoal(int goalGlasses) async {
+    final data = await updateGoal(goalGlasses * 250);
+    return WaterTodayResponse.fromJson(data);
+  }
+}
+
+class WaterTodayResponse {
+  final int amountMl;
+  final int goalMl;
+
+  WaterTodayResponse({required this.amountMl, required this.goalMl});
+
+  factory WaterTodayResponse.fromJson(Map<String, dynamic> json) {
+    return WaterTodayResponse(
+      amountMl: json['amount'] as int? ?? 0,
+      goalMl: json['goal'] as int? ?? 2000,
+    );
+  }
+
+  // Getters expected by UI
+  int get count => (amountMl / 250).round();
+  int get goal => (goalMl / 250).round();
+  bool get isCompleted => amountMl >= goalMl;
+  int get remaining => ((goalMl - amountMl) / 250).round().clamp(0, 99);
 }

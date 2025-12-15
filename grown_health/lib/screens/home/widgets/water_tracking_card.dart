@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../services/water_service.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../models/water_intake_model.dart';
+
 
 class WaterTrackingCard extends ConsumerStatefulWidget {
   const WaterTrackingCard({super.key});

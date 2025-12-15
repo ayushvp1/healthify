@@ -8,6 +8,9 @@ import 'widgets/widgets.dart';
 import '../../services/water_service.dart';
 import '../../services/water_reminder_service.dart';
 
+import '../about/about_screen.dart';
+import '../contact/contact_screen.dart';
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,6 +19,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<WaterTrackingWidgetState> _waterKey = GlobalKey();
   String _displayName = 'User';
   String _greeting = 'Good Morning!';
 
@@ -78,7 +83,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final greeting = _greeting;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      drawer: _buildDrawer(),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -101,7 +108,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         Expanded(flex: 3, child: _buildMedicineReminder()),
                         const SizedBox(width: 12),
-                        const Expanded(flex: 2, child: WaterTrackingWidget()),
+                        Expanded(
+                          flex: 2,
+                          child: WaterTrackingWidget(key: _waterKey),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -133,29 +143,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildHeader(String greeting, String displayName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              greeting,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(fontSize: 14, color: Colors.grey),
+        Expanded(
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu, color: Colors.black),
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              displayName,
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    displayName,
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Row(
           children: [
@@ -254,71 +280,119 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildMedicineReminder() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Medicine Reminder',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushNamed('/medicine_reminders');
-              },
-              child: Text(
-                'See all',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF5B0C23), // Dark Burgundy
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder<Map<String, String>?>(
+      future: _getResult(),
+      builder: (context, snapshot) {
+        final hasData = snapshot.hasData && snapshot.data != null;
+        final data = snapshot.data;
+
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Text(
-                'No medicine reminders set',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushNamed('/medicine_reminders');
-              },
-              child: Text(
-                'Add',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF5B0C23), // Dark Burgundy
-                    fontWeight: FontWeight.w600,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Medicine Reminder',
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.of(
+                      context,
+                    ).pushNamed('/medicine_reminders');
+                    setState(() {}); // Refresh on return
+                  },
+                  child: Text(
+                    'See all',
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF5B0C23), // Dark Burgundy
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: hasData
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data!['name'] ?? '',
+                              style: GoogleFonts.inter(
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              data['time'] ?? '',
+                              style: GoogleFonts.inter(
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          'No medicine reminders set',
+                          style: GoogleFonts.inter(
+                            textStyle: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _waterKey.currentState?.addWater();
+                  },
+                  child: Text(
+                    'Add',
+                    style: GoogleFonts.inter(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF5B0C23), // Dark Burgundy
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
+  }
+
+  Future<Map<String, String>?> _getResult() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('latest_medicine_name');
+    final time = prefs.getString('latest_medicine_time');
+    if (name != null) {
+      return {'name': name, 'time': time ?? ''};
+    }
+    return null;
   }
 
   Widget _buildTodaysPlan(BuildContext context) {
@@ -383,21 +457,120 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const RecommendedCard(
-          backgroundColor: Color(0xFFAA3D50),
-          accentColor: Color(0xFFD46A7A),
+        RecommendedCard(
+          backgroundColor: const Color(0xFFAA3D50),
+          accentColor: const Color(0xFFD46A7A),
+          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
         ),
         const SizedBox(height: 16),
-        const RecommendedCard(
-          backgroundColor: Color(0xFFD46A7A),
-          accentColor: Color(0xFFF2C3CC),
+        RecommendedCard(
+          backgroundColor: const Color(0xFFD46A7A),
+          accentColor: const Color(0xFFF2C3CC),
+          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
         ),
         const SizedBox(height: 16),
-        const RecommendedCard(
-          backgroundColor: Color(0xFFF2C3CC),
-          accentColor: Color(0xFFAA3D50),
+        RecommendedCard(
+          backgroundColor: const Color(0xFFF2C3CC),
+          accentColor: const Color(0xFFAA3D50),
+          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
         ),
       ],
+    );
+  }
+
+  Widget _buildDrawer() {
+    final user = ref.watch(authProvider).user;
+
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              color: Color(0xFF5B0C23), // Maroon
+            ),
+            accountName: Text(
+              user?.name ?? _displayName,
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            ),
+            accountEmail: Text(user?.email ?? '', style: GoogleFonts.inter()),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, color: Color(0xFF5B0C23), size: 40),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home_outlined),
+            title: Text('Home', style: GoogleFonts.inter()),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text('About', style: GoogleFonts.inter()),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.contact_support_outlined),
+            title: Text('Contact', style: GoogleFonts.inter()),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ContactScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share_outlined),
+            title: Text('Share', style: GoogleFonts.inter()),
+            onTap: () {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Share App'),
+                  content: const Text(
+                    'Check out Grown Health app! (Link functionality placeholder)',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Copy Link'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: Text('Logout', style: GoogleFonts.inter(color: Colors.red)),
+            onTap: () async {
+              Navigator.pop(context);
+              await ref.read(authProvider.notifier).logout();
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }

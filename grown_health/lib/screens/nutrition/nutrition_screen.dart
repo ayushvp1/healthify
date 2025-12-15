@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
-
-import 'widgets/widgets.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class NutritionScreen extends StatefulWidget {
   const NutritionScreen({super.key});
@@ -12,6 +12,29 @@ class NutritionScreen extends StatefulWidget {
 }
 
 class _NutritionScreenState extends State<NutritionScreen> {
+  late Future<List<dynamic>> _recipesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _recipesFuture = fetchRecipes();
+  }
+
+  Future<List<dynamic>> fetchRecipes() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://dummyjson.com/recipes?limit=10'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['recipes'];
+      }
+    } catch (e) {
+      debugPrint("Error fetching recipes: $e");
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,31 +193,33 @@ class _NutritionScreenState extends State<NutritionScreen> {
           crossAxisSpacing: 16,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 1.6,
+          childAspectRatio: 1.1, // Near square
           children: [
             _QuickActionBtn(
               label: 'Scan Food',
               icon: Icons.camera_alt_rounded,
-              color: const Color(0xFF9C27B0),
-              bgColor: const Color(0xFFF3E5F5),
+              color: const Color(0xFF7C4DFF), // Light Violet
+              bgColor: const Color(
+                0xFFF3E5F5,
+              ), // Not used for background in new design, but kept for compatibility or icon bg
             ),
             _QuickActionBtn(
               label: 'Log Meal',
-              icon: Icons.restaurant,
-              color: const Color(0xFF00BCD4),
+              icon: Icons.restaurant_menu_rounded,
+              color: const Color(0xFF00ACC1), // Teal
               bgColor: const Color(0xFFE0F7FA),
             ),
             _QuickActionBtn(
               label: 'View History',
-              icon: Icons.history_rounded,
-              color: const Color(0xFF4CAF50),
+              icon: Icons.history, // Clock with arrow
+              color: const Color(0xFF43A047), // Green
               bgColor: const Color(0xFFE8F5E9),
             ),
             _QuickActionBtn(
               label: 'Set Reminder',
-              icon: Icons.notifications_active,
-              color: const Color(0xFF2196F3),
-              bgColor: const Color(0xFFE3F2FD),
+              icon: Icons.notifications, // Bell
+              color: const Color(0xFF039BE5), // Blue
+              bgColor: const Color(0xFFE1F5FE),
             ),
           ],
         ),
@@ -203,14 +228,68 @@ class _NutritionScreenState extends State<NutritionScreen> {
   }
 
   Widget _buildFeaturedFoods() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return FutureBuilder<List<dynamic>>(
+      future: _recipesFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          // You might want a skeleton loader here,
+          // but for now simple empty or loading indicator is okay,
+          // or just return empty SizedBox to avoid layout shift if fast.
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final recipes = snapshot.data!;
+        // Simple logic: Take first 2 for featured
+        final featured = recipes.take(2).toList();
+        // Take next 2 that are "Medium" difficulty for the second section
+        final mediumCalorie = recipes
+            .where((r) => r['difficulty'] == 'Medium')
+            .take(2)
+            .toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Featured Foods",
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  "See all",
+                  style: GoogleFonts.inter(
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFA03E4E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...featured.map(
+              (recipe) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _FoodListItem(
+                  name: recipe['name'],
+                  calorieLabel:
+                      '${recipe['caloriesPerServing']} Cal • ${recipe['difficulty']}',
+                  subtitle: recipe['cuisine'] ?? 'Healthy',
+                  imageUrl: recipe['image'],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             Text(
-              "Featured Foods",
+              "Medium Calorie Foods",
               style: GoogleFonts.inter(
                 textStyle: const TextStyle(
                   fontSize: 20,
@@ -218,33 +297,22 @@ class _NutritionScreenState extends State<NutritionScreen> {
                 ),
               ),
             ),
-            Text(
-              "See all",
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFA03E4E),
+            const SizedBox(height: 16),
+            ...mediumCalorie.map(
+              (recipe) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _FoodListItem(
+                  name: recipe['name'],
+                  calorieLabel:
+                      '${recipe['caloriesPerServing']} Cal • ${recipe['difficulty']}',
+                  subtitle: recipe['cuisine'] ?? 'Healthy',
+                  imageUrl: recipe['image'],
                 ),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        const _FoodListItem(name: 'NT!', calorieLabel: '100 Cal • Medium'),
-        const SizedBox(height: 24),
-        Text(
-          "Medium Calorie Foods",
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        const _FoodListItem(name: 'NT!', calorieLabel: '100 Cal • Medium'),
-      ],
+        );
+      },
     );
   }
 }
@@ -1114,6 +1182,10 @@ class _HabitCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Icon is colored only if the habit is "complete" or near complete.
+    // Based on the image, inactive habits have grey icons.
+    final bool isComplete = progress > 0.99;
+
     return Column(
       children: [
         SizedBox(
@@ -1124,18 +1196,25 @@ class _HabitCircle extends StatelessWidget {
             children: [
               CircularProgressIndicator(
                 value: progress,
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: Colors.grey.shade200, // Light grey track
                 valueColor: AlwaysStoppedAnimation(color),
-                strokeWidth: 3,
+                strokeWidth: 5, // Thicker stroke
+                strokeCap: StrokeCap.round, // Rounded ends
               ),
-              Center(child: Icon(icon, color: color, size: 24)),
+              Center(
+                child: Icon(
+                  icon,
+                  color: isComplete ? color : Colors.grey.shade600,
+                  size: 26,
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
+          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -1249,7 +1328,7 @@ class _QuickActionBtn extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
-  final Color bgColor;
+  final Color bgColor; // Unused but kept for existing calls
 
   const _QuickActionBtn({
     required this.label,
@@ -1263,30 +1342,32 @@ class _QuickActionBtn extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32), // More rounded "squircle"
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 28),
+          Icon(
+            icon,
+            size: 38, // Larger icon to match image scale
+            color: color,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1A1A1A),
+            ),
           ),
         ],
       ),
@@ -1297,8 +1378,15 @@ class _QuickActionBtn extends StatelessWidget {
 class _FoodListItem extends StatelessWidget {
   final String name;
   final String calorieLabel;
+  final String subtitle;
+  final String? imageUrl;
 
-  const _FoodListItem({required this.name, required this.calorieLabel});
+  const _FoodListItem({
+    required this.name,
+    required this.calorieLabel,
+    this.subtitle = '',
+    this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1322,10 +1410,11 @@ class _FoodListItem extends StatelessWidget {
             height: 60,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              image: const DecorationImage(
-                image: AssetImage(
-                  'assets/images/profile_icon.png',
-                ), // Placeholder
+              image: DecorationImage(
+                image: (imageUrl != null && imageUrl!.startsWith('http'))
+                    ? NetworkImage(imageUrl!)
+                    : const AssetImage('assets/images/profile_icon.png')
+                          as ImageProvider,
                 fit: BoxFit.cover,
               ),
             ),
@@ -1337,29 +1426,39 @@ class _FoodListItem extends StatelessWidget {
               children: [
                 Text(
                   name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   calorieLabel,
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.grey),
-                ),
-                Text(
-                  'Just your food',
                   style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.grey.shade400,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade600,
                   ),
                 ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           const Icon(
             Icons.arrow_forward_ios_rounded,
             size: 16,
-            color: Colors.grey,
+            color: Colors.black,
           ),
         ],
       ),
