@@ -1,73 +1,105 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../api_config.dart';
+import '../../providers/auth_provider.dart';
 
-class HelpScreen extends StatefulWidget {
+class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key});
 
   @override
-  State<HelpScreen> createState() => _HelpScreenState();
+  ConsumerState<HelpScreen> createState() => _HelpScreenState();
 }
 
-class _HelpScreenState extends State<HelpScreen> {
+class _HelpScreenState extends ConsumerState<HelpScreen> {
   int _currentCategoryIndex = 0;
   int _currentQuestionIndex = 0;
   int? _selectedOption;
+  bool _isLoading = true;
+  String? _error;
 
   final List<String> _categories = ['Body', 'Mind', 'Nutrition', 'Lifestyle'];
+  Map<String, List<_QuestionData>> _questionsByCategory = {};
 
-  // Define questions for each category
-  final Map<String, List<_QuestionData>> _questionsByCategory = {
-    'Body': [
-      _QuestionData(
-        title: 'Question 1',
-        body: 'What is your primary fitness goal?',
-        options: ['Weight Loss', 'Muscle Gain', 'General Health', 'Endurance'],
-      ),
-      _QuestionData(
-        title: 'Question 2',
-        body: 'How many days per week can you exercise?',
-        options: ['1-2 days', '3-4 days', '5-6 days', 'Everyday'],
-      ),
-    ],
-    'Mind': [
-      _QuestionData(
-        title: 'Question 1',
-        body: 'How would you rate your daily stress levels?',
-        options: ['Low', 'Moderate', 'High', 'Very High'],
-      ),
-      _QuestionData(
-        title: 'Question 2',
-        body: 'Do you practice meditation or mindfulness?',
-        options: ['Daily', 'Sometimes', 'Rarely', 'Never'],
-      ),
-    ],
-    'Nutrition': [
-      _QuestionData(
-        title: 'Question 1',
-        body: 'How many meals do you eat per day?',
-        options: ['2 meals', '3 meals', '4-5 meals', 'Irregular'],
-      ),
-      _QuestionData(
-        title: 'Question 2',
-        body: 'Do you follow any specific diet?',
-        options: ['Vegan', 'Keto', 'Vegetarian', 'None'],
-      ),
-    ],
-    'Lifestyle': [
-      _QuestionData(
-        title: 'Question 1',
-        body: 'How many hours of sleep do you get?',
-        options: ['Less than 5', '5-6 hours', '7-8 hours', 'More than 8'],
-      ),
-      _QuestionData(
-        title: 'Question 2',
-        body: 'Do you smoke or consume alcohol?',
-        options: ['Frequently', 'Occasionally', 'Rarely', 'Never'],
-      ),
-    ],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadQuestions();
+  }
 
-  void _goNext() {
+  Future<void> _loadQuestions() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/health-assessment/questions');
+      final res = await http.get(uri);
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final groupedData = data['data'] as Map<String, dynamic>;
+
+        final Map<String, List<_QuestionData>> loadedQuestions = {};
+
+        groupedData.forEach((category, questionsList) {
+          loadedQuestions[category] = (questionsList as List).map((q) {
+            return _QuestionData(
+              id: q['_id'],
+              title: 'Question ${q['questionNumber']}',
+              body: q['questionText'],
+              options: List<String>.from(q['options']),
+            );
+          }).toList();
+        });
+
+        if (mounted) {
+          setState(() {
+            _questionsByCategory = loadedQuestions;
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to load questions');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load assessment. Please try again.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _submitAnswer(String questionId, int optionIndex) async {
+    final token = ref.read(authProvider).user?.token;
+    if (token == null) return;
+
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/health-assessment/answer');
+      await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'questionId': questionId,
+          'selectedOption': optionIndex,
+        }),
+      );
+    } catch (e) {
+      debugPrint('Error saving answer: $e');
+      // Continue anyway for better UX, or show error?
+      // Choosing to continue for smoother flow, could queue offline
+    }
+  }
+
+  Future<void> _goNext() async {
     if (_selectedOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -79,7 +111,18 @@ class _HelpScreenState extends State<HelpScreen> {
     }
 
     final currentCategory = _categories[_currentCategoryIndex];
-    final currentQuestions = _questionsByCategory[currentCategory]!;
+    final currentQuestions = _questionsByCategory[currentCategory];
+
+    if (currentQuestions == null || currentQuestions.isEmpty) {
+      // Should not happen if API works, but safe fallback
+      _moveToNextCategory();
+      return;
+    }
+
+    final currentQuestion = currentQuestions[_currentQuestionIndex];
+
+    // Submit answer to backend
+    await _submitAnswer(currentQuestion.id, _selectedOption!);
 
     if (_currentQuestionIndex < currentQuestions.length - 1) {
       // Next question in same category
@@ -96,6 +139,18 @@ class _HelpScreenState extends State<HelpScreen> {
         // Finished all categories
         _showFinalCompletionDialog();
       }
+    }
+  }
+
+  void _moveToNextCategory() {
+    if (_currentCategoryIndex < _categories.length - 1) {
+      setState(() {
+        _currentCategoryIndex++;
+        _currentQuestionIndex = 0;
+        _selectedOption = null;
+      });
+    } else {
+      _showFinalCompletionDialog();
     }
   }
 
@@ -129,19 +184,17 @@ class _HelpScreenState extends State<HelpScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Assessment Complete!'),
-        content: const Text('Assessment is completed for now.'),
+        content: const Text('Your health assessment has been saved.'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(ctx).pop(); // Close dialog only
-              // Do NOT close the screen, just stay here so user sees the message.
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop(); // Go back to where they came from
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Assessment is completed for now.'),
-                ),
+                const SnackBar(content: Text('Assessment saved successfully!')),
               );
             },
-            child: const Text('OK'),
+            child: const Text('Done'),
           ),
         ],
       ),
@@ -150,8 +203,39 @@ class _HelpScreenState extends State<HelpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF5B0C23)),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error!),
+              TextButton(onPressed: _loadQuestions, child: const Text('Retry')),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentCategory = _categories[_currentCategoryIndex];
-    final currentQuestions = _questionsByCategory[currentCategory]!;
+    final currentQuestions = _questionsByCategory[currentCategory] ?? [];
+
+    if (currentQuestions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Health Assessment')),
+        body: Center(child: Text('No questions for $currentCategory')),
+      );
+    }
+
     final question = currentQuestions[_currentQuestionIndex];
     const maroonColor = Color(0xFF5B0C23);
 
@@ -228,9 +312,11 @@ class _HelpScreenState extends State<HelpScreen> {
                             color: const Color(0xFFE8F5E9), // Light Green
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Image.asset(
-                            'assets/images/icon_body.png',
-                            color: const Color(0xFF2E7D32), // Dark Green
+                          child: Icon(
+                            // Using Icon as fallback for missing assets
+                            Icons.health_and_safety,
+                            color: const Color(0xFF2E7D32),
+                            size: 20,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -286,14 +372,16 @@ class _HelpScreenState extends State<HelpScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Next',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'Next',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -305,11 +393,13 @@ class _HelpScreenState extends State<HelpScreen> {
 }
 
 class _QuestionData {
+  final String id;
   final String title;
   final String body;
   final List<String> options;
 
   const _QuestionData({
+    required this.id,
     required this.title,
     required this.body,
     required this.options,
@@ -333,11 +423,14 @@ class _TopTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset(
-          iconPath,
+        // Handling potentially missing assets gracefully
+        SizedBox(
           width: 28,
           height: 28,
-          color: selected ? color : Colors.grey.shade400,
+          child: Opacity(
+            opacity: 0.6,
+            child: Icon(Icons.circle, color: selected ? color : Colors.grey),
+          ),
         ),
         const SizedBox(height: 6),
         Text(

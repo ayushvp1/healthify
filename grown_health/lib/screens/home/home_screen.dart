@@ -4,9 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/providers.dart';
+import '../../providers/water_provider.dart';
 import 'widgets/widgets.dart';
 import '../../services/water_service.dart';
 import '../../services/water_reminder_service.dart';
+import '../../services/exercise_bundle_service.dart';
 
 import '../about/about_screen.dart';
 import '../contact/contact_screen.dart';
@@ -20,11 +22,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey<WaterTrackingWidgetState> _waterKey = GlobalKey();
   String _displayName = 'User';
   String _greeting = 'Good Morning!';
-
   String _searchQuery = '';
+
+  // Bundles for recommended section
+  List<ExerciseBundle> _bundles = [];
+  bool _bundlesLoading = true;
 
   @override
   void initState() {
@@ -32,6 +36,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _updateGreeting();
     _loadUserName();
     _startWaterReminders();
+    _loadBundles();
+  }
+
+  Future<void> _loadBundles() async {
+    final token = ref.read(authProvider).user?.token;
+    if (token == null) {
+      setState(() => _bundlesLoading = false);
+      return;
+    }
+
+    try {
+      final service = ExerciseBundleService(token);
+      final response = await service.getBundles(limit: 3);
+      if (mounted) {
+        setState(() {
+          _bundles = response.bundles;
+          _bundlesLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to load bundles: $e');
+      if (mounted) {
+        setState(() => _bundlesLoading = false);
+      }
+    }
   }
 
   void _startWaterReminders() {
@@ -108,20 +137,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         Expanded(flex: 3, child: _buildMedicineReminder()),
                         const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: WaterTrackingWidget(key: _waterKey),
-                        ),
+                        Expanded(flex: 2, child: const WaterTrackingWidget()),
                       ],
                     ),
                     const SizedBox(height: 24),
                     _buildTodaysPlan(context),
                     const SizedBox(height: 24),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
+            // Body Focus - Workout Programs by Category
+            const SliverToBoxAdapter(child: BodyFocusWidget()),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -364,7 +392,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
-                    _waterKey.currentState?.addWater();
+                    final token = ref.read(authProvider).user?.token;
+                    ref.read(waterNotifierProvider(token).notifier).addWater();
                   },
                   child: Text(
                     'Add',
@@ -437,17 +466,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildRecommendedSection() {
+    // Color palette for cards
+    const colors = [
+      [Color(0xFFAA3D50), Color(0xFFD46A7A)],
+      [Color(0xFFD46A7A), Color(0xFFF2C3CC)],
+      [Color(0xFFF2C3CC), Color(0xFFAA3D50)],
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recommended for You',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recommended for You',
+              style: GoogleFonts.inter(
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-          ),
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/bundles'),
+              child: Text(
+                'See all',
+                style: GoogleFonts.inter(
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF5B0C23),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
@@ -457,23 +511,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        RecommendedCard(
-          backgroundColor: const Color(0xFFAA3D50),
-          accentColor: const Color(0xFFD46A7A),
-          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
-        ),
-        const SizedBox(height: 16),
-        RecommendedCard(
-          backgroundColor: const Color(0xFFD46A7A),
-          accentColor: const Color(0xFFF2C3CC),
-          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
-        ),
-        const SizedBox(height: 16),
-        RecommendedCard(
-          backgroundColor: const Color(0xFFF2C3CC),
-          accentColor: const Color(0xFFAA3D50),
-          onStart: () => Navigator.of(context).pushNamed('/workout_plan'),
-        ),
+
+        // Show loading or bundles
+        if (_bundlesLoading)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+            ),
+          )
+        else if (_bundles.isEmpty)
+          // Fallback to static cards if no bundles
+          Column(
+            children: [
+              RecommendedCard(
+                backgroundColor: const Color(0xFFAA3D50),
+                accentColor: const Color(0xFFD46A7A),
+                onStart: () => Navigator.of(context).pushNamed('/bundles'),
+              ),
+              const SizedBox(height: 16),
+              RecommendedCard(
+                backgroundColor: const Color(0xFFD46A7A),
+                accentColor: const Color(0xFFF2C3CC),
+                onStart: () => Navigator.of(context).pushNamed('/bundles'),
+              ),
+            ],
+          )
+        else
+          // Display actual bundles
+          ...List.generate(_bundles.length, (index) {
+            final bundle = _bundles[index];
+            final colorPair = colors[index % colors.length];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index < _bundles.length - 1 ? 16 : 0,
+              ),
+              child: RecommendedCard(
+                title: bundle.name,
+                duration: '${bundle.totalDays} Days',
+                exercises: '${bundle.totalExercises} Exercises',
+                level: bundle.difficultyDisplay,
+                badge: bundle.category?.name ?? 'Workout Program',
+                backgroundColor: colorPair[0],
+                accentColor: colorPair[1],
+                onStart: () =>
+                    Navigator.pushNamed(context, '/bundle/${bundle.id}'),
+              ),
+            );
+          }),
       ],
     );
   }

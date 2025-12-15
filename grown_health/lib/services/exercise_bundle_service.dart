@@ -1,0 +1,444 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../api_config.dart';
+
+class ExerciseBundleService {
+  final String? _token;
+
+  ExerciseBundleService(this._token);
+
+  Map<String, String> get _headers => {
+    'Content-Type': 'application/json',
+    if (_token != null) 'Authorization': 'Bearer $_token',
+  };
+
+  /// GET /api/exercise-bundles - List all bundles
+  Future<BundleListResponse> getBundles({
+    int page = 1,
+    int limit = 10,
+    String? query,
+    String? difficulty,
+    String? category,
+  }) async {
+    final params = <String, String>{
+      'page': page.toString(),
+      'limit': limit.toString(),
+      'published': 'true', // Only show published bundles
+    };
+
+    if (query != null && query.isNotEmpty) params['q'] = query;
+    if (difficulty != null) params['difficulty'] = difficulty;
+    if (category != null) params['category'] = category;
+
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/exercise-bundles',
+    ).replace(queryParameters: params);
+
+    try {
+      final res = await http.get(uri, headers: _headers);
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        return BundleListResponse.fromJson(data);
+      } else {
+        final errorData = jsonDecode(res.body);
+        throw Exception(
+          errorData['message'] ?? 'Failed to get bundles (${res.statusCode})',
+        );
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: Unable to get bundles');
+    }
+  }
+
+  /// GET /api/exercise-bundles/:id - Get single bundle with full details
+  Future<ExerciseBundle> getBundleById(String id) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/exercise-bundles/$id');
+
+    try {
+      final res = await http.get(uri, headers: _headers);
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        return ExerciseBundle.fromJson(data['data']);
+      } else {
+        final errorData = jsonDecode(res.body);
+        throw Exception(
+          errorData['message'] ?? 'Failed to get bundle (${res.statusCode})',
+        );
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: Unable to get bundle');
+    }
+  }
+
+  /// GET /api/workout-progress/program/:programId - Get user's progress in a bundle
+  Future<BundleProgress> getBundleProgress(String bundleId) async {
+    final uri = Uri.parse(
+      '${ApiConfig.baseUrl}/workout-progress/program/$bundleId',
+    );
+
+    try {
+      final res = await http.get(uri, headers: _headers);
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        return BundleProgress.fromJson(data['data']);
+      } else {
+        // If 404, user hasn't started this program yet
+        return BundleProgress(
+          totalDays: 0,
+          completedDays: 0,
+          progressPercentage: 0,
+          dayStatus: {},
+        );
+      }
+    } catch (e) {
+      // Return empty progress on error
+      return BundleProgress(
+        totalDays: 0,
+        completedDays: 0,
+        progressPercentage: 0,
+        dayStatus: {},
+      );
+    }
+  }
+
+  /// POST /api/workout-progress/start - Start a workout session
+  Future<Map<String, dynamic>> startWorkout({
+    required String programId,
+    required int day,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/workout-progress/start');
+
+    try {
+      final res = await http.post(
+        uri,
+        headers: _headers,
+        body: jsonEncode({'programId': programId, 'day': day}),
+      );
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        return data['data'];
+      } else {
+        final errorData = jsonDecode(res.body);
+        throw Exception(
+          errorData['message'] ?? 'Failed to start workout (${res.statusCode})',
+        );
+      }
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Network error: Unable to start workout');
+    }
+  }
+}
+
+// ============ MODELS ============
+
+class BundleListResponse {
+  final List<ExerciseBundle> bundles;
+  final int total;
+  final int page;
+  final int limit;
+  final int pages;
+
+  BundleListResponse({
+    required this.bundles,
+    required this.total,
+    required this.page,
+    required this.limit,
+    required this.pages,
+  });
+
+  factory BundleListResponse.fromJson(Map<String, dynamic> json) {
+    return BundleListResponse(
+      bundles:
+          (json['data'] as List?)
+              ?.map((e) => ExerciseBundle.fromJson(e))
+              .toList() ??
+          [],
+      total: json['total'] as int? ?? 0,
+      page: json['page'] as int? ?? 1,
+      limit: json['limit'] as int? ?? 10,
+      pages: json['pages'] as int? ?? 1,
+    );
+  }
+}
+
+class ExerciseBundle {
+  final String id;
+  final String name;
+  final String slug;
+  final String description;
+  final String thumbnail;
+  final String difficulty;
+  final int totalDays;
+  final List<BundleDay> schedule;
+  final BundleCategory? category;
+  final List<String> tags;
+  final bool isPublished;
+
+  ExerciseBundle({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.description,
+    required this.thumbnail,
+    required this.difficulty,
+    required this.totalDays,
+    required this.schedule,
+    this.category,
+    required this.tags,
+    required this.isPublished,
+  });
+
+  factory ExerciseBundle.fromJson(Map<String, dynamic> json) {
+    return ExerciseBundle(
+      id: json['_id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      thumbnail: json['thumbnail'] as String? ?? '',
+      difficulty: json['difficulty'] as String? ?? 'beginner',
+      totalDays: json['totalDays'] as int? ?? 1,
+      schedule:
+          (json['schedule'] as List?)
+              ?.map((e) => BundleDay.fromJson(e))
+              .toList() ??
+          [],
+      category: json['category'] != null
+          ? BundleCategory.fromJson(json['category'])
+          : null,
+      tags: (json['tags'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      isPublished: json['isPublished'] as bool? ?? false,
+    );
+  }
+
+  /// Get total exercise count across all days
+  int get totalExercises {
+    int count = 0;
+    for (final day in schedule) {
+      if (!day.isRestDay) {
+        count += day.exercises.length;
+      }
+    }
+    return count;
+  }
+
+  /// Get estimated total duration in minutes
+  int get estimatedDuration {
+    int seconds = 0;
+    for (final day in schedule) {
+      for (final ex in day.exercises) {
+        seconds += ex.duration;
+      }
+    }
+    return (seconds / 60).ceil();
+  }
+
+  /// Get difficulty display text
+  String get difficultyDisplay {
+    switch (difficulty) {
+      case 'beginner':
+        return 'BEGINNER';
+      case 'intermediate':
+        return 'INTERMEDIATE';
+      case 'advanced':
+        return 'ADVANCED';
+      default:
+        return difficulty.toUpperCase();
+    }
+  }
+}
+
+class BundleDay {
+  final int day;
+  final bool isRestDay;
+  final String title;
+  final List<BundleDayExercise> exercises;
+
+  BundleDay({
+    required this.day,
+    required this.isRestDay,
+    required this.title,
+    required this.exercises,
+  });
+
+  factory BundleDay.fromJson(Map<String, dynamic> json) {
+    return BundleDay(
+      day: json['day'] as int? ?? 1,
+      isRestDay: json['isRestDay'] as bool? ?? false,
+      title: json['title'] as String? ?? '',
+      exercises:
+          (json['exercises'] as List?)
+              ?.map((e) => BundleDayExercise.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+
+  /// Get total duration for this day in seconds
+  int get totalDuration {
+    int seconds = 0;
+    for (final ex in exercises) {
+      seconds += ex.duration;
+    }
+    return seconds;
+  }
+
+  /// Get formatted duration string
+  String get durationText {
+    final mins = (totalDuration / 60).ceil();
+    return '$mins:${(totalDuration % 60).toString().padLeft(2, '0')}';
+  }
+}
+
+class BundleDayExercise {
+  final ExerciseInfo? exercise;
+  final int reps;
+  final int sets;
+  final int duration; // in seconds
+
+  BundleDayExercise({
+    this.exercise,
+    required this.reps,
+    required this.sets,
+    required this.duration,
+  });
+
+  factory BundleDayExercise.fromJson(Map<String, dynamic> json) {
+    return BundleDayExercise(
+      exercise: json['exercise'] != null
+          ? ExerciseInfo.fromJson(json['exercise'])
+          : null,
+      reps: json['reps'] as int? ?? 0,
+      sets: json['sets'] as int? ?? 1,
+      duration: json['duration'] as int? ?? 0,
+    );
+  }
+}
+
+class ExerciseInfo {
+  final String id;
+  final String title;
+  final String slug;
+  final String image;
+  final String gif; // GIF URL for animated demonstration
+  final String difficulty;
+  final int duration;
+  final String description;
+
+  ExerciseInfo({
+    required this.id,
+    required this.title,
+    required this.slug,
+    required this.image,
+    required this.gif,
+    required this.difficulty,
+    required this.duration,
+    required this.description,
+  });
+
+  factory ExerciseInfo.fromJson(Map<String, dynamic> json) {
+    return ExerciseInfo(
+      id: json['_id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      image: json['image'] as String? ?? '',
+      gif: json['gif'] as String? ?? '',
+      difficulty: json['difficulty'] as String? ?? 'beginner',
+      duration: json['duration'] as int? ?? 0,
+      description: json['description'] as String? ?? '',
+    );
+  }
+}
+
+class BundleCategory {
+  final String id;
+  final String name;
+  final String slug;
+
+  BundleCategory({required this.id, required this.name, required this.slug});
+
+  factory BundleCategory.fromJson(Map<String, dynamic> json) {
+    return BundleCategory(
+      id: json['_id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+    );
+  }
+}
+
+class BundleProgress {
+  final int totalDays;
+  final int completedDays;
+  final int progressPercentage;
+  final Map<String, DayStatus> dayStatus;
+
+  BundleProgress({
+    required this.totalDays,
+    required this.completedDays,
+    required this.progressPercentage,
+    required this.dayStatus,
+  });
+
+  factory BundleProgress.fromJson(Map<String, dynamic> json) {
+    final dayStatusMap = <String, DayStatus>{};
+    final rawDayStatus = json['dayStatus'] as Map<String, dynamic>? ?? {};
+    rawDayStatus.forEach((key, value) {
+      dayStatusMap[key] = DayStatus.fromJson(value);
+    });
+
+    return BundleProgress(
+      totalDays: json['totalDays'] as int? ?? 0,
+      completedDays: json['completedDays'] as int? ?? 0,
+      progressPercentage: json['progressPercentage'] as int? ?? 0,
+      dayStatus: dayStatusMap,
+    );
+  }
+
+  /// Check if a specific day is completed
+  bool isDayCompleted(int day) {
+    final status = dayStatus[day.toString()];
+    return status?.status == 'completed';
+  }
+
+  /// Get the current day user should be on (first incomplete day)
+  int get currentDay {
+    for (int i = 1; i <= totalDays; i++) {
+      if (!isDayCompleted(i)) return i;
+    }
+    return totalDays;
+  }
+}
+
+class DayStatus {
+  final int day;
+  final String status;
+  final DateTime? completedAt;
+  final int totalDuration;
+  final int? rating;
+
+  DayStatus({
+    required this.day,
+    required this.status,
+    this.completedAt,
+    required this.totalDuration,
+    this.rating,
+  });
+
+  factory DayStatus.fromJson(Map<String, dynamic> json) {
+    return DayStatus(
+      day: json['day'] as int? ?? 0,
+      status: json['status'] as String? ?? 'pending',
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'])
+          : null,
+      totalDuration: json['totalDuration'] as int? ?? 0,
+      rating: json['rating'] as int?,
+    );
+  }
+}
