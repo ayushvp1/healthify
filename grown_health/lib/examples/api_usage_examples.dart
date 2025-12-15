@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 /// This file demonstrates how to use all the API services in the app.
 /// Import this file to see usage examples for each service.
-library;
+// library;
 
 import 'package:grown_health/services/profile_service.dart';
 import 'package:grown_health/services/water_service.dart';
