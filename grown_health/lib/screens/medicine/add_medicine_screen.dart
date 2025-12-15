@@ -208,7 +208,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         border: Border.all(color: const Color(0xFFE8BFC8)),
       ),
       child: DropdownButtonFormField<String>(
-        value: _frequency,
+        initialValue: _frequency,
         decoration: const InputDecoration(
           border: InputBorder.none,
           labelText: 'Frequency',

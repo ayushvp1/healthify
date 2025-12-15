@@ -47,9 +47,9 @@ class WaterReminderService {
 
   /// Show in-app reminder to drink water
   void _showWaterReminder(int remainingGlasses) {
-    if (_context == null || !_context!.mounted) return;
+    if (_context == null || !_context.mounted) return;
 
-    ScaffoldMessenger.of(_context!).showSnackBar(
+    ScaffoldMessenger.of(_context).showSnackBar(
       SnackBar(
         content: Row(
           children: [

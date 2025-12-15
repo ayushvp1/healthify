@@ -10,7 +10,7 @@ import '../models/water_intake_model.dart';
 import '../providers/auth_provider.dart';
 
 class ApiTestScreen extends ConsumerStatefulWidget {
-  const ApiTestScreen({Key? key}) : super(key: key);
+  const ApiTestScreen({super.key});
 
   @override
   ConsumerState<ApiTestScreen> createState() => _ApiTestScreenState();
