@@ -70,7 +70,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const SizedBox(
-        height: 280,
+        height: 220,
         child: Center(
           child: CircularProgressIndicator(color: AppTheme.primaryColor),
         ),
@@ -145,7 +145,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget> {
 
         // Horizontal Scrolling Cards
         SizedBox(
-          height: 280,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
