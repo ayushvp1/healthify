@@ -21,6 +21,66 @@ class AppTheme {
   static const Color surfaceLight = Color(AppConstants.surfaceLightValue);
   static const Color cardBackground = Color(AppConstants.cardBackgroundValue);
 
+  // Neutral colors
+  static const Color white = Color(AppConstants.whiteValue);
+  static const Color black = Color(AppConstants.blackValue);
+  static const Color transparent = Color(AppConstants.transparentValue);
+
+  // Black with opacity
+  static const Color black87 = Color(AppConstants.black87Value);
+  static const Color black54 = Color(AppConstants.black54Value);
+  static const Color black26 = Color(AppConstants.black26Value);
+
+  // White with opacity
+  static const Color white70 = Color(AppConstants.white70Value);
+  static const Color white54 = Color(AppConstants.white54Value);
+  static const Color white10 = Color(AppConstants.white10Value);
+
+  // Grey scale
+  static const Color grey50 = Color(AppConstants.grey50Value);
+  static const Color grey100 = Color(AppConstants.grey100Value);
+  static const Color grey200 = Color(AppConstants.grey200Value);
+  static const Color grey300 = Color(AppConstants.grey300Value);
+  static const Color grey400 = Color(AppConstants.grey400Value);
+  static const Color grey500 = Color(AppConstants.grey500Value);
+  static const Color grey600 = Color(AppConstants.grey600Value);
+  static const Color grey700 = Color(AppConstants.grey700Value);
+  static const Color grey800 = Color(AppConstants.grey800Value);
+  static const Color grey900 = Color(AppConstants.grey900Value);
+
+  // Feature colors
+  static const Color infoColor = Color(AppConstants.infoColorValue);
+  static const Color highlightPink = Color(AppConstants.highlightPinkValue);
+  static const Color lightBlue = Color(AppConstants.lightBlueValue);
+  static const Color lightPinkBg = Color(AppConstants.lightPinkBgValue);
+  static const Color darkRedText = Color(AppConstants.darkRedTextValue);
+  static const Color darkGreen = Color(AppConstants.darkGreenValue);
+  static const Color checkGreen = Color(AppConstants.checkGreenValue);
+  static const Color lightCyan = Color(AppConstants.lightCyanValue);
+  static const Color veryLightCyan = Color(AppConstants.veryLightCyanValue);
+  static const Color pinkBorder = Color(AppConstants.pinkBorderValue);
+  static const Color redVideo = Color(AppConstants.redVideoValue);
+
+  // Orange palette
+  static const Color orange = Color(AppConstants.orangeValue);
+  static const Color orange50 = Color(AppConstants.orange50Value);
+  static const Color orange300 = Color(AppConstants.orange300Value);
+  static const Color orange400 = Color(AppConstants.orange400Value);
+  static const Color deepOrange = Color(AppConstants.deepOrangeValue);
+  static const Color amber = Color(AppConstants.amberValue);
+
+  // Mind/Meditation category colors
+  static const Color blue400 = Color(AppConstants.blue400Value);
+  static const Color purple400 = Color(AppConstants.purple400Value);
+  static const Color indigo400 = Color(AppConstants.indigo400Value);
+  static const Color teal400 = Color(AppConstants.teal400Value);
+  static const Color green400 = Color(AppConstants.green400Value);
+  static const Color green = Color(AppConstants.greenValue);
+
+  // Red/Error shades
+  static const Color red100 = Color(AppConstants.red100Value);
+  static const Color red700 = Color(AppConstants.red700Value);
+
   /// Light Theme
   static ThemeData get lightTheme {
     return ThemeData(
@@ -34,7 +94,7 @@ class AppTheme {
       ),
       useMaterial3: true,
       fontFamily: GoogleFonts.inter().fontFamily,
-      scaffoldBackgroundColor: Colors.white,
+      scaffoldBackgroundColor: AppTheme.white,
       textTheme: GoogleFonts.interTextTheme(
         const TextTheme(
           displayLarge: TextStyle(fontSize: 57, fontWeight: FontWeight.w400),
@@ -58,18 +118,18 @@ class AppTheme {
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 1,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AppTheme.white,
+        foregroundColor: AppTheme.black,
         titleTextStyle: GoogleFonts.inter(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Colors.black,
+          color: AppTheme.black,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: AppTheme.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
@@ -133,7 +193,7 @@ class AppTheme {
           vertical: 16,
         ),
         hintStyle: GoogleFonts.inter(
-          color: Colors.grey.shade500,
+          color: AppTheme.grey500,
           fontWeight: FontWeight.w400,
         ),
       ),
@@ -145,9 +205,9 @@ class AppTheme {
         color: surfaceLight,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey.shade400,
+        unselectedItemColor: AppTheme.grey400,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         selectedLabelStyle: GoogleFonts.inter(
@@ -159,7 +219,7 @@ class AppTheme {
           fontWeight: FontWeight.w400,
         ),
       ),
-      dividerTheme: DividerThemeData(color: Colors.grey.shade200, thickness: 1),
+      dividerTheme: DividerThemeData(color: AppTheme.grey200, thickness: 1),
     );
   }
 }

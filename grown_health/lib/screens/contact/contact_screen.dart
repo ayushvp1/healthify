@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ContactScreen extends StatelessWidget {
@@ -7,19 +8,19 @@ class ContactScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
         title: Text(
           'Contact Us',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: AppTheme.black,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.black),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -33,7 +34,7 @@ class ContactScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF5B0C23),
+                color: AppTheme.primaryColor,
               ),
             ),
             const SizedBox(height: 16),
@@ -41,7 +42,7 @@ class ContactScreen extends StatelessWidget {
               'We\'d love to hear from you! Reach out for support, feedback, or inquiries.',
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: Colors.black87,
+                color: AppTheme.black87,
                 height: 1.5,
               ),
             ),
@@ -90,7 +91,7 @@ class ContactScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFF9F9F9),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppTheme.grey200),
         ),
         child: Row(
           children: [
@@ -100,7 +101,7 @@ class ContactScreen extends StatelessWidget {
                 color: const Color(0xFFFCE4E8),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: const Color(0xFFAA3D50), size: 24),
+              child: Icon(icon, color: AppTheme.accentColor, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -111,7 +112,7 @@ class ContactScreen extends StatelessWidget {
                     title,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.grey600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -120,7 +121,7 @@ class ContactScreen extends StatelessWidget {
                     detail,
                     style: GoogleFonts.inter(
                       fontSize: 16,
-                      color: Colors.black87,
+                      color: AppTheme.black87,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

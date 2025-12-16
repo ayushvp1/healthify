@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -71,9 +72,9 @@ class _MindScreenState extends ConsumerState<MindScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -82,11 +83,11 @@ class _MindScreenState extends ConsumerState<MindScreen> {
             textStyle: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
         ),
-        foregroundColor: Colors.black,
+        foregroundColor: AppTheme.black,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -110,12 +111,9 @@ class _MindScreenState extends ConsumerState<MindScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
             const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: GoogleFonts.inter(color: Colors.grey.shade600),
-            ),
+            Text(_error!, style: GoogleFonts.inter(color: AppTheme.grey600)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadMeditations,
@@ -131,14 +129,11 @@ class _MindScreenState extends ConsumerState<MindScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.self_improvement, size: 64, color: Colors.grey.shade300),
+            Icon(Icons.self_improvement, size: 64, color: AppTheme.grey300),
             const SizedBox(height: 16),
             Text(
               'No meditations available',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-              ),
+              style: GoogleFonts.inter(fontSize: 16, color: AppTheme.grey600),
             ),
           ],
         ),
@@ -269,12 +264,12 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppTheme.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.self_improvement,
-                    color: Colors.white,
+                    color: AppTheme.white,
                     size: 24,
                   ),
                 ),
@@ -283,12 +278,12 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(
-                      color: Colors.red,
+                      color: AppTheme.errorColor,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.videocam,
-                      color: Colors.white,
+                      color: AppTheme.white,
                       size: 14,
                     ),
                   ),
@@ -300,7 +295,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppTheme.white,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -314,7 +309,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppTheme.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -322,7 +317,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.white,
                     ),
                   ),
                 ),
@@ -334,7 +329,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppTheme.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -342,7 +337,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppTheme.white,
                       ),
                     ),
                   ),
@@ -375,7 +370,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
               ),
               child: const Icon(
                 Icons.self_improvement_rounded,
-                color: Colors.white,
+                color: AppTheme.white,
               ),
             ),
             const SizedBox(width: 12),
@@ -401,7 +396,11 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                       ),
                       if (meditation.hasVideo) ...[
                         const SizedBox(width: 6),
-                        const Icon(Icons.videocam, size: 16, color: Colors.red),
+                        const Icon(
+                          Icons.videocam,
+                          size: 16,
+                          color: AppTheme.errorColor,
+                        ),
                       ],
                     ],
                   ),
@@ -411,7 +410,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                     ),
                   ),
@@ -424,12 +423,12 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 width: 36,
                 height: 36,
                 decoration: const BoxDecoration(
-                  color: Colors.black,
+                  color: AppTheme.black,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.play_arrow_rounded,
-                  color: Colors.white,
+                  color: AppTheme.white,
                 ),
               ),
             ),
@@ -450,14 +449,14 @@ class _MindScreenState extends ConsumerState<MindScreen> {
 
   Color _getCategoryColor(String? categoryName) {
     final colors = {
-      'Relaxation': Colors.blue.shade400,
-      'Focus': Colors.purple.shade400,
-      'Sleep': Colors.indigo.shade400,
-      'Stress': Colors.teal.shade400,
-      'Anxiety': Colors.green.shade400,
-      'Energy': Colors.orange.shade400,
+      'Relaxation': AppTheme.blue400,
+      'Focus': AppTheme.purple400,
+      'Sleep': AppTheme.indigo400,
+      'Stress': AppTheme.teal400,
+      'Anxiety': AppTheme.green400,
+      'Energy': AppTheme.orange400,
     };
-    return colors[categoryName] ?? Colors.orange.shade300;
+    return colors[categoryName] ?? AppTheme.orange300;
   }
 }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -220,14 +221,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userEmail = ref.watch(authProvider).user?.email ?? '';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
             Icons.chevron_left_rounded,
-            color: Colors.black,
+            color: AppTheme.black,
             size: 28,
           ),
           onPressed: () => Navigator.pop(context),
@@ -238,7 +239,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             textStyle: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
         ),
@@ -259,7 +260,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppTheme.errorColor,
+            ),
             const SizedBox(height: 16),
             Text(
               _error ?? 'Failed to load profile',
@@ -270,7 +275,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ElevatedButton(
               onPressed: _loadProfile,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFAA3D50),
+                backgroundColor: AppTheme.accentColor,
               ),
               child: const Text('Retry'),
             ),
@@ -305,12 +310,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (e) {
       debugPrint('❌ Image upload failed: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to upload image: ${e.toString().replaceAll("Exception:", "")}',
-            ),
-          ),
+        SnackBarUtils.showError(
+          context,
+          'Failed to upload image: ${e.toString().replaceAll("Exception:", "")}',
         );
         setState(() => _loading = false);
       }
@@ -345,14 +347,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 const Icon(
                                   Icons.person_outline_rounded,
                                   size: 50,
-                                  color: Color(0xFFAA3D50),
+                                  color: AppTheme.accentColor,
                                 ),
                           ),
                         )
                       : const Icon(
                           Icons.person_outline_rounded,
                           size: 50,
-                          color: Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                         ),
                 ),
                 Positioned(
@@ -363,15 +365,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
-                        color: Color(0xFFAA3D50),
+                        color: AppTheme.accentColor,
                         shape: BoxShape.circle,
                         border: Border.fromBorderSide(
-                          BorderSide(color: Colors.white, width: 2),
+                          BorderSide(color: AppTheme.white, width: 2),
                         ),
                       ),
                       child: const Icon(
                         Icons.camera_alt_rounded,
-                        color: Colors.white,
+                        color: AppTheme.white,
                         size: 20,
                       ),
                     ),
@@ -398,7 +400,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Text(
             userEmail,
             style: GoogleFonts.inter(
-              textStyle: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              textStyle: TextStyle(fontSize: 14, color: AppTheme.grey600),
             ),
           ),
           const SizedBox(height: 32),
@@ -465,7 +467,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: ElevatedButton(
               onPressed: () => _handleLogout(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFAA3D50),
+                backgroundColor: AppTheme.accentColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -476,7 +478,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   textStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppTheme.white,
                   ),
                 ),
               ),
@@ -513,7 +515,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const Icon(
                   Icons.edit_outlined,
                   size: 16,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -522,7 +524,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     textStyle: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFFAA3D50),
+                      color: AppTheme.accentColor,
                     ),
                   ),
                 ),
@@ -668,7 +670,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Blood Pressure (mmHg)',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppTheme.grey500),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -693,7 +695,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         '/',
-                        style: TextStyle(fontSize: 20, color: Colors.grey),
+                        style: TextStyle(fontSize: 20, color: AppTheme.grey500),
                       ),
                     ),
                     Expanded(
@@ -749,24 +751,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       // Show loading
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Text('Saving health metrics...'),
-              ],
-            ),
-            duration: Duration(seconds: 2),
-          ),
+        SnackBarUtils.showInfo(
+          context,
+          'Saving health metrics...',
+          duration: const Duration(seconds: 2),
         );
       }
 
@@ -806,13 +794,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Health metrics updated!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          SnackBarUtils.hide(context);
+          SnackBarUtils.showSuccess(context, 'Health metrics updated!');
         }
       } catch (e) {
         debugPrint('❌ Failed to save health metrics: $e');
@@ -832,13 +815,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           await prefs.setString('${userEmail}_bloodPressure', _bloodPressure);
 
           if (!mounted) return;
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Saved locally (Offline)'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 2),
-            ),
+          SnackBarUtils.hide(context);
+          SnackBarUtils.showWarning(
+            context,
+            'Saved locally (Offline)',
+            duration: const Duration(seconds: 2),
           );
         }
       }
@@ -888,24 +869,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       await _loadProfile();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        SnackBarUtils.showSuccess(context, 'Profile updated successfully!');
       }
     } catch (e) {
       debugPrint('❌ Profile update failed: $e');
       if (mounted) {
         setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to update: ${e.toString().replaceFirst('Exception: ', '')}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarUtils.showError(
+          context,
+          'Failed to update: ${e.toString().replaceFirst('Exception: ', '')}',
         );
       }
     }
@@ -923,7 +895,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: const Color(0xFFFCE4E8),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 20, color: const Color(0xFFAA3D50)),
+            child: Icon(icon, size: 20, color: AppTheme.accentColor),
           ),
           const SizedBox(width: 16),
           Column(
@@ -932,10 +904,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  textStyle: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                  ),
+                  textStyle: TextStyle(fontSize: 12, color: AppTheme.grey500),
                 ),
               ),
               const SizedBox(height: 2),

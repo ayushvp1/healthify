@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/exercise_bundle_service.dart';
@@ -58,12 +59,12 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -71,7 +72,7 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
         ),
         centerTitle: true,
@@ -85,7 +86,9 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
           Expanded(
             child: _loading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+                    child: CircularProgressIndicator(
+                      color: AppTheme.accentColor,
+                    ),
                   )
                 : _error != null
                 ? _buildError()
@@ -149,7 +152,7 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
   Widget _buildBundlesList() {
     return RefreshIndicator(
       onRefresh: _loadBundles,
-      color: const Color(0xFFAA3D50),
+      color: AppTheme.accentColor,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _bundles.length,
@@ -173,17 +176,17 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.grey, size: 60),
+            const Icon(Icons.error_outline, color: AppTheme.grey500, size: 60),
             const SizedBox(height: 16),
             Text(
               'Failed to load programs',
-              style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+              style: GoogleFonts.inter(fontSize: 16, color: AppTheme.grey500),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadBundles,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFAA3D50),
+                backgroundColor: AppTheme.accentColor,
               ),
               child: const Text('Retry'),
             ),
@@ -200,24 +203,21 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.fitness_center, color: Colors.grey.shade300, size: 80),
+            Icon(Icons.fitness_center, color: AppTheme.grey300, size: 80),
             const SizedBox(height: 16),
             Text(
               'No programs available',
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: AppTheme.grey600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Check back later for new workout programs!',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey500),
             ),
           ],
         ),
@@ -245,12 +245,10 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF5B0C23) : const Color(0xFFFFF5F6),
+          color: isSelected ? AppTheme.primaryColor : AppTheme.cardBackground,
           borderRadius: BorderRadius.circular(25),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF5B0C23)
-                : const Color(0xFFE8B4BD),
+            color: isSelected ? AppTheme.primaryColor : const Color(0xFFE8B4BD),
           ),
         ),
         child: Text(
@@ -258,7 +256,7 @@ class _FilterChip extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : const Color(0xFF5B0C23),
+            color: isSelected ? AppTheme.white : AppTheme.primaryColor,
           ),
         ),
       ),
@@ -279,11 +277,11 @@ class _BundleCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppTheme.black.withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -333,7 +331,7 @@ class _BundleCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: AppTheme.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -341,7 +339,7 @@ class _BundleCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppTheme.white,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -357,7 +355,7 @@ class _BundleCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFAA3D50),
+                      color: AppTheme.accentColor,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -365,7 +363,7 @@ class _BundleCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: AppTheme.white,
                       ),
                     ),
                   ),
@@ -384,7 +382,7 @@ class _BundleCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -395,7 +393,7 @@ class _BundleCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.grey600,
                         height: 1.4,
                       ),
                     ),
@@ -433,7 +431,7 @@ class _BundleCard extends StatelessWidget {
         ),
       ),
       child: const Center(
-        child: Icon(Icons.fitness_center, color: Colors.white54, size: 48),
+        child: Icon(Icons.fitness_center, color: AppTheme.white54, size: 48),
       ),
     );
   }
@@ -441,13 +439,13 @@ class _BundleCard extends StatelessWidget {
   List<Color> _getDifficultyGradient(String difficulty) {
     switch (difficulty) {
       case 'beginner':
-        return [const Color(0xFF4CAF50), const Color(0xFF81C784)];
+        return [AppTheme.checkGreen, const Color(0xFF81C784)];
       case 'intermediate':
-        return [const Color(0xFFAA3D50), const Color(0xFFD46A7A)];
+        return [AppTheme.accentColor, const Color(0xFFD46A7A)];
       case 'advanced':
-        return [const Color(0xFF5B0C23), const Color(0xFFAA3D50)];
+        return [AppTheme.primaryColor, AppTheme.accentColor];
       default:
-        return [const Color(0xFFAA3D50), const Color(0xFFD46A7A)];
+        return [AppTheme.accentColor, const Color(0xFFD46A7A)];
     }
   }
 }
@@ -463,20 +461,20 @@ class _InfoPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F6),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: const Color(0xFFAA3D50)),
+          Icon(icon, size: 14, color: AppTheme.accentColor),
           const SizedBox(width: 4),
           Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF5B0C23),
+              color: AppTheme.primaryColor,
             ),
           ),
         ],

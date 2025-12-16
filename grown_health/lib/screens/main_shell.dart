@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'home/home_screen.dart';
@@ -34,10 +35,9 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: IndexedStack(index: _currentIndex, children: _pages),
-      ),
+      backgroundColor: AppTheme.white,
+      extendBody: true, // Allows body to scroll behind the nav bar
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: _SharedBottomNav(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
@@ -54,65 +54,67 @@ class _SharedBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      child: Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: const Color(0xFFA03E4E), // Deep dusty red/maroon
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _BottomNavItem(
-              label: 'Home',
-              index: 0,
-              currentIndex: currentIndex,
-              onTap: onTap,
-              icon: Icons.home_filled,
-              selectedIcon: Icons.home_filled,
-            ),
-            _BottomNavItem(
-              label: 'Body',
-              index: 1,
-              currentIndex: currentIndex,
-              onTap: onTap,
-              icon: Icons.accessibility_new_rounded,
-              selectedIcon: Icons.accessibility_new_rounded,
-            ),
-            _BottomNavItem(
-              label: 'Nutrition',
-              index: 2,
-              currentIndex: currentIndex,
-              onTap: onTap,
-              icon: Icons.rice_bowl_outlined,
-              selectedIcon: Icons.rice_bowl,
-            ),
-            _BottomNavItem(
-              label: 'Help',
-              index: 3,
-              currentIndex: currentIndex,
-              onTap: onTap,
-              icon: Icons.account_circle_outlined,
-              selectedIcon: Icons.account_circle,
-            ),
-            _BottomNavItem(
-              label: 'Mind',
-              index: 4,
-              currentIndex: currentIndex,
-              onTap: onTap,
-              icon: Icons.sentiment_satisfied_rounded,
-              selectedIcon: Icons.sentiment_satisfied_rounded,
-            ),
-          ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        child: Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: const Color(0xFFA03E4E), // Deep dusty red/maroon
+            borderRadius: BorderRadius.circular(40),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _BottomNavItem(
+                label: 'Home',
+                index: 0,
+                currentIndex: currentIndex,
+                onTap: onTap,
+                icon: Icons.home_filled,
+                selectedIcon: Icons.home_filled,
+              ),
+              _BottomNavItem(
+                label: 'Body',
+                index: 1,
+                currentIndex: currentIndex,
+                onTap: onTap,
+                icon: Icons.accessibility_new_rounded,
+                selectedIcon: Icons.accessibility_new_rounded,
+              ),
+              _BottomNavItem(
+                label: 'Nutrition',
+                index: 2,
+                currentIndex: currentIndex,
+                onTap: onTap,
+                icon: Icons.rice_bowl_outlined,
+                selectedIcon: Icons.rice_bowl,
+              ),
+              _BottomNavItem(
+                label: 'Help',
+                index: 3,
+                currentIndex: currentIndex,
+                onTap: onTap,
+                icon: Icons.account_circle_outlined,
+                selectedIcon: Icons.account_circle,
+              ),
+              _BottomNavItem(
+                label: 'Mind',
+                index: 4,
+                currentIndex: currentIndex,
+                onTap: onTap,
+                icon: Icons.sentiment_satisfied_rounded,
+                selectedIcon: Icons.sentiment_satisfied_rounded,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -147,7 +149,7 @@ class _BottomNavItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.white,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -180,7 +182,7 @@ class _BottomNavItem extends StatelessWidget {
       onTap: () => onTap(index),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Icon(icon, size: 26, color: Colors.white.withOpacity(0.6)),
+        child: Icon(icon, size: 26, color: AppTheme.white.withOpacity(0.6)),
       ),
     );
   }

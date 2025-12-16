@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class HydrationCard extends StatelessWidget {
@@ -20,7 +21,7 @@ class HydrationCard extends StatelessWidget {
     return Container(
       height: 260,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(27),
         boxShadow: [
           const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 9),
@@ -34,13 +35,13 @@ class HydrationCard extends StatelessWidget {
               width: 110,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: AppTheme.lightBlue,
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Icon(
                   Icons.local_drink_rounded,
                   size: 48,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
               ),
             ),
@@ -58,7 +59,7 @@ class HydrationCard extends StatelessWidget {
                       textStyle: const TextStyle(
                         fontSize: 23,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFFAA3D50),
+                        color: AppTheme.accentColor,
                       ),
                     ),
                   ),
@@ -69,7 +70,7 @@ class HydrationCard extends StatelessWidget {
                       textStyle: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                   ),
@@ -92,18 +93,22 @@ class HydrationCard extends StatelessWidget {
                         horizontal: 14,
                         vertical: 8,
                       ),
-                      side: const BorderSide(color: Colors.black, width: 1),
+                      side: const BorderSide(color: AppTheme.black, width: 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(7),
                       ),
                     ),
-                    icon: const Icon(Icons.add, size: 18, color: Colors.black),
+                    icon: const Icon(
+                      Icons.add,
+                      size: 18,
+                      color: AppTheme.black,
+                    ),
                     label: Text(
                       '200 ml',
                       style: GoogleFonts.inter(
                         textStyle: const TextStyle(
                           fontSize: 17,
-                          color: Colors.black,
+                          color: AppTheme.black,
                         ),
                       ),
                     ),

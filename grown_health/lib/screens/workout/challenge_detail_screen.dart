@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ChallengeDetailScreen extends StatelessWidget {
@@ -7,7 +8,7 @@ class ChallengeDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -48,7 +49,7 @@ class ChallengeDetailScreen extends StatelessWidget {
           height: 220,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFB3E5FC), Color(0xFFE1F5FE)],
+              colors: [AppTheme.lightCyan, AppTheme.veryLightCyan],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -58,7 +59,7 @@ class ChallengeDetailScreen extends StatelessWidget {
           top: 16,
           left: 16,
           child: CircleAvatar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppTheme.white,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
               onPressed: () => Navigator.of(context).pop(),
@@ -69,7 +70,7 @@ class ChallengeDetailScreen extends StatelessWidget {
           top: 16,
           right: 16,
           child: CircleAvatar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppTheme.white,
             child: IconButton(
               icon: const Icon(Icons.favorite_border_rounded),
               onPressed: () {},
@@ -84,13 +85,13 @@ class ChallengeDetailScreen extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: AppTheme.white.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.fitness_center_rounded,
                   size: 56,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
               ),
               const SizedBox(height: 12),
@@ -113,11 +114,11 @@ class ChallengeDetailScreen extends StatelessWidget {
   Widget _buildInfoCard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AppTheme.black.withValues(alpha: 0.06),
             blurRadius: 10,
           ),
         ],
@@ -130,7 +131,10 @@ class ChallengeDetailScreen extends StatelessWidget {
             Text(
               '30 Days Challenge for weight loss.',
               style: GoogleFonts.inter(
-                textStyle: const TextStyle(fontSize: 14, color: Colors.black87),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.black87,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -138,7 +142,7 @@ class ChallengeDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFAA3D50)),
+                border: Border.all(color: AppTheme.accentColor),
                 color: const Color(0xFFFFEBEE),
               ),
               child: Text(
@@ -146,7 +150,7 @@ class ChallengeDetailScreen extends StatelessWidget {
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFFAA3D50),
+                    color: AppTheme.accentColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -212,14 +216,14 @@ class ChallengeDetailScreen extends StatelessWidget {
   Widget _buildStartButton(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppTheme.white),
       child: SizedBox(
         width: double.infinity,
         height: 48,
         child: ElevatedButton.icon(
           onPressed: () => Navigator.of(context).pushNamed('/player'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFAA3D50),
+            backgroundColor: AppTheme.accentColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -256,7 +260,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 22, color: const Color(0xFFAA3D50)),
+        Icon(icon, size: 22, color: AppTheme.accentColor),
         const SizedBox(height: 4),
         Text(
           value,
@@ -271,7 +275,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.inter(
-            textStyle: const TextStyle(fontSize: 12, color: Colors.black54),
+            textStyle: const TextStyle(fontSize: 12, color: AppTheme.black54),
           ),
         ),
       ],
@@ -296,11 +300,11 @@ class _ExerciseCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppTheme.black.withValues(alpha: 0.04),
               blurRadius: 8,
             ),
           ],
@@ -313,12 +317,12 @@ class _ExerciseCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7D4DD),
+                  color: AppTheme.pinkBorder,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
                   Icons.fitness_center,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
               ),
               const SizedBox(width: 12),
@@ -341,14 +345,14 @@ class _ExerciseCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         textStyle: const TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: AppTheme.grey500,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+              const Icon(Icons.chevron_right_rounded, color: AppTheme.grey500),
             ],
           ),
         ),

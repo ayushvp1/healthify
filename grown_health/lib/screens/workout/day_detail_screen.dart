@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -95,7 +96,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+        child: CircularProgressIndicator(color: AppTheme.accentColor),
       ),
     );
 
@@ -127,7 +128,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
               ),
               title: const Row(
                 children: [
-                  Icon(Icons.fitness_center, color: Color(0xFFAA3D50)),
+                  Icon(Icons.fitness_center, color: AppTheme.accentColor),
                   SizedBox(width: 8),
                   Text('Active Workout'),
                 ],
@@ -142,12 +143,16 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, 'abandon'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.warningColor,
+                  ),
                   child: const Text('Start Fresh'),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, 'cancel'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.grey500,
+                  ),
                   child: const Text('Cancel'),
                 ),
               ],
@@ -196,13 +201,9 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
           if (mounted) Navigator.of(context).pushNamed('/player');
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  errorData['message'] ?? 'Failed to start workout',
-                ),
-                backgroundColor: Colors.red,
-              ),
+            SnackBarUtils.showError(
+              context,
+              errorData['message'] ?? 'Failed to start workout',
             );
           }
         }
@@ -213,13 +214,9 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
         if (e.toString().toLowerCase().contains('active')) {
           Navigator.of(context).pushNamed('/player');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Error: ${e.toString().replaceAll("Exception: ", "")}',
-              ),
-              backgroundColor: Colors.red,
-            ),
+          SnackBarUtils.showError(
+            context,
+            'Error: ${e.toString().replaceAll("Exception: ", "")}',
           );
         }
       }
@@ -229,12 +226,12 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -242,7 +239,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: AppTheme.white,
           ),
         ),
         centerTitle: true,
@@ -254,7 +251,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
   Widget _buildBody() {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+        child: CircularProgressIndicator(color: AppTheme.accentColor),
       );
     }
 
@@ -263,9 +260,9 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.grey, size: 60),
+            const Icon(Icons.error_outline, color: AppTheme.grey500, size: 60),
             const SizedBox(height: 16),
-            Text(_error!, style: GoogleFonts.inter(color: Colors.grey)),
+            Text(_error!, style: GoogleFonts.inter(color: AppTheme.grey500)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: _loadDayData, child: const Text('Retry')),
           ],
@@ -294,13 +291,13 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
+              color: AppTheme.lightBlue,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.self_improvement,
               size: 60,
-              color: Color(0xFF2196F3),
+              color: AppTheme.infoColor,
             ),
           ),
           const SizedBox(height: 24),
@@ -309,13 +306,13 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
             style: GoogleFonts.inter(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Take time to recover and recharge',
-            style: GoogleFonts.inter(fontSize: 16, color: Colors.grey.shade600),
+            style: GoogleFonts.inter(fontSize: 16, color: AppTheme.grey600),
           ),
         ],
       ),
@@ -340,7 +337,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white70,
+                  color: AppTheme.white70,
                   letterSpacing: 1,
                 ),
               ),
@@ -353,7 +350,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.white,
                     ),
                   ),
                   Text(
@@ -361,7 +358,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+                      color: AppTheme.white70,
                     ),
                   ),
                 ],
@@ -375,7 +372,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50).withOpacity(0.2),
+                    color: AppTheme.checkGreen.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -383,7 +380,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                     children: [
                       const Icon(
                         Icons.check_circle,
-                        color: Color(0xFF4CAF50),
+                        color: AppTheme.checkGreen,
                         size: 18,
                       ),
                       const SizedBox(width: 6),
@@ -392,7 +389,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF4CAF50),
+                          color: AppTheme.checkGreen,
                         ),
                       ),
                     ],
@@ -428,8 +425,8 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                 child: ElevatedButton(
                   onPressed: _startWorkout,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.infoColor,
+                    foregroundColor: AppTheme.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -463,11 +460,11 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -480,7 +477,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF0F3),
+                color: AppTheme.highlightPink,
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
@@ -489,7 +486,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
               ),
             ),
@@ -500,7 +497,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF0F3),
+                color: AppTheme.highlightPink,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ClipRRect(
@@ -511,12 +508,12 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.fitness_center,
-                          color: Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                         ),
                       )
                     : const Icon(
                         Icons.fitness_center,
-                        color: Color(0xFFAA3D50),
+                        color: AppTheme.accentColor,
                       ),
               ),
             ),
@@ -532,7 +529,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -544,30 +541,26 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                         Icon(
                           Icons.timer_outlined,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.grey600,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${ex.duration}s',
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.grey600,
                           ),
                         ),
                         const SizedBox(width: 12),
                       ],
                       if (ex.reps > 0) ...[
-                        Icon(
-                          Icons.repeat,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
+                        Icon(Icons.repeat, size: 14, color: AppTheme.grey600),
                         const SizedBox(width: 4),
                         Text(
                           '${ex.sets}×${ex.reps}',
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.grey600,
                           ),
                         ),
                       ],
@@ -582,12 +575,12 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                color: Color(0xFFE3F2FD),
+                color: AppTheme.lightBlue,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.play_arrow_rounded,
-                color: Color(0xFF2196F3),
+                color: AppTheme.infoColor,
                 size: 20,
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RecommendedCard extends StatelessWidget {
@@ -49,7 +50,7 @@ class RecommendedCard extends StatelessWidget {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
+                color: AppTheme.white.withOpacity(0.1),
               ),
             ),
           ),
@@ -61,7 +62,7 @@ class RecommendedCard extends StatelessWidget {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.05),
+                color: AppTheme.white.withOpacity(0.05),
               ),
             ),
           ),
@@ -79,7 +80,7 @@ class RecommendedCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppTheme.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -87,7 +88,7 @@ class RecommendedCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
                               fontSize: 12,
-                              color: Colors.white,
+                              color: AppTheme.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -100,7 +101,7 @@ class RecommendedCard extends StatelessWidget {
                           textStyle: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: AppTheme.white,
                             height: 1.1,
                           ),
                         ),
@@ -125,17 +126,17 @@ class RecommendedCard extends StatelessWidget {
                           const Icon(
                             Icons.bolt_rounded,
                             size: 18,
-                            color: Colors.white,
+                            color: AppTheme.white,
                           ),
                           const Icon(
                             Icons.bolt_rounded,
                             size: 18,
-                            color: Colors.white54,
+                            color: AppTheme.white54,
                           ),
                           const Icon(
                             Icons.bolt_rounded,
                             size: 18,
-                            color: Colors.white54,
+                            color: AppTheme.white54,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -143,7 +144,7 @@ class RecommendedCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               textStyle: const TextStyle(
                                 fontSize: 13,
-                                color: Colors.white,
+                                color: AppTheme.white,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -154,7 +155,7 @@ class RecommendedCard extends StatelessWidget {
                       ElevatedButton.icon(
                         onPressed: onStart,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor: AppTheme.white,
                           foregroundColor: backgroundColor,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
@@ -191,7 +192,7 @@ class RecommendedCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: AppTheme.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -218,14 +219,14 @@ class _IconText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.white),
+        Icon(icon, size: 16, color: AppTheme.white),
         const SizedBox(width: 6),
         Text(
           text,
           style: GoogleFonts.inter(
             textStyle: const TextStyle(
               fontSize: 13,
-              color: Colors.white,
+              color: AppTheme.white,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WorkoutPlanScreen extends StatelessWidget {
@@ -20,12 +21,12 @@ class WorkoutPlanScreen extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.black26,
+                  color: AppTheme.black26,
                   child: const Center(
                     child: Icon(
                       Icons.fitness_center,
                       size: 60,
-                      color: Colors.white54,
+                      color: AppTheme.white54,
                     ),
                   ),
                 );
@@ -45,9 +46,9 @@ class WorkoutPlanScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.4),
+                    AppTheme.black.withOpacity(0.6),
+                    AppTheme.transparent,
+                    AppTheme.black.withOpacity(0.4),
                   ],
                 ),
               ),
@@ -59,13 +60,13 @@ class WorkoutPlanScreen extends StatelessWidget {
             top: 50,
             left: 20,
             child: CircleAvatar(
-              backgroundColor: Colors.white,
+              backgroundColor: AppTheme.white,
               radius: 20,
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_ios_new_rounded,
                   size: 18,
-                  color: Colors.black,
+                  color: AppTheme.black,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -80,7 +81,7 @@ class WorkoutPlanScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppTheme.white,
               ),
             ),
           ),
@@ -90,7 +91,7 @@ class WorkoutPlanScreen extends StatelessWidget {
             top: 280, // Start below the text
             child: Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
@@ -113,7 +114,7 @@ class WorkoutPlanScreen extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: AppTheme.black,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -144,7 +145,7 @@ class WorkoutPlanScreen extends StatelessWidget {
                   Navigator.of(context).pushNamed('/player');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5B0C23),
+                  backgroundColor: AppTheme.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -155,7 +156,7 @@ class WorkoutPlanScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppTheme.white,
                   ),
                 ),
               ),
@@ -170,12 +171,12 @@ class WorkoutPlanScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppTheme.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -189,13 +190,13 @@ class WorkoutPlanScreen extends StatelessWidget {
             value: '30s',
             label: 'Duration',
           ),
-          Container(height: 40, width: 1, color: Colors.grey.shade200),
+          Container(height: 40, width: 1, color: AppTheme.grey200),
           _DetailStat(
             icon: Icons.local_fire_department_rounded,
             value: '2 cal',
             label: 'calories',
           ),
-          Container(height: 40, width: 1, color: Colors.grey.shade200),
+          Container(height: 40, width: 1, color: AppTheme.grey200),
           _DetailStat(
             icon: Icons.fitness_center_rounded,
             value: 'Med',
@@ -214,12 +215,12 @@ class WorkoutPlanScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: AppTheme.black.withOpacity(0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -232,12 +233,12 @@ class WorkoutPlanScreen extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppTheme.grey100,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.accessibility_new_rounded,
-                color: Colors.deepOrange,
+                color: AppTheme.warningColor,
               ),
             ),
             const SizedBox(width: 16),
@@ -251,7 +252,7 @@ class WorkoutPlanScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -259,7 +260,7 @@ class WorkoutPlanScreen extends StatelessWidget {
                     '30s',
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.grey600,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -268,17 +269,17 @@ class WorkoutPlanScreen extends StatelessWidget {
                       Icon(
                         Icons.bolt_rounded,
                         size: 14,
-                        color: Color(0xFF5B0C23),
+                        color: AppTheme.primaryColor,
                       ),
                       Icon(
                         Icons.bolt_rounded,
                         size: 14,
-                        color: Colors.grey.shade300,
+                        color: AppTheme.grey300,
                       ),
                       Icon(
                         Icons.bolt_rounded,
                         size: 14,
-                        color: Colors.grey.shade300,
+                        color: AppTheme.grey300,
                       ),
                     ],
                   ),
@@ -288,7 +289,7 @@ class WorkoutPlanScreen extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
             const SizedBox(width: 8),
           ],
@@ -314,14 +315,14 @@ class _DetailStat extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: const Color(0xFF1B5E20), size: 24), // Green Icon
+        Icon(icon, color: AppTheme.darkGreen, size: 24), // Green Icon
         const SizedBox(height: 8),
         Text(
           value,
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFFAA3D50), // Maroon Value
+            color: AppTheme.accentColor, // Maroon Value
           ),
         ),
         const SizedBox(height: 4),
@@ -329,7 +330,7 @@ class _DetailStat extends StatelessWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: AppTheme.grey600,
             fontWeight: FontWeight.w500,
           ),
         ),

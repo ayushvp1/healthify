@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -125,15 +126,12 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
               Icon(
                 Icons.fitness_center_outlined,
                 size: 40,
-                color: Colors.grey.shade400,
+                color: AppTheme.grey400,
               ),
               const SizedBox(height: 12),
               Text(
                 _error ?? 'No workout bundles available',
-                style: GoogleFonts.inter(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
+                style: GoogleFonts.inter(color: AppTheme.grey600, fontSize: 14),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 8),
@@ -159,7 +157,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                  color: AppTheme.black,
                 ),
               ),
               GestureDetector(
@@ -187,7 +185,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             indicator: const BoxDecoration(),
-            dividerColor: Colors.transparent,
+            dividerColor: AppTheme.transparent,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             labelPadding: const EdgeInsets.only(right: 8),
             tabs: _categoryNames.map((categoryName) {
@@ -205,15 +203,13 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppTheme.primaryColor
-                            : Colors.grey.shade100,
+                            : AppTheme.grey100,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Text(
                         categoryName,
                         style: GoogleFonts.inter(
-                          color: isSelected
-                              ? Colors.white
-                              : Colors.grey.shade700,
+                          color: isSelected ? AppTheme.white : AppTheme.grey700,
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.w500,
@@ -246,7 +242,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                   child: Text(
                     'No programs in $categoryName',
                     style: GoogleFonts.inter(
-                      color: Colors.grey.shade500,
+                      color: AppTheme.grey500,
                       fontSize: 14,
                     ),
                   ),
@@ -258,7 +254,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: bundles.length,
                 separatorBuilder: (context, index) =>
-                    Divider(height: 24, color: Colors.grey.shade200),
+                    Divider(height: 24, color: AppTheme.grey200),
                 itemBuilder: (context, index) {
                   final bundle = bundles[index];
                   final difficultyStars = _getDifficultyStars(
@@ -299,7 +295,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: AppTheme.black,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -311,7 +307,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                                 '${bundle.totalExercises} Exercises • ${bundle.totalDays} Days',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
-                                  color: Colors.grey.shade600,
+                                  color: AppTheme.grey600,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -325,7 +321,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                                       size: 16,
                                       color: starIndex < difficultyStars
                                           ? AppTheme.primaryColor
-                                          : Colors.grey.shade300,
+                                          : AppTheme.grey300,
                                     );
                                   }),
                                   const SizedBox(width: 6),
@@ -346,7 +342,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
                         // Arrow Icon
                         Icon(
                           Icons.chevron_right,
-                          color: Colors.grey.shade400,
+                          color: AppTheme.grey400,
                           size: 24,
                         ),
                       ],

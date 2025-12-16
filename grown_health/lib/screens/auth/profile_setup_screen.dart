@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:grown_health/widgets/widgets.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/profile_service.dart';
@@ -24,14 +26,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
-  final _heightController = TextEditingController(); // Added height
+  final _heightController = TextEditingController();
   String? _selectedGender;
 
+  // Validation state
+  Map<String, String> validationErrors = {};
+  bool showErrors = false;
+
   // Step 2 selection
-  String? _selectedGoal;
+  int _selectedGoalIndex = -1;
 
   final List<Map<String, dynamic>> _goals = [
-    {'id': 'fit', 'label': 'Get fit', 'icon': Icons.fitness_center_rounded},
+    {'id': 'fit', 'label': 'Get Fit', 'icon': Icons.fitness_center_rounded},
     {'id': 'active', 'label': 'Be Active', 'icon': Icons.favorite_rounded},
     {
       'id': 'health',
@@ -51,53 +57,78 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     super.dispose();
   }
 
+  bool _validateStep1() {
+    setState(() {
+      validationErrors.clear();
+      showErrors = false;
+    });
+
+    // Name validation
+    if (_nameController.text.trim().isEmpty) {
+      validationErrors['name'] = 'Please enter your name';
+    } else if (_nameController.text.trim().length < 2) {
+      validationErrors['name'] = 'Name must be at least 2 characters';
+    }
+
+    // Age validation
+    if (_ageController.text.trim().isEmpty) {
+      validationErrors['age'] = 'Please enter your age';
+    } else {
+      final age = int.tryParse(_ageController.text.trim());
+      if (age == null || age < 13 || age > 120) {
+        validationErrors['age'] = 'Please enter a valid age (13-120)';
+      }
+    }
+
+    // Gender validation
+    if (_selectedGender == null || _selectedGender!.isEmpty) {
+      validationErrors['gender'] = 'Please select your gender';
+    }
+
+    // Weight validation
+    if (_weightController.text.trim().isEmpty) {
+      validationErrors['weight'] = 'Please enter your weight';
+    } else {
+      final weight = double.tryParse(_weightController.text.trim());
+      if (weight == null || weight < 20 || weight > 300) {
+        validationErrors['weight'] = 'Please enter a valid weight (20-300 kg)';
+      }
+    }
+
+    // Height validation
+    if (_heightController.text.trim().isEmpty) {
+      validationErrors['height'] = 'Please enter your height';
+    } else {
+      final height = double.tryParse(_heightController.text.trim());
+      if (height == null || height < 50 || height > 250) {
+        validationErrors['height'] = 'Please enter a valid height (50-250 cm)';
+      }
+    }
+
+    if (validationErrors.isNotEmpty) {
+      setState(() {
+        showErrors = true;
+      });
+      return false;
+    }
+
+    return true;
+  }
+
   void _nextPage() {
     if (_currentPage < _totalPages - 1) {
-      // Validate first page before proceeding
-      if (_currentPage == 0) {
-        final name = _nameController.text.trim();
-        final age = _ageController.text.trim();
-        final weight = _weightController.text.trim();
-        final height = _heightController.text.trim(); // Added height validation
-
-        if (name.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter your name')),
-          );
-          return;
-        }
-        if (age.isEmpty || int.tryParse(age) == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter a valid age')),
-          );
-          return;
-        }
-        if (weight.isEmpty || double.tryParse(weight) == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter a valid weight')),
-          );
-          return;
-        }
-        if (height.isEmpty || double.tryParse(height) == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter a valid height')),
-          );
-          return;
-        }
-        if (_selectedGender == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please select your gender')),
-          );
-          return;
-        }
+      if (_currentPage == 0 && !_validateStep1()) {
+        return;
       }
-
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: AppConstants.animationDuration,
+        curve: Curves.easeInOut,
       );
     } else {
-      // Last page, complete profile and go to home
+      if (_selectedGoalIndex == -1) {
+        SnackBarUtils.showWarning(context, 'Please select a goal to continue');
+        return;
+      }
       _completeProfileAndGoHome();
     }
   }
@@ -105,8 +136,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   void _prevPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: AppConstants.animationDuration,
+        curve: Curves.easeInOut,
       );
     }
   }
@@ -136,22 +167,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     final gender = _mapGenderToBackend(_selectedGender);
 
     String? fitnessGoal;
-    if (_selectedGoal != null) {
-      final goalObj = _goals.firstWhere(
-        (g) => g['id'] == _selectedGoal,
-        orElse: () => {},
-      );
-      if (goalObj.isNotEmpty) {
-        fitnessGoal = goalObj['label'] as String;
-      }
+    if (_selectedGoalIndex >= 0 && _selectedGoalIndex < _goals.length) {
+      fitnessGoal = _goals[_selectedGoalIndex]['label'] as String;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      // Call the profile API if we have a token
       if (token != null && token.isNotEmpty) {
-        debugPrint('📡 Calling profile/complete API...');
         final profileService = ProfileService(token);
         await profileService.completeProfile(
           name: name.isNotEmpty ? name : 'User',
@@ -161,10 +184,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           height: height,
           fitnessGoal: fitnessGoal,
         );
-        debugPrint('✅ Profile completed on backend');
       }
 
-      // Also save locally as backup
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
@@ -172,7 +193,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         await prefs.setString('userName', name);
       }
 
-      // Save profile data locally for fallback
       final profileData = {
         'name': name,
         'age': age,
@@ -184,39 +204,31 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         'profileCompleted': true,
       };
       await prefs.setString('profile_data_$userEmail', jsonEncode(profileData));
-      debugPrint('💾 Profile saved locally for $userEmail');
 
-      // Update auth state to mark profile as complete
       ref.read(authProvider.notifier).setProfileCompleted(true);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile setup complete!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
+      SnackBarUtils.showSuccess(context, 'Profile setup complete!');
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
     } catch (e) {
-      debugPrint('❌ Profile completion error: $e');
-
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      // Show error but still allow proceeding (save locally)
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
 
       final shouldProceed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Profile Sync Issue'),
           content: Text(
             'Could not save profile to server: $errorMsg\n\n'
-            'Your profile will be saved locally. Would you like to continue?',
+            'Your profile will be saved locally. Continue?',
           ),
           actions: [
             TextButton(
@@ -232,7 +244,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       );
 
       if (shouldProceed == true) {
-        // Save locally and proceed
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         if (name.isNotEmpty) {
@@ -254,7 +265,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           jsonEncode(profileData),
         );
 
-        // Update auth state to mark profile as complete
         ref.read(authProvider.notifier).setProfileCompleted(true);
 
         if (mounted) {
@@ -264,6 +274,75 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         }
       }
     }
+  }
+
+  void _showGenderPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.grey300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingLarge,
+                  vertical: AppConstants.paddingMedium,
+                ),
+                child: Text(
+                  'Select gender',
+                  style: GoogleFonts.inter(
+                    fontSize: AppConstants.fontSizeLarge,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.black,
+                  ),
+                ),
+              ),
+              _buildGenderOption('Male'),
+              _buildGenderOption('Female'),
+              _buildGenderOption('Prefer not to say'),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGenderOption(String gender) {
+    return ListTile(
+      onTap: () {
+        setState(() => _selectedGender = gender);
+        if (showErrors && validationErrors.containsKey('gender')) {
+          validationErrors.remove('gender');
+          if (validationErrors.isEmpty) showErrors = false;
+        }
+        Navigator.pop(context);
+      },
+      title: Text(
+        gender,
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          color: AppTheme.black87,
+        ),
+      ),
+      trailing: _selectedGender == gender
+          ? const Icon(Icons.check_circle_rounded, color: AppTheme.accentColor)
+          : null,
+    );
   }
 
   Future<void> _skipAndGoHome() async {
@@ -276,286 +355,284 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
   }
 
-  void _showGenderPicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Select gender',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                title: const Text('Male'),
-                onTap: () {
-                  setState(() => _selectedGender = 'Male');
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Female'),
-                onTap: () {
-                  setState(() => _selectedGender = 'Female');
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                title: const Text('Prefer not to say'),
-                onTap: () {
-                  setState(() => _selectedGender = 'Prefer not to say');
-                  Navigator.pop(context);
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Column(
           children: [
-            // Top bar with back, progress, skip
+            // Progress Bar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: _currentPage > 0 ? _prevPage : null,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFAA3D50),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.chevron_left_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Progress bar
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: (_currentPage + 1) / _totalPages,
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFFAA3D50),
-                        ),
-                        minHeight: 6,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Skip button
-                  GestureDetector(
-                    onTap: _isLoading ? null : _skipAndGoHome,
-                    child: Text(
-                      'Skip',
-                      style: GoogleFonts.inter(
-                        textStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: _isLoading ? Colors.grey : Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              child: CustomProgressBar(
+                value: (_currentPage + 1) / _totalPages,
+                showBack: _currentPage > 0,
+                onBack: _prevPage,
+                onSkip: _isLoading ? null : _skipAndGoHome,
               ),
             ),
-            // Page content
+
+            // Page Content
             Expanded(
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
+                onPageChanged: (index) => setState(() => _currentPage = index),
                 children: [_buildStep1(), _buildStep2()],
               ),
             ),
-            // Next button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _nextPage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFAA3D50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(
-                          _currentPage < _totalPages - 1 ? 'Next' : 'Finish',
-                          style: GoogleFonts.inter(
-                            textStyle: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
+
+            // Bottom Button
+            _buildBottomButton(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildBottomButton() {
+    return Container(
+      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: CustomButton(
+        text: _currentPage < _totalPages - 1 ? 'Next' : 'Complete Setup',
+        type: ButtonType.primary,
+        isFullWidth: true,
+        isLoading: _isLoading,
+        onPressed: _isLoading ? null : _nextPage,
+        height: 52,
+        backgroundColor: AppTheme.accentColor,
+        textColor: AppTheme.white,
+      ),
+    );
+  }
+
   Widget _buildStep1() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingLarge,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+
+          // Title
           Text(
-            'Tell me more',
+            "Tell me more",
             style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
+              fontSize: AppConstants.fontSizeXXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.black,
             ),
           ),
           Text(
-            'About Yourself',
+            "About Yourself",
             style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
+              fontSize: AppConstants.fontSizeXXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.black,
             ),
           ),
-          const SizedBox(height: 32),
-          _buildInputField(
-            controller: _nameController,
-            hint: 'Enter your name',
-            label: 'Your Name',
-            keyboardType: TextInputType.name,
-          ),
-          const SizedBox(height: 16),
-          _buildInputField(
-            controller: _ageController,
-            hint: 'Enter your age',
-            label: 'Your Age',
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 40),
+
+          // Gender Selector Card
           GestureDetector(
             onTap: _showGenderPicker,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(12),
+                color: AppTheme.white,
+                borderRadius: BorderRadius.circular(
+                  AppConstants.borderRadiusLarge,
+                ),
+                border: showErrors && validationErrors.containsKey('gender')
+                    ? Border.all(color: AppTheme.errorColor, width: 2)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: showErrors && validationErrors.containsKey('gender')
+                        ? AppTheme.errorColor.withValues(alpha: 0.1)
+                        : AppTheme.grey300.withValues(alpha: 0.5),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _selectedGender ?? 'Select gender',
-                    style: GoogleFonts.inter(
-                      textStyle: TextStyle(
-                        fontSize: 14,
+                  Expanded(
+                    child: Text(
+                      _selectedGender ?? 'Select Gender',
+                      style: GoogleFonts.inter(
+                        fontSize: AppConstants.fontSizeLarge,
+                        fontWeight: FontWeight.bold,
                         color: _selectedGender != null
-                            ? Colors.black
-                            : Colors.grey,
+                            ? AppTheme.black
+                            : AppTheme.grey400,
                       ),
                     ),
                   ),
                   Text(
                     'Your Gender',
                     style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      fontSize: AppConstants.fontSizeSmall,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.grey500,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          _buildInputField(
+
+          // Name Field
+          _buildBoxedTextField(
+            controller: _nameController,
+            hint: 'Enter your name',
+            label: 'Your Name',
+            hasError: showErrors && validationErrors.containsKey('name'),
+          ),
+
+          // Age Field
+          _buildBoxedTextField(
+            controller: _ageController,
+            hint: 'Enter your age',
+            label: 'Your Age',
+            keyboardType: TextInputType.number,
+            hasError: showErrors && validationErrors.containsKey('age'),
+          ),
+
+          // Weight Field
+          _buildBoxedTextField(
             controller: _weightController,
             hint: 'Enter weight (kg)',
             label: 'Your Weight',
             keyboardType: TextInputType.number,
+            hasError: showErrors && validationErrors.containsKey('weight'),
           ),
-          const SizedBox(height: 16),
-          _buildInputField(
+
+          // Height Field
+          _buildBoxedTextField(
             controller: _heightController,
             hint: 'Enter height (cm)',
             label: 'Your Height',
             keyboardType: TextInputType.number,
+            hasError: showErrors && validationErrors.containsKey('height'),
           ),
+
+          // Error Display
+          if (showErrors && validationErrors.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: AppConstants.paddingMedium),
+              padding: const EdgeInsets.all(AppConstants.paddingMedium),
+              decoration: BoxDecoration(
+                color: AppTheme.red100,
+                borderRadius: BorderRadius.circular(
+                  AppConstants.borderRadiusLarge,
+                ),
+                border: Border.all(
+                  color: AppTheme.errorColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: AppTheme.red700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Please fix the following errors:',
+                        style: GoogleFonts.inter(
+                          color: AppTheme.red700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: AppConstants.fontSizeSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...validationErrors.values.map(
+                    (error) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '• ',
+                            style: TextStyle(
+                              color: AppTheme.red700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              error,
+                              style: GoogleFonts.inter(
+                                color: AppTheme.red700,
+                                fontSize: AppConstants.fontSizeSmall,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildInputField({
+  Widget _buildBoxedTextField({
     required TextEditingController controller,
     required String hint,
     required String label,
     TextInputType keyboardType = TextInputType.text,
+    bool hasError = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+        border: hasError
+            ? Border.all(color: AppTheme.errorColor, width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: hasError
+                ? AppTheme.errorColor.withValues(alpha: 0.1)
+                : AppTheme.grey300.withValues(alpha: 0.5),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingMedium,
+        vertical: 3,
       ),
       child: Row(
         children: [
@@ -563,11 +640,30 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             child: TextField(
               controller: controller,
               keyboardType: keyboardType,
+              onChanged: (_) {
+                if (showErrors) {
+                  setState(() {
+                    // Clear specific error when user starts typing
+                  });
+                }
+              },
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.bold,
+                color: hasError ? AppTheme.red700 : AppTheme.black,
+                fontSize: AppConstants.fontSizeMedium,
+              ),
               decoration: InputDecoration(
-                hintText: hint,
+                isDense: true,
+                filled: false,
                 border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                hintText: hint,
                 hintStyle: GoogleFonts.inter(
-                  textStyle: const TextStyle(fontSize: 14, color: Colors.grey),
+                  color: hasError
+                      ? AppTheme.errorColor.withValues(alpha: 0.5)
+                      : AppTheme.grey400,
+                  fontWeight: FontWeight.bold,
+                  fontSize: AppConstants.fontSizeLarge,
                 ),
               ),
             ),
@@ -575,7 +671,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           Text(
             label,
             style: GoogleFonts.inter(
-              textStyle: const TextStyle(fontSize: 12, color: Colors.grey),
+              color: hasError ? AppTheme.red700 : AppTheme.grey500,
+              fontSize: AppConstants.fontSizeSmall,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -584,72 +682,57 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   }
 
   Widget _buildStep2() {
-    // Removed local goals variable, using _goals
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingLarge,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+
+          // Title
           Text(
-            "what's Your main goal?",
+            "What's your",
             style: GoogleFonts.inter(
-              textStyle: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
+              fontSize: AppConstants.fontSizeXXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.black,
             ),
           ),
-          const SizedBox(height: 32),
-          GridView.count(
-            crossAxisCount: 2,
+          Text(
+            "main goal?",
+            style: GoogleFonts.inter(
+              fontSize: AppConstants.fontSizeXXLarge,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.black,
+            ),
+          ),
+          const SizedBox(height: 40),
+
+          // Goals Grid
+          GridView.builder(
+            itemCount: _goals.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 1.1,
-            children: _goals.map((goal) {
-              final isSelected = _selectedGoal == goal['id'];
-              return GestureDetector(
-                onTap: () {
-                  setState(() => _selectedGoal = goal['id'] as String);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFAA3D50)
-                          : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        goal['icon'] as IconData,
-                        size: 40,
-                        color: const Color(0xFFAA3D50),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        goal['label'] as String,
-                        style: GoogleFonts.inter(
-                          textStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, index) {
+              final goal = _goals[index];
+              return GoalCard(
+                icon: goal['icon'] as IconData,
+                label: goal['label'] as String,
+                isSelected: _selectedGoalIndex == index,
+                onTap: () => setState(() => _selectedGoalIndex = index),
               );
-            }).toList(),
+            },
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );

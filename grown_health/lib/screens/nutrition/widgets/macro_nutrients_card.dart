@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MacroNutrientsCard extends StatelessWidget {
@@ -24,7 +25,7 @@ class MacroNutrientsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(27),
         boxShadow: [
           const BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15), blurRadius: 9),
@@ -50,19 +51,19 @@ class MacroNutrientsCard extends StatelessWidget {
                 label: 'Protein',
                 value: '$proteinCurrent/${proteinTarget}g',
                 icon: Icons.close_rounded,
-                iconColor: const Color(0xFFAA3D50),
+                iconColor: AppTheme.accentColor,
               ),
               _MacroItem(
                 label: 'Carbs',
                 value: '$carbsCurrent/${carbsTarget}g',
                 icon: Icons.local_fire_department_rounded,
-                iconColor: Colors.orange,
+                iconColor: AppTheme.warningColor,
               ),
               _MacroItem(
                 label: 'Fats',
                 value: '$fatsCurrent/${fatsTarget}g',
                 icon: Icons.water_drop_rounded,
-                iconColor: Colors.amber,
+                iconColor: AppTheme.amber,
               ),
             ],
           ),

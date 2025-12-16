@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -113,7 +114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       drawer: _buildDrawer(),
       body: SafeArea(
         child: CustomScrollView(
@@ -177,7 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black),
+                icon: const Icon(Icons.menu, color: AppTheme.black),
                 onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
@@ -191,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                     ),
                   ),
@@ -202,7 +203,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       textStyle: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                   ),
@@ -216,11 +217,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             IconButton(
               icon: const Icon(Icons.notifications_none_rounded),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No new notifications'),
-                    duration: Duration(seconds: 1),
-                  ),
+                SnackBarUtils.showInfo(
+                  context,
+                  'No new notifications',
+                  duration: const Duration(seconds: 1),
                 );
               },
             ),
@@ -232,7 +232,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF5F6), // Even lighter pink
+                    color: AppTheme.cardBackground, // Even lighter pink
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: const Color(0xFFE5BCC5), // Thinner, softer border
@@ -275,14 +275,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           });
         },
         style: GoogleFonts.inter(
-          color: Colors.black87,
+          color: AppTheme.black87,
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: 'Search Workouts',
           hintStyle: GoogleFonts.inter(
-            color: Colors.grey.shade700, // Darker text as requested
+            color: AppTheme.grey700, // Darker text as requested
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -294,10 +294,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               width: 44, // Slightly larger touch target
               height: 44,
               decoration: const BoxDecoration(
-                color: Color(0xFF5B0C23), // Dark Burgundy
+                color: AppTheme.primaryColor, // Dark Burgundy
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.search, color: Colors.white, size: 24),
+              child: const Icon(Icons.search, color: AppTheme.white, size: 24),
             ),
           ),
           border: InputBorder.none,
@@ -341,7 +341,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF5B0C23), // Dark Burgundy
+                        color: AppTheme.primaryColor, // Dark Burgundy
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -365,7 +365,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 textStyle: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: AppTheme.black,
                                 ),
                               ),
                             ),
@@ -374,7 +374,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               style: GoogleFonts.inter(
                                 textStyle: const TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey,
+                                  color: AppTheme.grey500,
                                 ),
                               ),
                             ),
@@ -385,7 +385,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
                               fontSize: 13,
-                              color: Colors.grey,
+                              color: AppTheme.grey500,
                             ),
                           ),
                         ),
@@ -400,7 +400,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF5B0C23), // Dark Burgundy
+                        color: AppTheme.primaryColor, // Dark Burgundy
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -445,7 +445,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               style: GoogleFonts.inter(
                 textStyle: const TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF5B0C23), // Dark Burgundy
+                  color: AppTheme.primaryColor, // Dark Burgundy
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -468,9 +468,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildRecommendedSection() {
     // Color palette for cards
     const colors = [
-      [Color(0xFFAA3D50), Color(0xFFD46A7A)],
+      [AppTheme.accentColor, Color(0xFFD46A7A)],
       [Color(0xFFD46A7A), Color(0xFFF2C3CC)],
-      [Color(0xFFF2C3CC), Color(0xFFAA3D50)],
+      [Color(0xFFF2C3CC), AppTheme.accentColor],
     ];
 
     return Column(
@@ -495,7 +495,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF5B0C23),
+                    color: AppTheme.primaryColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -507,7 +507,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         Text(
           'Personalized workout suggestions',
           style: GoogleFonts.inter(
-            textStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+            textStyle: const TextStyle(fontSize: 13, color: AppTheme.grey500),
           ),
         ),
         const SizedBox(height: 16),
@@ -517,7 +517,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Center(
             child: Padding(
               padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+              child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
           )
         else if (_bundles.isEmpty)
@@ -525,7 +525,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Column(
             children: [
               RecommendedCard(
-                backgroundColor: const Color(0xFFAA3D50),
+                backgroundColor: AppTheme.accentColor,
                 accentColor: const Color(0xFFD46A7A),
                 onStart: () => Navigator.of(context).pushNamed('/bundles'),
               ),
@@ -567,13 +567,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = ref.watch(authProvider).user;
 
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(
-              color: Color(0xFF5B0C23), // Maroon
+              color: AppTheme.primaryColor, // Maroon
             ),
             accountName: Text(
               user?.name ?? _displayName,
@@ -581,8 +581,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             accountEmail: Text(user?.email ?? '', style: GoogleFonts.inter()),
             currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, color: Color(0xFF5B0C23), size: 40),
+              backgroundColor: AppTheme.white,
+              child: Icon(Icons.person, color: AppTheme.primaryColor, size: 40),
             ),
           ),
           ListTile(
@@ -642,8 +642,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: Text('Logout', style: GoogleFonts.inter(color: Colors.red)),
+            leading: const Icon(Icons.logout, color: AppTheme.errorColor),
+            title: Text(
+              'Logout',
+              style: GoogleFonts.inter(color: AppTheme.errorColor),
+            ),
             onTap: () async {
               Navigator.pop(context);
               await ref.read(authProvider.notifier).logout();

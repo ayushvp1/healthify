@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class WorkoutDetailScreen extends StatelessWidget {
@@ -7,19 +8,19 @@ class WorkoutDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: CircleAvatar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppTheme.white,
             child: IconButton(
               icon: const Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 18,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -29,11 +30,11 @@ class WorkoutDetailScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: CircleAvatar(
-              backgroundColor: Colors.white,
+              backgroundColor: AppTheme.white,
               child: IconButton(
                 icon: const Icon(
                   Icons.favorite_border_rounded,
-                  color: Colors.grey,
+                  color: AppTheme.grey500,
                 ),
                 onPressed: () {},
               ),
@@ -77,13 +78,13 @@ class WorkoutDetailScreen extends StatelessWidget {
             width: double.infinity,
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: AppTheme.orange50,
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.self_improvement_rounded,
               size: 100,
-              color: Colors.deepOrange,
+              color: AppTheme.warningColor,
             ),
           );
         },
@@ -100,21 +101,21 @@ class WorkoutDetailScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 26,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: const Color(0xFFFAF0F1), // Light pink bg
+            color: AppTheme.lightPinkBg, // Light pink bg
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             'Abs',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: const Color(0xFF8B2030), // Dark red text
+              color: AppTheme.darkRedText, // Dark red text
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -127,12 +128,12 @@ class WorkoutDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppTheme.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -146,13 +147,13 @@ class WorkoutDetailScreen extends StatelessWidget {
             value: '30s',
             label: 'Duration',
           ),
-          Container(height: 40, width: 1, color: Colors.grey.shade200),
+          Container(height: 40, width: 1, color: AppTheme.grey200),
           _DetailStat(
             icon: Icons.local_fire_department_rounded,
             value: '2 cal',
             label: 'calories',
           ),
-          Container(height: 40, width: 1, color: Colors.grey.shade200),
+          Container(height: 40, width: 1, color: AppTheme.grey200),
           _DetailStat(
             icon: Icons.fitness_center_rounded,
             value: 'Med',
@@ -167,12 +168,12 @@ class WorkoutDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppTheme.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -186,7 +187,7 @@ class WorkoutDetailScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
           const SizedBox(height: 12),
@@ -195,7 +196,7 @@ class WorkoutDetailScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.5,
-              color: Colors.grey.shade700,
+              color: AppTheme.grey700,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -213,7 +214,7 @@ class WorkoutDetailScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
         ),
         const SizedBox(height: 16),
@@ -235,7 +236,7 @@ class WorkoutDetailScreen extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: () => Navigator.of(context).pushNamed('/player'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF5B0C23), // Dark Maroon
+            backgroundColor: AppTheme.primaryColor, // Dark Maroon
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
@@ -243,7 +244,7 @@ class WorkoutDetailScreen extends StatelessWidget {
           ),
           icon: const Icon(
             Icons.play_arrow_rounded,
-            color: Colors.white,
+            color: AppTheme.white,
             size: 28,
           ),
           label: Text(
@@ -251,7 +252,7 @@ class WorkoutDetailScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppTheme.white,
             ),
           ),
         ),
@@ -276,14 +277,14 @@ class _DetailStat extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: const Color(0xFF1B5E20), size: 24), // Green Icon
+        Icon(icon, color: AppTheme.darkGreen, size: 24), // Green Icon
         const SizedBox(height: 8),
         Text(
           value,
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFFAA3D50), // Maroon Value
+            color: AppTheme.accentColor, // Maroon Value
           ),
         ),
         const SizedBox(height: 4),
@@ -291,7 +292,7 @@ class _DetailStat extends StatelessWidget {
           label,
           style: GoogleFonts.inter(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: AppTheme.grey600,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -317,7 +318,7 @@ class _HowToStep extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: const BoxDecoration(
-              color: Color(0xFF1B5E20), // Green Circle
+              color: AppTheme.darkGreen, // Green Circle
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -326,7 +327,7 @@ class _HowToStep extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: AppTheme.white,
                 ),
               ),
             ),
@@ -337,7 +338,7 @@ class _HowToStep extends StatelessWidget {
               text,
               style: GoogleFonts.inter(
                 fontSize: 15,
-                color: Colors.grey.shade800,
+                color: AppTheme.grey800,
                 height: 1.4,
                 fontWeight: FontWeight.w400,
               ),

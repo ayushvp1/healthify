@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Simple Exercise Timer Screen - For standalone exercise playback
@@ -73,7 +74,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.celebration, color: Color(0xFF1B5E20), size: 28),
+            const Icon(Icons.celebration, color: AppTheme.darkGreen, size: 28),
             const SizedBox(width: 10),
             Text(
               'Great Job! 🎉',
@@ -95,7 +96,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
               'Done',
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF5B0C23),
+                color: AppTheme.primaryColor,
               ),
             ),
           ),
@@ -110,7 +111,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
               _startTimer();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5B0C23),
+              backgroundColor: AppTheme.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -118,7 +119,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
             child: Text(
               'Repeat',
               style: GoogleFonts.inter(
-                color: Colors.white,
+                color: AppTheme.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -150,7 +151,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
         : 0.0;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -162,11 +163,11 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: AppTheme.grey100,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.black),
+                      icon: const Icon(Icons.close, color: AppTheme.black),
                       onPressed: () => _confirmExit(),
                     ),
                   ),
@@ -175,7 +176,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(width: 48), // Balance
@@ -191,7 +192,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
               width: 200,
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFFF0F3),
+                  color: AppTheme.highlightPink,
                   shape: BoxShape.circle,
                 ),
                 child: ClipOval(
@@ -202,13 +203,13 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.fitness_center,
                             size: 80,
-                            color: Color(0xFFAA3D50),
+                            color: AppTheme.accentColor,
                           ),
                         )
                       : const Icon(
                           Icons.fitness_center,
                           size: 80,
-                          color: Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                         ),
                 ),
               ),
@@ -222,7 +223,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -239,8 +240,10 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                   child: CircularProgressIndicator(
                     value: progress,
                     strokeWidth: 6,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: const AlwaysStoppedAnimation(Color(0xFF1E6F3E)),
+                    backgroundColor: AppTheme.grey200,
+                    valueColor: const AlwaysStoppedAnimation(
+                      AppTheme.successColor,
+                    ),
                   ),
                 ),
                 Column(
@@ -251,7 +254,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 48,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E6F3E),
+                        color: AppTheme.successColor,
                       ),
                     ),
                     if (_isPaused)
@@ -260,7 +263,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.orange,
+                          color: AppTheme.warningColor,
                         ),
                       ),
                   ],
@@ -281,7 +284,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                     child: ElevatedButton(
                       onPressed: _togglePause,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B0C23),
+                        backgroundColor: AppTheme.primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -294,7 +297,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: AppTheme.white,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -302,7 +305,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                             _isPaused
                                 ? Icons.play_arrow_rounded
                                 : Icons.pause_rounded,
-                            color: Colors.white,
+                            color: AppTheme.white,
                           ),
                         ],
                       ),
@@ -322,7 +325,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                     ),
                   ),
@@ -359,7 +362,10 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: const Text('Stop', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Stop',
+              style: TextStyle(color: AppTheme.errorColor),
+            ),
           ),
         ],
       ),

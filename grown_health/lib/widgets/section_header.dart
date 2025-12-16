@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -36,7 +37,7 @@ class SectionHeader extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
               ),
             ),

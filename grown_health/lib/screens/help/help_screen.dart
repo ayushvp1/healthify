@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -101,11 +102,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
 
   Future<void> _goNext() async {
     if (_selectedOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an answer before continuing.'),
-          duration: Duration(seconds: 1),
-        ),
+      SnackBarUtils.showWarning(
+        context,
+        'Please select an answer before continuing.',
+        duration: const Duration(seconds: 1),
       );
       return;
     }
@@ -190,8 +190,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             onPressed: () {
               Navigator.of(ctx).pop();
               Navigator.of(context).pop(); // Go back to where they came from
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Assessment saved successfully!')),
+              SnackBarUtils.showSuccess(
+                context,
+                'Assessment saved successfully!',
               );
             },
             child: const Text('Done'),
@@ -206,7 +207,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     if (_isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF5B0C23)),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
         ),
       );
     }
@@ -237,21 +238,21 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     }
 
     final question = currentQuestions[_currentQuestionIndex];
-    const maroonColor = Color(0xFF5B0C23);
+    const maroonColor = AppTheme.primaryColor;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         centerTitle: true,
-        leading: const BackButton(color: Colors.black),
+        leading: const BackButton(color: AppTheme.black),
         title: Text(
           'Health Assessment',
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
         ),
       ),
@@ -325,7 +326,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                            color: AppTheme.black,
                           ),
                         ),
                       ],
@@ -337,7 +338,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         height: 1.3,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -373,13 +374,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     elevation: 0,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const CircularProgressIndicator(color: AppTheme.white)
                       : Text(
                           'Next',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppTheme.white,
                           ),
                         ),
                 ),
@@ -429,7 +430,10 @@ class _TopTab extends StatelessWidget {
           height: 28,
           child: Opacity(
             opacity: 0.6,
-            child: Icon(Icons.circle, color: selected ? color : Colors.grey),
+            child: Icon(
+              Icons.circle,
+              color: selected ? color : AppTheme.grey500,
+            ),
           ),
         ),
         const SizedBox(height: 6),
@@ -438,7 +442,7 @@ class _TopTab extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected ? color : Colors.grey.shade500,
+            color: selected ? color : AppTheme.grey500,
           ),
         ),
         const SizedBox(height: 8),
@@ -446,7 +450,7 @@ class _TopTab extends StatelessWidget {
           width: 40,
           height: 3,
           decoration: BoxDecoration(
-            color: selected ? color : Colors.transparent,
+            color: selected ? color : AppTheme.transparent,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -473,16 +477,16 @@ class _OptionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? const Color(0xFF5B0C23) : Colors.grey.shade300,
+            color: selected ? AppTheme.primaryColor : AppTheme.grey300,
             width: selected ? 1.5 : 1,
           ),
           boxShadow: [
             if (!selected)
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: AppTheme.black.withOpacity(0.02),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -496,14 +500,14 @@ class _OptionButton extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: AppTheme.black87,
                 ),
               ),
             ),
             if (selected)
               const Icon(
                 Icons.check_circle_rounded,
-                color: Color(0xFF5B0C23),
+                color: AppTheme.primaryColor,
                 size: 20,
               ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MeditationPlayerScreen extends StatelessWidget {
@@ -7,14 +8,14 @@ class MeditationPlayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
             Icons.chevron_left_rounded,
-            color: Colors.black,
+            color: AppTheme.black,
             size: 28,
           ),
           onPressed: () => Navigator.pop(context),
@@ -25,7 +26,7 @@ class MeditationPlayerScreen extends StatelessWidget {
             textStyle: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
         ),
@@ -61,7 +62,7 @@ class MeditationPlayerScreen extends StatelessWidget {
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: AppTheme.black87,
                 ),
               ),
             ),
@@ -84,7 +85,7 @@ class MeditationPlayerScreen extends StatelessWidget {
                         style: GoogleFonts.inter(
                           textStyle: const TextStyle(
                             fontSize: 13,
-                            color: Colors.grey,
+                            color: AppTheme.grey500,
                           ),
                         ),
                       ),
@@ -109,7 +110,7 @@ class MeditationPlayerScreen extends StatelessWidget {
                     ),
                     child: const Icon(
                       Icons.play_arrow_rounded,
-                      color: Colors.white,
+                      color: AppTheme.white,
                       size: 30,
                     ),
                   ),

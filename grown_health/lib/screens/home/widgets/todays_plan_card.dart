@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TodaysPlanCard extends StatelessWidget {
@@ -25,11 +26,11 @@ class TodaysPlanCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.black.withOpacity(0.05),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),
@@ -52,11 +53,11 @@ class TodaysPlanCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey.shade200,
+                          color: AppTheme.grey200,
                           child: const Icon(
                             Icons.fitness_center,
                             size: 48,
-                            color: Colors.grey,
+                            color: AppTheme.grey500,
                           ),
                         );
                       },
@@ -76,7 +77,7 @@ class TodaysPlanCard extends StatelessWidget {
                       textStyle: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                   ),
@@ -88,7 +89,7 @@ class TodaysPlanCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       textStyle: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.grey600,
                         height: 1.4,
                       ),
                     ),
@@ -100,7 +101,7 @@ class TodaysPlanCard extends StatelessWidget {
                         child: _MetricBadge(
                           icon: Icons.timer_rounded,
                           label: duration,
-                          color: const Color(0xFF1B5E20), // Darker Green
+                          color: AppTheme.darkGreen, // Darker Green
                           backgroundColor: const Color(0xFFE8F5E9),
                         ),
                       ),
@@ -109,7 +110,7 @@ class TodaysPlanCard extends StatelessWidget {
                         child: _MetricBadge(
                           icon: Icons.local_fire_department_rounded,
                           label: calories,
-                          color: const Color(0xFFAA3D50), // Red/Burgundy
+                          color: AppTheme.accentColor, // Red/Burgundy
                           backgroundColor: const Color(0xFFFFF0F5),
                         ),
                       ),

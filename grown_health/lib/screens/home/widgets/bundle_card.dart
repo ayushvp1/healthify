@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class BundleCard extends StatelessWidget {
@@ -26,7 +27,7 @@ class BundleCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
@@ -66,7 +67,7 @@ class BundleCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       textStyle: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                     ),
                   ),
@@ -78,7 +79,7 @@ class BundleCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           textStyle: const TextStyle(
                             fontSize: 11,
-                            color: Colors.grey,
+                            color: AppTheme.grey500,
                           ),
                         ),
                       ),
@@ -88,7 +89,7 @@ class BundleCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           textStyle: const TextStyle(
                             fontSize: 11,
-                            color: Colors.grey,
+                            color: AppTheme.grey500,
                           ),
                         ),
                       ),

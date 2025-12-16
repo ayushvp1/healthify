@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -148,19 +149,19 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         automaticallyImplyLeading: true,
-        foregroundColor: Colors.black,
+        foregroundColor: AppTheme.black,
       ),
       body: GestureDetector(
         onTap: () => _searchFocusNode.unfocus(),
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: _loadData,
-            color: const Color(0xFFAA3D50),
+            color: AppTheme.accentColor,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -172,7 +173,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -180,7 +181,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                     'Explore exercises by category',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade500,
+                      color: AppTheme.grey500,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -211,11 +212,11 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F6),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -227,10 +228,10 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Color(0xFF5B0C23),
+              color: AppTheme.primaryColor,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.search, color: Colors.white, size: 20),
+            child: const Icon(Icons.search, color: AppTheme.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -241,7 +242,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                 hintText: 'Search exercises...',
                 hintStyle: GoogleFonts.inter(
                   fontSize: 15,
-                  color: Colors.grey.shade500,
+                  color: AppTheme.grey500,
                   fontWeight: FontWeight.w500,
                 ),
                 border: InputBorder.none,
@@ -249,14 +250,14 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               ),
               style: GoogleFonts.inter(
                 fontSize: 15,
-                color: Colors.black,
+                color: AppTheme.black,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           if (_searchQuery.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.clear, color: Colors.grey.shade600, size: 20),
+              icon: Icon(Icons.clear, color: AppTheme.grey600, size: 20),
               onPressed: () {
                 _searchController.clear();
                 _searchFocusNode.unfocus();
@@ -276,7 +277,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
         ),
         const SizedBox(height: 16),
@@ -284,7 +285,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+              child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
           )
         else if (_categories.isEmpty)
@@ -293,7 +294,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               padding: const EdgeInsets.all(20),
               child: Text(
                 'No categories found',
-                style: GoogleFonts.inter(color: Colors.grey),
+                style: GoogleFonts.inter(color: AppTheme.grey500),
               ),
             ),
           )
@@ -349,7 +350,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
             ),
             Text(
@@ -357,7 +358,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey.shade600,
+                color: AppTheme.grey600,
               ),
             ),
           ],
@@ -367,7 +368,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           const Center(
             child: Padding(
               padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+              child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
           )
         else if (displayExercises.isEmpty)
@@ -376,20 +377,23 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               padding: const EdgeInsets.all(40),
               child: Column(
                 children: [
-                  Icon(Icons.search_off, color: Colors.grey.shade300, size: 48),
+                  Icon(Icons.search_off, color: AppTheme.grey300, size: 48),
                   const SizedBox(height: 12),
                   Text(
                     showingFiltered
                         ? 'No matching exercises'
                         : 'No exercises found',
-                    style: GoogleFonts.inter(color: Colors.grey, fontSize: 14),
+                    style: GoogleFonts.inter(
+                      color: AppTheme.grey500,
+                      fontSize: 14,
+                    ),
                   ),
                   if (!showingFiltered) ...[
                     const SizedBox(height: 8),
                     Text(
                       'Add exercises in Admin Panel',
                       style: GoogleFonts.inter(
-                        color: Colors.grey.shade400,
+                        color: AppTheme.grey400,
                         fontSize: 12,
                       ),
                     ),
@@ -444,12 +448,10 @@ class _CategoryCard extends StatelessWidget {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFFFF0F3)
-                    : Colors.grey.shade100,
+                color: isSelected ? AppTheme.highlightPink : AppTheme.grey100,
                 borderRadius: BorderRadius.circular(20),
                 border: isSelected
-                    ? Border.all(color: const Color(0xFFAA3D50), width: 2)
+                    ? Border.all(color: AppTheme.accentColor, width: 2)
                     : null,
               ),
               child: ClipRRect(
@@ -461,16 +463,16 @@ class _CategoryCard extends StatelessWidget {
                         errorBuilder: (_, __, ___) => Icon(
                           icon ?? Icons.fitness_center,
                           color: isSelected
-                              ? const Color(0xFFAA3D50)
-                              : Colors.grey,
+                              ? AppTheme.accentColor
+                              : AppTheme.grey500,
                           size: 28,
                         ),
                       )
                     : Icon(
                         icon ?? Icons.fitness_center,
                         color: isSelected
-                            ? const Color(0xFFAA3D50)
-                            : Colors.grey,
+                            ? AppTheme.accentColor
+                            : AppTheme.grey500,
                         size: 28,
                       ),
               ),
@@ -481,9 +483,7 @@ class _CategoryCard extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF5B0C23)
-                    : Colors.grey.shade700,
+                color: isSelected ? AppTheme.primaryColor : AppTheme.grey700,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -519,11 +519,11 @@ class _ExerciseRow extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: AppTheme.black.withOpacity(0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -535,7 +535,7 @@ class _ExerciseRow extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF0F3),
+                color: AppTheme.highlightPink,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: ClipRRect(
@@ -546,13 +546,13 @@ class _ExerciseRow extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.fitness_center_rounded,
-                          color: Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                           size: 24,
                         ),
                       )
                     : const Icon(
                         Icons.fitness_center_rounded,
-                        color: Color(0xFFAA3D50),
+                        color: AppTheme.accentColor,
                         size: 24,
                       ),
               ),
@@ -567,7 +567,7 @@ class _ExerciseRow extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -577,7 +577,7 @@ class _ExerciseRow extends StatelessWidget {
                         duration,
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.grey.shade500,
+                          color: AppTheme.grey500,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -586,14 +586,14 @@ class _ExerciseRow extends StatelessWidget {
                         child: Icon(
                           Icons.circle,
                           size: 4,
-                          color: Colors.grey.shade400,
+                          color: AppTheme.grey400,
                         ),
                       ),
                       Text(
                         difficulty[0].toUpperCase() + difficulty.substring(1),
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.grey.shade500,
+                          color: AppTheme.grey500,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -605,7 +605,7 @@ class _ExerciseRow extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
-              color: Colors.grey,
+              color: AppTheme.grey500,
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -74,7 +75,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+        child: CircularProgressIndicator(color: AppTheme.accentColor),
       ),
     );
 
@@ -110,7 +111,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               ),
               title: Row(
                 children: [
-                  Icon(Icons.fitness_center, color: Color(0xFFAA3D50)),
+                  Icon(Icons.fitness_center, color: AppTheme.accentColor),
                   SizedBox(width: 8),
                   Text('Active Workout'),
                 ],
@@ -125,12 +126,16 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, 'abandon'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.warningColor,
+                  ),
                   child: const Text('Start Fresh'),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(ctx, 'cancel'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.grey),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.grey500,
+                  ),
                   child: const Text('Cancel'),
                 ),
               ],
@@ -184,13 +189,9 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         } else {
           // Other error
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  errorData['message'] ?? 'Failed to start workout',
-                ),
-                backgroundColor: Colors.red,
-              ),
+            SnackBarUtils.showError(
+              context,
+              errorData['message'] ?? 'Failed to start workout',
             );
           }
         }
@@ -202,13 +203,9 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         if (e.toString().toLowerCase().contains('active')) {
           Navigator.of(context).pushNamed('/player');
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Error: ${e.toString().replaceAll('Exception: ', '')}',
-              ),
-              backgroundColor: Colors.red,
-            ),
+          SnackBarUtils.showError(
+            context,
+            'Error: ${e.toString().replaceAll('Exception: ', '')}',
           );
         }
       }
@@ -221,7 +218,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
       return Scaffold(
         backgroundColor: const Color(0xFF1A1A2E),
         body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+          child: CircularProgressIndicator(color: AppTheme.accentColor),
         ),
       );
     }
@@ -230,10 +227,10 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
       return Scaffold(
         backgroundColor: const Color(0xFF1A1A2E),
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppTheme.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.white),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -241,11 +238,15 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.white54, size: 60),
+              const Icon(
+                Icons.error_outline,
+                color: AppTheme.white54,
+                size: 60,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Failed to load bundle',
-                style: GoogleFonts.inter(color: Colors.white70, fontSize: 16),
+                style: GoogleFonts.inter(color: AppTheme.white70, fontSize: 16),
               ),
               const SizedBox(height: 16),
               ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
@@ -260,7 +261,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     final daysLeft = bundle.totalDays - progress.completedDays;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: Column(
         children: [
           // Hero Section (Dark background)
@@ -270,7 +271,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(28),
                   topRight: Radius.circular(28),
@@ -331,12 +332,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: AppTheme.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.arrow_back,
-                        color: Colors.white,
+                        color: AppTheme.white,
                         size: 22,
                       ),
                     ),
@@ -354,12 +355,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                           width: 70,
                           height: 70,
                           decoration: BoxDecoration(
-                            color: Colors.white10,
+                            color: AppTheme.white10,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(
                             Icons.fitness_center,
-                            color: Colors.white54,
+                            color: AppTheme.white54,
                             size: 28,
                           ),
                         ),
@@ -377,7 +378,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFAA3D50).withOpacity(0.3),
+                    color: AppTheme.accentColor.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -398,7 +399,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: AppTheme.white,
                   letterSpacing: 0.5,
                   height: 1.1,
                 ),
@@ -443,7 +444,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white70,
+                              color: AppTheme.white70,
                             ),
                           ),
                         ],
@@ -454,7 +455,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: AppTheme.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -462,7 +463,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: AppTheme.white,
                           ),
                         ),
                       ),
@@ -483,20 +484,20 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: AppTheme.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white70, size: 14),
+          Icon(icon, color: AppTheme.white70, size: 14),
           const SizedBox(width: 4),
           Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.white70,
+              color: AppTheme.white70,
             ),
           ),
         ],
@@ -520,10 +521,10 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             margin: EdgeInsets.only(right: index < visibleDays - 1 ? 3 : 0),
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(0xFF4CAF50)
+                  ? AppTheme.checkGreen
                   : isCurrent
-                  ? const Color(0xFFAA3D50)
-                  : Colors.white.withOpacity(0.2),
+                  ? AppTheme.accentColor
+                  : AppTheme.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -536,11 +537,11 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F6),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppTheme.black.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -553,10 +554,14 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: const Color(0xFFAA3D50).withOpacity(0.15),
+              color: AppTheme.accentColor.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person, color: Color(0xFFAA3D50), size: 28),
+            child: const Icon(
+              Icons.person,
+              color: AppTheme.accentColor,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -567,7 +572,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppTheme.black87,
                 height: 1.4,
               ),
             ),
@@ -604,17 +609,15 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isCurrentDay
-                    ? const Color(0xFFAA3D50)
-                    : Colors.grey.shade200,
+                color: isCurrentDay ? AppTheme.accentColor : AppTheme.grey200,
                 width: isCurrentDay ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: AppTheme.black.withOpacity(0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -633,7 +636,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade500,
+                            color: AppTheme.grey500,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -642,7 +645,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black,
+                            color: AppTheme.black,
                           ),
                         ),
                       ],
@@ -660,7 +663,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                               Icon(
                                 Icons.access_time,
                                 size: 16,
-                                color: Colors.grey.shade600,
+                                color: AppTheme.grey600,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -668,7 +671,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                                  color: AppTheme.black87,
                                 ),
                               ),
                             ],
@@ -686,12 +689,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: AppTheme.grey100,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.self_improvement,
-                          color: Colors.grey.shade500,
+                          color: AppTheme.grey500,
                           size: 24,
                         ),
                       )
@@ -704,7 +707,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                         ),
                         child: const Icon(
                           Icons.check,
-                          color: Color(0xFF4CAF50),
+                          color: AppTheme.checkGreen,
                           size: 24,
                         ),
                       )
@@ -712,12 +715,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: AppTheme.grey100,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.lock_outline,
-                          color: Colors.grey.shade400,
+                          color: AppTheme.grey400,
                           size: 24,
                         ),
                       )
@@ -730,8 +733,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                         child: CircularProgressIndicator(
                           value: 0,
                           strokeWidth: 3,
-                          backgroundColor: Colors.grey.shade200,
-                          color: const Color(0xFFAA3D50),
+                          backgroundColor: AppTheme.grey200,
+                          color: AppTheme.accentColor,
                         ),
                       ),
                   ],
@@ -745,8 +748,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                     child: ElevatedButton(
                       onPressed: () => _startDay(day.day),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2196F3),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.infoColor,
+                        foregroundColor: AppTheme.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -776,7 +779,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFAFAFA),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.grey200),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -786,7 +789,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: AppTheme.black,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -812,7 +815,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
           child: Icon(
             Icons.bolt,
             size: 18,
-            color: isFilled ? const Color(0xFFAA3D50) : Colors.grey.shade300,
+            color: isFilled ? AppTheme.accentColor : AppTheme.grey300,
           ),
         );
       }),
@@ -829,10 +832,10 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6),
+            BoxShadow(color: AppTheme.black.withOpacity(0.03), blurRadius: 6),
           ],
         ),
         child: Row(
@@ -842,7 +845,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF0F3),
+                color: AppTheme.highlightPink,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: exercise.image.isNotEmpty
@@ -853,11 +856,14 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.fitness_center,
-                          color: Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                         ),
                       ),
                     )
-                  : const Icon(Icons.fitness_center, color: Color(0xFFAA3D50)),
+                  : const Icon(
+                      Icons.fitness_center,
+                      color: AppTheme.accentColor,
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -869,7 +875,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: AppTheme.black,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -879,14 +885,14 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                         Icon(
                           Icons.timer_outlined,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.grey600,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${ex.duration}s',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.grey600,
                           ),
                         ),
                       ],
@@ -898,7 +904,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                               : '${ex.sets} sets',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: AppTheme.grey600,
                           ),
                         ),
                       ],
@@ -912,12 +918,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               width: 32,
               height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFAA3D50),
+                color: AppTheme.accentColor,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.play_arrow,
-                color: Colors.white,
+                color: AppTheme.white,
                 size: 18,
               ),
             ),
@@ -944,12 +950,12 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: AppTheme.grey200),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: AppTheme.black.withOpacity(0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -965,7 +971,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade500,
+                        color: AppTheme.grey500,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -974,7 +980,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                   ],
@@ -985,19 +991,19 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                     'Coming soon...',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade500,
+                      color: AppTheme.grey500,
                     ),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: AppTheme.grey100,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.lock_outline,
-                    color: Colors.grey.shade400,
+                    color: AppTheme.grey400,
                     size: 24,
                   ),
                 ),

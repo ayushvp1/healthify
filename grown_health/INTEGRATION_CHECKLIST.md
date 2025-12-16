@@ -343,7 +343,7 @@ class ApiErrorWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red),
+          Icon(Icons.error_outline, size: 64, color: AppTheme.errorColor),
           SizedBox(height: 16),
           Text(error, textAlign: TextAlign.center),
           SizedBox(height: 16),

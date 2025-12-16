@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
@@ -279,7 +280,11 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.celebration, color: Color(0xFFAA3D50), size: 32),
+            const Icon(
+              Icons.celebration,
+              color: AppTheme.accentColor,
+              size: 32,
+            ),
             const SizedBox(width: 12),
             Text(
               'Workout Complete!',
@@ -290,7 +295,11 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 80),
+            const Icon(
+              Icons.check_circle,
+              color: AppTheme.checkGreen,
+              size: 80,
+            ),
             const SizedBox(height: 16),
             Text(
               'Great job! You finished all ${_exercises.length} exercises.',
@@ -306,7 +315,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFAA3D50),
+              backgroundColor: AppTheme.accentColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -316,7 +325,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               'Finish',
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppTheme.white,
               ),
             ),
           ),
@@ -349,21 +358,21 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFAA3D50)),
+          child: CircularProgressIndicator(color: AppTheme.accentColor),
         ),
       );
     }
 
     if (_error != null || _exercises.isEmpty) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppTheme.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.black),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -373,18 +382,25 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.fitness_center, color: Colors.grey, size: 80),
+                const Icon(
+                  Icons.fitness_center,
+                  color: AppTheme.grey500,
+                  size: 80,
+                ),
                 const SizedBox(height: 24),
                 Text(
                   _error ?? 'No exercises found',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: AppTheme.grey500,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFAA3D50),
+                    backgroundColor: AppTheme.accentColor,
                   ),
                   child: const Text('Go Back'),
                 ),
@@ -404,7 +420,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     final visualUrl = exerciseGif.isNotEmpty ? exerciseGif : exerciseImage;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -421,14 +437,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: AppTheme.lightBlue,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.self_improvement,
-                      color: Color(0xFF2196F3),
+                      color: AppTheme.infoColor,
                       size: 32,
                     ),
                     const SizedBox(width: 12),
@@ -441,14 +457,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF2196F3),
+                              color: AppTheme.infoColor,
                             ),
                           ),
                           Text(
                             'Get ready for the next exercise',
                             style: GoogleFonts.inter(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: AppTheme.grey600,
                             ),
                           ),
                         ],
@@ -471,7 +487,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -510,14 +526,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppTheme.grey100,
               shape: BoxShape.circle,
             ),
             child: IconButton(
               icon: const Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 18,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
               onPressed: () => _confirmExit(),
             ),
@@ -530,7 +546,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  color: AppTheme.black,
                 ),
               ),
               const SizedBox(height: 4),
@@ -538,8 +554,10 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 width: 120,
                 child: LinearProgressIndicator(
                   value: (stepIndex + 1) / total,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: const AlwaysStoppedAnimation(Color(0xFFAA3D50)),
+                  backgroundColor: AppTheme.grey200,
+                  valueColor: const AlwaysStoppedAnimation(
+                    AppTheme.accentColor,
+                  ),
                   minHeight: 4,
                   borderRadius: BorderRadius.circular(2),
                 ),
@@ -548,14 +566,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppTheme.grey100,
               shape: BoxShape.circle,
             ),
             child: IconButton(
               icon: const Icon(
                 Icons.question_mark_rounded,
                 size: 20,
-                color: Colors.black,
+                color: AppTheme.black,
               ),
               onPressed: () => _showHowTo(),
             ),
@@ -589,7 +607,10 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: const Text('Exit', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Exit',
+              style: TextStyle(color: AppTheme.errorColor),
+            ),
           ),
         ],
       ),
@@ -633,9 +654,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           width: 220,
           height: 220,
           decoration: BoxDecoration(
-            color: _isResting
-                ? const Color(0xFFE3F2FD)
-                : const Color(0xFFFFF0F3),
+            color: _isResting ? AppTheme.lightBlue : AppTheme.highlightPink,
             shape: BoxShape.circle,
           ),
           child: ClipOval(
@@ -651,7 +670,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                               ? loadingProgress.cumulativeBytesLoaded /
                                     loadingProgress.expectedTotalBytes!
                               : null,
-                          color: const Color(0xFFAA3D50),
+                          color: AppTheme.accentColor,
                         ),
                       );
                     },
@@ -662,8 +681,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                             : Icons.fitness_center,
                         size: 80,
                         color: _isResting
-                            ? const Color(0xFF2196F3)
-                            : const Color(0xFFAA3D50),
+                            ? AppTheme.infoColor
+                            : AppTheme.accentColor,
                       );
                     },
                   )
@@ -671,8 +690,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                     _isResting ? Icons.self_improvement : Icons.fitness_center,
                     size: 80,
                     color: _isResting
-                        ? const Color(0xFF2196F3)
-                        : const Color(0xFFAA3D50),
+                        ? AppTheme.infoColor
+                        : AppTheme.accentColor,
                   ),
           ),
         ),
@@ -689,7 +708,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F6),
+        color: AppTheme.cardBackground,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -697,7 +716,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFFAA3D50),
+          color: AppTheme.accentColor,
         ),
       ),
     );
@@ -709,8 +728,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         : 0.0;
 
     // Use green color for timer to match reference design
-    const timerColor = Color(0xFF1E6F3E);
-    const restColor = Color(0xFF2196F3);
+    const timerColor = AppTheme.successColor;
+    const restColor = AppTheme.infoColor;
 
     return Stack(
       alignment: Alignment.center,
@@ -722,7 +741,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           child: CircularProgressIndicator(
             value: progress,
             strokeWidth: 6,
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: AppTheme.grey200,
             valueColor: AlwaysStoppedAnimation(
               _isResting ? restColor : timerColor,
             ),
@@ -767,8 +786,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               onPressed: _togglePause,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isResting
-                    ? const Color(0xFF2196F3)
-                    : const Color(0xFF5B0C23),
+                    ? AppTheme.infoColor
+                    : AppTheme.primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -781,13 +800,13 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppTheme.white,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Icon(
                     _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                    color: Colors.white,
+                    color: AppTheme.white,
                   ),
                 ],
               ),
@@ -801,7 +820,9 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 onPressed: _currentIndex > 0 ? _goToPreviousStep : null,
                 icon: Icon(
                   Icons.skip_previous_rounded,
-                  color: _currentIndex > 0 ? Colors.grey : Colors.grey.shade300,
+                  color: _currentIndex > 0
+                      ? AppTheme.grey500
+                      : AppTheme.grey300,
                 ),
                 label: Text(
                   'Previous',
@@ -809,8 +830,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: _currentIndex > 0
-                        ? Colors.grey
-                        : Colors.grey.shade300,
+                        ? AppTheme.grey500
+                        : AppTheme.grey300,
                   ),
                 ),
               ),
@@ -823,11 +844,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.skip_next_rounded, color: Colors.grey),
+                    const Icon(
+                      Icons.skip_next_rounded,
+                      color: AppTheme.grey500,
+                    ),
                   ],
                 ),
               ),

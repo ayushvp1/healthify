@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MealCard extends StatelessWidget {
@@ -28,7 +29,7 @@ class MealCard extends StatelessWidget {
       child: Container(
         height: 190,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             const BoxShadow(
@@ -48,7 +49,7 @@ class MealCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppTheme.grey300,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.breakfast_dining_rounded),

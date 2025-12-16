@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class QuickActionCard extends StatelessWidget {
@@ -19,7 +20,7 @@ class QuickActionCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             const BoxShadow(
@@ -31,7 +32,7 @@ class QuickActionCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: const Color(0xFFAA3D50)),
+            Icon(icon, color: AppTheme.accentColor),
             const SizedBox(height: 8),
             Text(
               label,

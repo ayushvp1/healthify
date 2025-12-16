@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import '../services/water_service.dart';
 
 /// Simple water reminder service that checks if user needs to drink water
@@ -53,7 +54,7 @@ class WaterReminderService {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.local_drink, color: Colors.white),
+            const Icon(Icons.local_drink, color: AppTheme.white),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -63,12 +64,12 @@ class WaterReminderService {
             ),
           ],
         ),
-        backgroundColor: const Color(0xFFAA3D50),
+        backgroundColor: AppTheme.accentColor,
         duration: const Duration(seconds: 5),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'OK',
-          textColor: Colors.white,
+          textColor: AppTheme.white,
           onPressed: () {},
         ),
       ),

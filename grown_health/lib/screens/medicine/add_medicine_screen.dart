@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AddMedicineScreen extends StatefulWidget {
@@ -150,14 +151,14 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.black,
+            color: AppTheme.black,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
@@ -168,7 +169,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             textStyle: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.black,
+              color: AppTheme.black,
             ),
           ),
         ),
@@ -210,7 +211,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  color: AppTheme.black,
                 ),
               ),
               const SizedBox(height: 8),
@@ -224,7 +225,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 child: ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFAA3D50),
+                    backgroundColor: AppTheme.accentColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -265,7 +266,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             ? TextInputType.number
             : TextInputType.text,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFFAA3D50)),
+          prefixIcon: Icon(icon, color: AppTheme.accentColor),
           hintText: label,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -317,16 +318,14 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFCE4E8),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFAA3D50).withOpacity(0.3),
-              ),
+              border: Border.all(color: AppTheme.accentColor.withOpacity(0.3)),
             ),
             child: Column(
               children: [
                 const Icon(
                   Icons.access_time,
                   size: 18,
-                  color: Color(0xFFAA3D50),
+                  color: AppTheme.accentColor,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -376,7 +375,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         controller: _instructionsController,
         maxLines: 3,
         decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.info_outline, color: Color(0xFFAA3D50)),
+          prefixIcon: Icon(Icons.info_outline, color: AppTheme.accentColor),
           hintText: 'Instructions',
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 0),
@@ -410,14 +409,14 @@ class _InfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: const Color(0xFFAA3D50)),
+              Icon(icon, size: 18, color: AppTheme.accentColor),
               const SizedBox(width: 6),
               Text(
                 title,
                 style: GoogleFonts.inter(
                   textStyle: const TextStyle(
                     fontSize: 12,
-                    color: Colors.black54,
+                    color: AppTheme.black54,
                   ),
                 ),
               ),

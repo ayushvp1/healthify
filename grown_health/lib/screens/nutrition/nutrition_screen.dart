@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -79,18 +80,18 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: Colors.black,
+                        color: AppTheme.black,
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5B0C23).withOpacity(0.1),
+                        color: AppTheme.primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
                         Icons.camera_alt_rounded,
-                        color: Color(0xFF5B0C23),
+                        color: AppTheme.primaryColor,
                         size: 22,
                       ),
                     ),
@@ -174,11 +175,11 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppTheme.black.withOpacity(0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -202,7 +203,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50).withOpacity(0.15),
+                  color: AppTheme.checkGreen.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -253,7 +254,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF5B0C23), Color(0xFF892746)],
+          colors: [AppTheme.primaryColor, Color(0xFF892746)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -270,7 +271,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppTheme.white,
                 ),
               ),
               Container(
@@ -279,7 +280,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppTheme.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -287,7 +288,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppTheme.white,
                   ),
                 ),
               ),
@@ -371,11 +372,11 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: AppTheme.black.withOpacity(0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -393,7 +394,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
               child: const Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF5B0C23),
+                  color: AppTheme.primaryColor,
                 ),
               ),
             ),
@@ -406,7 +407,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     width: 100,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: AppTheme.grey200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -415,7 +416,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     width: 150,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: AppTheme.grey200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -432,11 +433,11 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: AppTheme.black.withOpacity(0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -468,7 +469,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5B0C23).withOpacity(0.1),
+                      color: AppTheme.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -476,7 +477,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF5B0C23),
+                        color: AppTheme.primaryColor,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -487,7 +488,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.grey,
+                      color: AppTheme.grey500,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -495,7 +496,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     'Check back later for new recipes!',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: AppTheme.grey600,
                     ),
                   ),
                 ],
@@ -516,11 +517,11 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: AppTheme.black.withOpacity(0.04),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -578,7 +579,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5B0C23).withOpacity(0.1),
+                      color: AppTheme.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -586,7 +587,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF5B0C23),
+                        color: AppTheme.primaryColor,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -607,28 +608,28 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                       const Icon(
                         Icons.local_fire_department,
                         size: 14,
-                        color: Color(0xFF5B0C23),
+                        color: AppTheme.primaryColor,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${recipe.calories} cal',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.grey600,
                         ),
                       ),
                       const SizedBox(width: 12),
                       const Icon(
                         Icons.access_time,
                         size: 14,
-                        color: Colors.grey,
+                        color: AppTheme.grey500,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${recipe.prepTime} min',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.grey600,
                         ),
                       ),
                     ],
@@ -639,12 +640,12 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Color(0xFF5B0C23),
+                color: AppTheme.primaryColor,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.arrow_forward,
-                color: Colors.white,
+                color: AppTheme.white,
                 size: 18,
               ),
             ),
@@ -658,14 +659,14 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.transparent,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.85,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SingleChildScrollView(
@@ -680,7 +681,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppTheme.grey300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -755,7 +756,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                           recipe.description,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.grey.shade700,
+                            color: AppTheme.grey700,
                             height: 1.5,
                           ),
                         ),
@@ -779,7 +780,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                                   width: 6,
                                   height: 6,
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFF5B0C23),
+                                    color: AppTheme.primaryColor,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -789,7 +790,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                                     ingredient,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
-                                      color: Colors.grey.shade700,
+                                      color: AppTheme.grey700,
                                     ),
                                   ),
                                 ),
@@ -812,7 +813,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                           recipe.instructions,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.grey.shade700,
+                            color: AppTheme.grey700,
                             height: 1.6,
                           ),
                         ),
@@ -857,7 +858,7 @@ class _NutritionScreenState extends ConsumerState<NutritionScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF5B0C23),
+                    color: AppTheme.primaryColor,
                   ),
                 ),
               ],
@@ -899,13 +900,10 @@ class _FunctionalHydrationCard extends ConsumerWidget {
 
     void addWater() {
       ref.read(waterNotifierProvider(token).notifier).addWater();
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('+250ml added!'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 1),
-        ),
+      SnackBarUtils.showSuccess(
+        context,
+        '+250ml added!',
+        duration: const Duration(seconds: 1),
       );
     }
 
@@ -916,11 +914,11 @@ class _FunctionalHydrationCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: AppTheme.black.withOpacity(0.06),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -972,7 +970,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: isFilled
                               ? const Color(0xFFC84760)
-                              : Colors.transparent,
+                              : AppTheme.transparent,
                           border: isFilled
                               ? null
                               : Border.all(
@@ -1004,7 +1002,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                         style: GoogleFonts.inter(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF5B0C23),
+                          color: AppTheme.primaryColor,
                         ),
                       ),
                       TextSpan(
@@ -1012,7 +1010,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                         style: GoogleFonts.inter(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF5B0C23).withOpacity(0.7),
+                          color: AppTheme.primaryColor.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -1024,7 +1022,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1E6F3E),
+                    color: AppTheme.successColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1032,7 +1030,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                   'Stay hydrated for better energy and focus!',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: AppTheme.grey600,
                     height: 1.3,
                   ),
                 ),
@@ -1047,7 +1045,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                         child: Container(
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E6F3E),
+                            color: AppTheme.successColor,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -1059,13 +1057,13 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: AppTheme.white,
                                   ),
                                 )
                               else ...[
                                 const Icon(
                                   Icons.add,
-                                  color: Colors.white,
+                                  color: AppTheme.white,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 6),
@@ -1074,7 +1072,7 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                    color: AppTheme.white,
                                   ),
                                 ),
                               ],
@@ -1091,14 +1089,14 @@ class _FunctionalHydrationCard extends ConsumerWidget {
                         height: 44,
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: const Color(0xFF5B0C23),
+                            color: AppTheme.primaryColor,
                             width: 1.5,
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.remove,
-                          color: Color(0xFF5B0C23),
+                          color: AppTheme.primaryColor,
                           size: 20,
                         ),
                       ),
@@ -1164,7 +1162,7 @@ class _MacroCircle extends StatelessWidget {
         ),
         Text(
           '$value / $target',
-          style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
+          style: GoogleFonts.inter(fontSize: 11, color: AppTheme.grey500),
         ),
       ],
     );
@@ -1191,13 +1189,13 @@ class _GoalItem extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             color: done
-                ? Colors.white.withOpacity(0.25)
-                : Colors.white.withOpacity(0.1),
+                ? AppTheme.white.withOpacity(0.25)
+                : AppTheme.white.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
-            color: done ? Colors.white : Colors.white.withOpacity(0.5),
+            color: done ? AppTheme.white : AppTheme.white.withOpacity(0.5),
             size: 22,
           ),
         ),
@@ -1207,7 +1205,7 @@ class _GoalItem extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 10,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(done ? 1 : 0.6),
+            color: AppTheme.white.withOpacity(done ? 1 : 0.6),
           ),
         ),
       ],
@@ -1231,11 +1229,11 @@ class _QuickAction extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppTheme.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1278,11 +1276,11 @@ class _RecipeListTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppTheme.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1301,15 +1299,21 @@ class _RecipeListTile extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       width: 56,
                       height: 56,
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.restaurant, color: Colors.grey),
+                      color: AppTheme.grey200,
+                      child: const Icon(
+                        Icons.restaurant,
+                        color: AppTheme.grey500,
+                      ),
                     ),
                   )
                 : Container(
                     width: 56,
                     height: 56,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.restaurant, color: Colors.grey),
+                    color: AppTheme.grey200,
+                    child: const Icon(
+                      Icons.restaurant,
+                      color: AppTheme.grey500,
+                    ),
                   ),
           ),
           const SizedBox(width: 12),
@@ -1329,12 +1333,15 @@ class _RecipeListTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.grey500,
+                  ),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          Icon(Icons.chevron_right, color: AppTheme.grey400),
         ],
       ),
     );

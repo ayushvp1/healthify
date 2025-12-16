@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -7,19 +8,19 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.white,
       appBar: AppBar(
         title: Text(
           'About Us',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: AppTheme.black,
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.black),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -34,12 +35,12 @@ class AboutScreen extends StatelessWidget {
                 height: 100,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFF5B0C23), // Maroon
+                  color: AppTheme.primaryColor, // Maroon
                 ),
                 child: const Icon(
                   Icons.health_and_safety,
                   size: 50,
-                  color: Colors.white,
+                  color: AppTheme.white,
                 ),
               ),
             ),
@@ -49,7 +50,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF5B0C23),
+                color: AppTheme.primaryColor,
               ),
             ),
             const SizedBox(height: 12),
@@ -57,7 +58,7 @@ class AboutScreen extends StatelessWidget {
               'Your personal companion for a healthier, happier life.',
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: Colors.black87,
+                color: AppTheme.black87,
                 height: 1.5,
               ),
             ),
@@ -75,7 +76,7 @@ class AboutScreen extends StatelessWidget {
             Center(
               child: Text(
                 'Version 1.0.0',
-                style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
+                style: GoogleFonts.inter(color: AppTheme.grey500, fontSize: 12),
               ),
             ),
           ],
@@ -93,7 +94,7 @@ class AboutScreen extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1B5E20), // Dark Green
+            color: AppTheme.darkGreen, // Dark Green
           ),
         ),
         const SizedBox(height: 8),
@@ -101,7 +102,7 @@ class AboutScreen extends StatelessWidget {
           content,
           style: GoogleFonts.inter(
             fontSize: 15,
-            color: Colors.black87,
+            color: AppTheme.black87,
             height: 1.6,
           ),
         ),
