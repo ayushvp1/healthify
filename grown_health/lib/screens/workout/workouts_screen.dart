@@ -187,8 +187,13 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
     _loadExercises(categoryId);
   }
 
-  void _navigateToExerciseDetail(Map<String, dynamic> exercise) {
-    Navigator.of(context).pushNamed('/exercise_detail', arguments: exercise);
+  void _navigateToExerciseDetail(Map<String, dynamic> exercise) async {
+    // Navigate to exercise detail and wait for result
+    await Navigator.of(
+      context,
+    ).pushNamed('/exercise_detail', arguments: exercise);
+    // Refresh recent workouts when returning (in case user completed an exercise)
+    _loadRecentWorkouts();
   }
 
   @override
@@ -414,7 +419,9 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
         else if (_recentWorkouts.isEmpty)
           _buildEmptyRecentWorkouts()
         else
+          // Show only 2 most recent workouts
           ..._recentWorkouts
+              .take(2)
               .map((session) => _RecentWorkoutCard(session: session))
               .toList(),
       ],
