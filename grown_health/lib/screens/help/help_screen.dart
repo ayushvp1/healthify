@@ -268,25 +268,25 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                 children: [
                   _TopTab(
                     label: 'Body',
-                    iconPath: 'assets/images/icon_body.png',
+                    icon: Icons.fitness_center_rounded,
                     selected: _currentCategoryIndex == 0,
                     color: maroonColor,
                   ),
                   _TopTab(
                     label: 'Mind',
-                    iconPath: 'assets/images/icon_mind.png',
+                    icon: Icons.psychology_rounded,
                     selected: _currentCategoryIndex == 1,
                     color: maroonColor,
                   ),
                   _TopTab(
                     label: 'Nutrition',
-                    iconPath: 'assets/images/icon_nutrition.png',
+                    icon: Icons.restaurant_menu_rounded,
                     selected: _currentCategoryIndex == 2,
                     color: maroonColor,
                   ),
                   _TopTab(
                     label: 'Lifestyle',
-                    iconPath: 'assets/images/icon_lifestyle.png',
+                    icon: Icons.spa_rounded,
                     selected: _currentCategoryIndex == 3,
                     color: maroonColor,
                   ),
@@ -306,37 +306,39 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     Row(
                       children: [
                         Container(
-                          width: 36,
-                          height: 36,
-                          padding: const EdgeInsets.all(8),
+                          width:
+                              48, // Slightly larger for better touch target/visual
+                          height: 48,
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9), // Light Green
-                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(
+                              0xFFE8F5E9,
+                            ), // Keeping soft green background
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            // Using Icon as fallback for missing assets
-                            Icons.health_and_safety,
-                            color: const Color(0xFF2E7D32),
-                            size: 20,
+                          child: const Icon(
+                            Icons.health_and_safety_outlined,
+                            color: Color(0xFF2E7D32),
+                            size: 24,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 16),
                         Text(
-                          question.title,
+                          question.title, // "Question 1"
                           style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.black87,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     Text(
                       question.body,
                       style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 20, // Larger for main question
+                        fontWeight: FontWeight.w700, // Bolder
                         height: 1.3,
                         color: AppTheme.black,
                       ),
@@ -409,13 +411,13 @@ class _QuestionData {
 
 class _TopTab extends StatelessWidget {
   final String label;
-  final String iconPath;
+  final IconData icon;
   final bool selected;
   final Color color;
 
   const _TopTab({
     required this.label,
-    required this.iconPath,
+    required this.icon,
     this.selected = false,
     required this.color,
   });
@@ -424,25 +426,14 @@ class _TopTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Handling potentially missing assets gracefully
-        SizedBox(
-          width: 28,
-          height: 28,
-          child: Opacity(
-            opacity: 0.6,
-            child: Icon(
-              Icons.circle,
-              color: selected ? color : AppTheme.grey500,
-            ),
-          ),
-        ),
+        Icon(icon, size: 28, color: selected ? color : AppTheme.grey400),
         const SizedBox(height: 6),
         Text(
           label,
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected ? color : AppTheme.grey500,
+            color: selected ? color : AppTheme.grey400,
           ),
         ),
         const SizedBox(height: 8),
@@ -498,8 +489,8 @@ class _OptionButton extends StatelessWidget {
               child: Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                   color: AppTheme.black87,
                 ),
               ),

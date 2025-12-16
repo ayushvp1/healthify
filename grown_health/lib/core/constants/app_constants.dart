@@ -10,6 +10,7 @@ class AppConstants {
   static const int secondaryColorValue = 0xFFFAFAFA;
   static const int tertiaryColorValue = 0xFF000000;
   static const int accentColorValue = 0xFFAA3D50;
+  static const int splashBackgroundValue = 0xFF64091A;
 
   // Error/Status Colors
   static const int errorColorValue = 0xFFE53935;

@@ -14,11 +14,11 @@ class RecommendedCard extends StatelessWidget {
 
   const RecommendedCard({
     super.key,
-    this.title = '30 Days Challenge',
-    this.duration = '20 mins',
-    this.exercises = '7 Exercises',
-    this.level = 'Beginner',
-    this.badge = 'Based on your fitness level',
+    this.title = '30 Day Challenge',
+    this.duration = '3 Days',
+    this.exercises = '4 Exercises',
+    this.level = 'BEGINNER',
+    this.badge = 'Workout Program',
     required this.backgroundColor,
     required this.accentColor,
     this.onStart,
@@ -29,58 +29,71 @@ class RecommendedCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          colors: [backgroundColor, accentColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(36), // Increased for smoother look
         boxShadow: [
           BoxShadow(
-            color: backgroundColor.withOpacity(0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: backgroundColor.withOpacity(0.4),
+            blurRadius: 24, // Softer blur
+            offset: const Offset(0, 12), // Deeper offset
+            spreadRadius: -4,
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Decorative background circles
+          // Background Glow (Top Right)
           Positioned(
-            top: -40,
-            right: -40,
+            top: -60,
+            right: -60,
             child: Container(
-              width: 200,
-              height: 200,
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.white.withOpacity(0.1),
+                color: Colors.white.withOpacity(0.08),
               ),
             ),
           ),
+
+          // Background Glow (Bottom Left)
           Positioned(
-            bottom: -60,
+            bottom: -80,
             left: -40,
             child: Container(
-              width: 180,
-              height: 180,
+              width: 250,
+              height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.white.withOpacity(0.05),
+                color: Colors.white.withOpacity(0.04), // Very subtle
               ),
             ),
           ),
+
+          // Content Pattern
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Left Column: Content
                 Expanded(
+                  flex: 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Badge Pill
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
-                          vertical: 8,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.white.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -88,89 +101,111 @@ class RecommendedCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
                               fontSize: 12,
-                              color: AppTheme.white,
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // Title
                       Text(
                         title,
                         style: GoogleFonts.inter(
                           textStyle: const TextStyle(
-                            fontSize: 24,
+                            fontSize: 26,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.white,
+                            color: Colors.white,
                             height: 1.1,
                           ),
                         ),
                       ),
                       const SizedBox(height: 12),
+
+                      // Metadata (Time & Exercises)
                       Row(
                         children: [
-                          _IconText(
-                            icon: Icons.access_time_rounded,
-                            text: duration,
+                          const Icon(
+                            Icons.access_time_filled_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            duration,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(width: 16),
-                          _IconText(
-                            icon: Icons.fitness_center_rounded,
-                            text: exercises,
+                          const Icon(
+                            Icons.fitness_center_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            exercises,
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
+
+                      // Level (Lightning bolts)
                       Row(
                         children: [
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 18,
-                            color: AppTheme.white,
+                          const Icon(Icons.bolt, color: Colors.white, size: 20),
+                          Icon(
+                            Icons.bolt,
+                            color: Colors.white.withOpacity(0.6),
+                            size: 20,
                           ),
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 18,
-                            color: AppTheme.white54,
-                          ),
-                          const Icon(
-                            Icons.bolt_rounded,
-                            size: 18,
-                            color: AppTheme.white54,
+                          Icon(
+                            Icons.bolt,
+                            color: Colors.white.withOpacity(0.6),
+                            size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             level,
                             style: GoogleFonts.inter(
-                              textStyle: const TextStyle(
-                                fontSize: 13,
-                                color: AppTheme.white,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: onStart,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.white,
-                          foregroundColor: backgroundColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
+
+                      // Start Button
+                      SizedBox(
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: onStart,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.white,
+                            foregroundColor:
+                                backgroundColor, // Match text to card bg
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 0,
-                        ),
-                        icon: const Icon(Icons.play_arrow_rounded, size: 22),
-                        label: Text(
-                          'Start Bundle',
-                          style: GoogleFonts.inter(
-                            textStyle: const TextStyle(
+                          icon: const Icon(Icons.play_arrow_rounded, size: 24),
+                          label: Text(
+                            'Start Bundle',
+                            style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
@@ -180,58 +215,36 @@ class RecommendedCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                // Right Column: Decorative Squircle
                 const SizedBox(width: 16),
-                // Right side visual placeholder (matching design)
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: accentColor.withOpacity(
-                      0.8,
-                    ), // Using passed accent color
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        color: const Color(
+                          0xFFB2EBF2,
+                        ).withOpacity(0.3), // Cyan tint
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  // Placeholder for an illustration if needed
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _IconText extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _IconText({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppTheme.white),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 13,
-              color: AppTheme.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

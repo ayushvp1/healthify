@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/providers.dart';
-import '../../providers/water_provider.dart';
+
 import 'widgets/widgets.dart';
 import '../../services/water_service.dart';
 import '../../services/water_reminder_service.dart';
@@ -130,17 +130,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     const SizedBox(height: 8),
                     _buildHeader(greeting, displayName),
-                    const SizedBox(height: 16),
-                    _buildSearchBar(),
+                    // const SizedBox(height: 16),
+                    // _buildSearchBar(),
                     const SizedBox(height: 24),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 3, child: _buildMedicineReminder()),
-                        const SizedBox(width: 12),
-                        Expanded(flex: 2, child: const WaterTrackingWidget()),
-                      ],
-                    ),
+                    const WellnessSection(),
                     const SizedBox(height: 24),
                     _buildTodaysPlan(context),
                     const SizedBox(height: 24),
@@ -307,123 +300,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildMedicineReminder() {
-    return FutureBuilder<Map<String, String>?>(
-      future: _getResult(),
-      builder: (context, snapshot) {
-        final hasData = snapshot.hasData && snapshot.data != null;
-        final data = snapshot.data;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Medicine Reminder',
-                  style: GoogleFonts.inter(
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.of(
-                      context,
-                    ).pushNamed('/medicine_reminders');
-                    setState(() {}); // Refresh on return
-                  },
-                  child: Text(
-                    'See all',
-                    style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.primaryColor, // Dark Burgundy
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: hasData
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              data!['name'] ?? '',
-                              style: GoogleFonts.inter(
-                                textStyle: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.black,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              data['time'] ?? '',
-                              style: GoogleFonts.inter(
-                                textStyle: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppTheme.grey500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Text(
-                          'No medicine reminders set',
-                          style: GoogleFonts.inter(
-                            textStyle: const TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.grey500,
-                            ),
-                          ),
-                        ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    final token = ref.read(authProvider).user?.token;
-                    ref.read(waterNotifierProvider(token).notifier).addWater();
-                  },
-                  child: Text(
-                    'Add',
-                    style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.primaryColor, // Dark Burgundy
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<Map<String, String>?> _getResult() async {
-    final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString('latest_medicine_name');
-    final time = prefs.getString('latest_medicine_time');
-    if (name != null) {
-      return {'name': name, 'time': time ?? ''};
-    }
-    return null;
-  }
-
   Widget _buildTodaysPlan(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,13 +342,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildRecommendedSection() {
-    // Color palette for cards
-    const colors = [
-      [AppTheme.accentColor, Color(0xFFD46A7A)],
-      [Color(0xFFD46A7A), Color(0xFFF2C3CC)],
-      [Color(0xFFF2C3CC), AppTheme.accentColor],
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -520,45 +389,76 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
           )
-        else if (_bundles.isEmpty)
-          // Fallback to static cards if no bundles
+        else
+          // Display actual bundles or static fallback
           Column(
             children: [
+              // Purple Card (Static or mapped from bundle 1)
               RecommendedCard(
-                backgroundColor: AppTheme.accentColor,
-                accentColor: const Color(0xFFD46A7A),
-                onStart: () => Navigator.of(context).pushNamed('/bundles'),
+                title: _bundles.isNotEmpty
+                    ? _bundles[0].name
+                    : '30 Days Challenge',
+                duration: _bundles.isNotEmpty
+                    ? '${_bundles[0].totalDays} Days'
+                    : '20 mins',
+                exercises: _bundles.isNotEmpty
+                    ? '${_bundles[0].totalExercises} Exercises'
+                    : '7 Exercises',
+                level: _bundles.isNotEmpty
+                    ? _bundles[0].difficultyDisplay
+                    : 'Beginner',
+                backgroundColor: const Color(0xFF8E44AD), // Deep Purple
+                accentColor: const Color(0xFFD980FA), // Light Magenta
+                onStart: () => _bundles.isNotEmpty
+                    ? Navigator.pushNamed(context, '/bundle/${_bundles[0].id}')
+                    : Navigator.pushNamed(context, '/bundles'),
               ),
               const SizedBox(height: 16),
+
+              // Teal Card (Static or mapped from bundle 2)
               RecommendedCard(
-                backgroundColor: const Color(0xFFD46A7A),
-                accentColor: const Color(0xFFF2C3CC),
-                onStart: () => Navigator.of(context).pushNamed('/bundles'),
+                title: _bundles.length > 1
+                    ? _bundles[1].name
+                    : '30 Days Challenge',
+                duration: _bundles.length > 1
+                    ? '${_bundles[1].totalDays} Days'
+                    : '20 mins',
+                exercises: _bundles.length > 1
+                    ? '${_bundles[1].totalExercises} Exercises'
+                    : '7 Exercises',
+                level: _bundles.length > 1
+                    ? _bundles[1].difficultyDisplay
+                    : 'Beginner',
+                backgroundColor: const Color(0xFF1ABC9C), // Teal
+                accentColor: const Color(0xFF16A085), // Dark teal/Green mix
+                onStart: () => _bundles.length > 1
+                    ? Navigator.pushNamed(context, '/bundle/${_bundles[1].id}')
+                    : Navigator.pushNamed(context, '/bundles'),
+              ),
+              const SizedBox(height: 16),
+
+              // Orange Card (Static or mapped from bundle 3)
+              RecommendedCard(
+                title: _bundles.length > 2
+                    ? _bundles[2].name
+                    : '30 Days Challenge',
+                duration: _bundles.length > 2
+                    ? '${_bundles[2].totalDays} Days'
+                    : '20 mins',
+                exercises: _bundles.length > 2
+                    ? '${_bundles[2].totalExercises} Exercises'
+                    : '7 Exercises',
+                level: _bundles.length > 2
+                    ? _bundles[2].difficultyDisplay
+                    : 'Beginner',
+                backgroundColor: const Color(0xFFF39C12), // Orange
+                accentColor: const Color(0xFFF1C40F), // Yellow/Amber
+                onStart: () => _bundles.length > 2
+                    ? Navigator.pushNamed(context, '/bundle/${_bundles[2].id}')
+                    : Navigator.pushNamed(context, '/bundles'),
               ),
             ],
-          )
-        else
-          // Display actual bundles
-          ...List.generate(_bundles.length, (index) {
-            final bundle = _bundles[index];
-            final colorPair = colors[index % colors.length];
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index < _bundles.length - 1 ? 16 : 0,
-              ),
-              child: RecommendedCard(
-                title: bundle.name,
-                duration: '${bundle.totalDays} Days',
-                exercises: '${bundle.totalExercises} Exercises',
-                level: bundle.difficultyDisplay,
-                badge: bundle.category?.name ?? 'Workout Program',
-                backgroundColor: colorPair[0],
-                accentColor: colorPair[1],
-                onStart: () =>
-                    Navigator.pushNamed(context, '/bundle/${bundle.id}'),
-              ),
-            );
-          }),
+          ),
       ],
     );
   }

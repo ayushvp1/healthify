@@ -10,6 +10,9 @@ class AppTheme {
   static const Color secondaryColor = Color(AppConstants.secondaryColorValue);
   static const Color tertiaryColor = Color(AppConstants.tertiaryColorValue);
   static const Color accentColor = Color(AppConstants.accentColorValue);
+  static const Color splashBackgroundColor = Color(
+    AppConstants.splashBackgroundValue,
+  );
 
   // Status colors
   static const Color errorColor = Color(AppConstants.errorColorValue);

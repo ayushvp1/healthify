@@ -69,18 +69,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
+      backgroundColor: AppTheme.splashBackgroundColor,
       body: AnimatedBuilder(
         animation: _animationController,
         builder: (context, child) {
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppTheme.primaryColor, AppTheme.accentColor],
-              ),
-            ),
+          return SizedBox.expand(
             child: SafeArea(
               child: Center(
                 child: FadeTransition(
@@ -90,25 +83,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // App Icon/Logo
+                        // App Icon/Logo background
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: 136,
+                          height: 136,
                           decoration: BoxDecoration(
                             color: AppTheme.white,
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(27),
+                            // Optional: subtle shadow if needed, design looks clean
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.black.withValues(alpha: 0.2),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                                color: AppTheme.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(27),
                             child: Padding(
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.all(
+                                24,
+                              ), // Adjusted padding for logo inside
                               child: Image.asset(
                                 'assets/logo.png',
                                 fit: BoxFit.contain,
@@ -123,39 +119,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppConstants.paddingLarge),
+                        const SizedBox(height: 28),
 
                         // App Name
                         Text(
-                          AppConstants.appName,
+                          'Grown Health', // Hardcoded as per design or use AppConstants.appName if it matches
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 39,
+                              fontWeight: FontWeight.w600, // SemiBold
                               color: AppTheme.white,
-                              letterSpacing: 1.2,
+                              height:
+                                  1.0, // Tight line height usually helps match design
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppConstants.paddingSmall),
+                        const SizedBox(height: 16),
 
                         // Tagline
                         Text(
                           'Your Health Journey Starts Here',
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
-                              fontSize: 16,
-                              color: AppTheme.white70,
-                              letterSpacing: 0.5,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400, // Regular
+                              color: AppTheme.white,
+                              height: 1.2,
                             ),
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: AppConstants.paddingXLarge),
 
-                        // Loading Indicator
+                        // Move loading indicator to bottom or hide if not in design?
+                        // The design doesn't show a loader. I'll keep it subtle or remove it if strictly matching static design.
+                        // User said "design my splash screen based on this design".
+                        // Usually splash screens might have a loader. I'll add a spacer and put it at the bottom, or just keep it below with more space.
+                        // The design is static. I'll add a bit of space and keep the loader small, as it's functional feedback.
+                        const SizedBox(height: 48),
                         const LoadingWidget(
-                          size: 40,
+                          size: 32,
                           strokeWidth: 3,
                           color: AppTheme.white,
                         ),

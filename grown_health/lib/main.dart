@@ -13,6 +13,7 @@ import 'screens/workout/bundle_detail_screen.dart';
 import 'screens/workout/bundles_list_screen.dart';
 import 'screens/workout/exercise_detail_screen.dart';
 import 'screens/workout/exercise_timer_screen.dart';
+import 'screens/nutrition/nutrition_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,6 +108,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const AddMedicineScreen());
           case '/api_test':
             return MaterialPageRoute(builder: (_) => const ApiTestScreen());
+          case '/nutrition':
+            return MaterialPageRoute(builder: (_) => const NutritionScreen());
           default:
             return MaterialPageRoute(builder: (_) => const SplashScreen());
         }
