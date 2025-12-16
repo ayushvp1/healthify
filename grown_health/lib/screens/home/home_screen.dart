@@ -83,7 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AppTheme.white,
+      backgroundColor: AppTheme.grey50,
       drawer: _buildDrawer(),
       body: SafeArea(
         child: CustomScrollView(

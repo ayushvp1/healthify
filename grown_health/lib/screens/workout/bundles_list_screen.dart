@@ -160,6 +160,7 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
           final bundle = _bundles[index];
           return _BundleCard(
             bundle: bundle,
+            index: index,
             onTap: () {
               Navigator.pushNamed(context, '/bundle/${bundle.id}');
             },
@@ -267,8 +268,26 @@ class _FilterChip extends StatelessWidget {
 class _BundleCard extends StatelessWidget {
   final ExerciseBundle bundle;
   final VoidCallback onTap;
+  final int index;
 
-  const _BundleCard({required this.bundle, required this.onTap});
+  // Same color combos as home screen
+  static const List<List<Color>> _cardGradients = [
+    [Color(0xFF1ABC9C), Color(0xFF16A085)], // Teal
+    [Color(0xFF8E44AD), Color(0xFFD980FA)], // Purple
+    [Color(0xFFF39C12), Color(0xFFF1C40F)], // Orange
+    [Color(0xFF3498DB), Color(0xFF2980B9)], // Blue
+    [Color(0xFFE74C3C), Color(0xFFC0392B)], // Red
+    [Color(0xFF2ECC71), Color(0xFF27AE60)], // Green
+  ];
+
+  const _BundleCard({
+    required this.bundle,
+    required this.onTap,
+    required this.index,
+  });
+
+  List<Color> get _gradientColors =>
+      _cardGradients[index % _cardGradients.length];
 
   @override
   Widget build(BuildContext context) {
@@ -287,135 +306,128 @@ class _BundleCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail / Header
-            Stack(
-              children: [
-                Container(
-                  height: 140,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thumbnail / Header
+              Stack(
+                children: [
+                  Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _gradientColors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
-                    gradient: LinearGradient(
-                      colors: _getDifficultyGradient(bundle.difficulty),
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: bundle.thumbnail.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                          child: Image.network(
+                    child: bundle.thumbnail.isNotEmpty
+                        ? Image.network(
                             bundle.thumbnail,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                          ),
-                        )
-                      : _buildPlaceholder(),
-                ),
-                // Difficulty Badge
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      bundle.difficultyDisplay,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                          )
+                        : _buildPlaceholder(),
                   ),
-                ),
-                // Days Badge
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${bundle.totalDays} Days',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.white,
+                  // Difficulty Badge
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    bundle.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.black,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  if (bundle.description.isNotEmpty)
-                    Text(
-                      bundle.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: AppTheme.grey600,
-                        height: 1.4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _InfoPill(
-                        icon: Icons.fitness_center,
-                        label: '${bundle.totalExercises} exercises',
-                      ),
-                      const SizedBox(width: 12),
-                      if (bundle.category != null)
-                        _InfoPill(
-                          icon: Icons.category_outlined,
-                          label: bundle.category!.name,
+                      child: Text(
+                        bundle.difficultyDisplay,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.white,
+                          letterSpacing: 0.5,
                         ),
-                    ],
+                      ),
+                    ),
+                  ),
+                  // Days Badge
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${bundle.totalDays} Days',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      bundle.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.black,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (bundle.description.isNotEmpty)
+                      Text(
+                        bundle.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.grey600,
+                          height: 1.4,
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _InfoPill(
+                          icon: Icons.fitness_center,
+                          label: '${bundle.totalExercises} exercises',
+                        ),
+                        const SizedBox(width: 12),
+                        if (bundle.category != null)
+                          _InfoPill(
+                            icon: Icons.category_outlined,
+                            label: bundle.category!.name,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -425,7 +437,7 @@ class _BundleCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: _getDifficultyGradient(bundle.difficulty),
+          colors: _gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -434,19 +446,6 @@ class _BundleCard extends StatelessWidget {
         child: Icon(Icons.fitness_center, color: AppTheme.white54, size: 48),
       ),
     );
-  }
-
-  List<Color> _getDifficultyGradient(String difficulty) {
-    switch (difficulty) {
-      case 'beginner':
-        return [AppTheme.checkGreen, const Color(0xFF81C784)];
-      case 'intermediate':
-        return [AppTheme.accentColor, const Color(0xFFD46A7A)];
-      case 'advanced':
-        return [AppTheme.primaryColor, AppTheme.accentColor];
-      default:
-        return [AppTheme.accentColor, const Color(0xFFD46A7A)];
-    }
   }
 }
 
