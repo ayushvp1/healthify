@@ -3,12 +3,10 @@ import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/core.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exercise_bundle_service.dart';
 
-/// Widget showing workout bundles grouped by category tabs.
-/// Ported from reference app's BodyFocus widget with improved styling.
+/// Widget showing workout bundles as horizontal scrolling gradient cards.
 class BodyFocusWidget extends ConsumerStatefulWidget {
   const BodyFocusWidget({super.key});
 
@@ -16,26 +14,25 @@ class BodyFocusWidget extends ConsumerStatefulWidget {
   ConsumerState<BodyFocusWidget> createState() => _BodyFocusWidgetState();
 }
 
-class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
+class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget> {
   bool _isLoading = true;
   String? _error;
+  List<ExerciseBundle> _bundles = [];
 
-  // Bundles grouped by category name
-  Map<String, List<ExerciseBundle>> _bundlesByCategory = {};
-  List<String> _categoryNames = [];
+  // Gradient colors for cards - cycling through for variety
+  static const List<List<Color>> _cardGradients = [
+    [Color(0xFF1ABC9C), Color(0xFF16A085)], // Teal
+    [Color(0xFF8E44AD), Color(0xFFD980FA)], // Purple
+    [Color(0xFFF39C12), Color(0xFFF1C40F)], // Orange
+    [Color(0xFF3498DB), Color(0xFF2980B9)], // Blue
+    [Color(0xFFE74C3C), Color(0xFFC0392B)], // Red
+    [Color(0xFF2ECC71), Color(0xFF27AE60)], // Green
+  ];
 
   @override
   void initState() {
     super.initState();
     _loadBundles();
-  }
-
-  @override
-  void dispose() {
-    _tabController?.dispose();
-    super.dispose();
   }
 
   Future<void> _loadBundles() async {
@@ -50,29 +47,11 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
 
     try {
       final service = ExerciseBundleService(token);
-      final response = await service.getBundles(limit: 50);
-
-      // Group bundles by category
-      final grouped = <String, List<ExerciseBundle>>{};
-      for (final bundle in response.bundles) {
-        final categoryName = bundle.category?.name ?? 'Uncategorized';
-        grouped.putIfAbsent(categoryName, () => []);
-        grouped[categoryName]!.add(bundle);
-      }
-
-      // Sort categories alphabetically
-      final sortedCategories = grouped.keys.toList()..sort();
+      final response = await service.getBundles(limit: 10);
 
       if (mounted) {
-        _tabController?.dispose();
-        _tabController = TabController(
-          length: sortedCategories.length,
-          vsync: this,
-        );
-
         setState(() {
-          _bundlesByCategory = grouped;
-          _categoryNames = sortedCategories;
+          _bundles = response.bundles;
           _isLoading = false;
           _error = null;
         });
@@ -87,37 +66,24 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
     }
   }
 
-  int _getDifficultyStars(String difficulty) {
-    switch (difficulty.toLowerCase()) {
-      case 'beginner':
-        return 1;
-      case 'intermediate':
-        return 2;
-      case 'advanced':
-        return 3;
-      default:
-        return 2;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const SizedBox(
-        height: 200,
+        height: 280,
         child: Center(
           child: CircularProgressIndicator(color: AppTheme.primaryColor),
         ),
       );
     }
 
-    if (_error != null || _categoryNames.isEmpty) {
+    if (_error != null || _bundles.isEmpty) {
       return Container(
         height: 150,
         margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: AppTheme.cardBackground,
-          borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Center(
           child: Column(
@@ -130,7 +96,7 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
               ),
               const SizedBox(height: 12),
               Text(
-                _error ?? 'No workout bundles available',
+                _error ?? 'No workout programs available',
                 style: GoogleFonts.inter(color: AppTheme.grey600, fontSize: 14),
               ),
               if (_error != null) ...[
@@ -155,8 +121,8 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
               Text(
                 'Workout Programs',
                 style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                   color: AppTheme.black,
                 ),
               ),
@@ -177,198 +143,205 @@ class _BodyFocusWidgetState extends ConsumerState<BodyFocusWidget>
 
         const SizedBox(height: 16),
 
-        // Category Tabs
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            indicator: const BoxDecoration(),
-            dividerColor: AppTheme.transparent,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            labelPadding: const EdgeInsets.only(right: 8),
-            tabs: _categoryNames.map((categoryName) {
-              return Tab(
-                child: AnimatedBuilder(
-                  animation: _tabController!.animation!,
-                  builder: (context, child) {
-                    final tabIndex = _categoryNames.indexOf(categoryName);
-                    final isSelected = _tabController!.index == tabIndex;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : AppTheme.grey100,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Text(
-                        categoryName,
-                        style: GoogleFonts.inter(
-                          color: isSelected ? AppTheme.white : AppTheme.grey700,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          fontSize: 13,
-                        ),
-                      ),
-                    );
+        // Horizontal Scrolling Cards
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _bundles.length,
+            itemBuilder: (context, index) {
+              final bundle = _bundles[index];
+              final colors = _cardGradients[index % _cardGradients.length];
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: index < _bundles.length - 1 ? 16 : 0,
+                ),
+                child: _BundleCard(
+                  bundle: bundle,
+                  gradientColors: colors,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/bundle/${bundle.id}');
                   },
                 ),
               );
-            }).toList(),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Bundle List per Category Tab
-        SizedBox(
-          height: 280,
-          child: TabBarView(
-            controller: _tabController,
-            physics: const BouncingScrollPhysics(),
-            children: _categoryNames.map((categoryName) {
-              final bundles = (_bundlesByCategory[categoryName] ?? [])
-                  .take(3)
-                  .toList();
-
-              if (bundles.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No programs in $categoryName',
-                    style: GoogleFonts.inter(
-                      color: AppTheme.grey500,
-                      fontSize: 14,
-                    ),
-                  ),
-                );
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: bundles.length,
-                separatorBuilder: (context, index) =>
-                    Divider(height: 24, color: AppTheme.grey200),
-                itemBuilder: (context, index) {
-                  final bundle = bundles[index];
-                  final difficultyStars = _getDifficultyStars(
-                    bundle.difficulty,
-                  );
-
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/bundle/${bundle.id}');
-                    },
-                    child: Row(
-                      children: [
-                        // Bundle Thumbnail
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: bundle.thumbnail.isNotEmpty
-                              ? Image.network(
-                                  bundle.thumbnail,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      _buildPlaceholder(),
-                                )
-                              : _buildPlaceholder(),
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        // Bundle Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Bundle Name
-                              Text(
-                                bundle.name,
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.black,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 4),
-
-                              // Exercise Count and Duration
-                              Text(
-                                '${bundle.totalExercises} Exercises • ${bundle.totalDays} Days',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: AppTheme.grey600,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-
-                              // Difficulty Stars
-                              Row(
-                                children: [
-                                  ...List.generate(3, (starIndex) {
-                                    return Icon(
-                                      Icons.bolt,
-                                      size: 16,
-                                      color: starIndex < difficultyStars
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.grey300,
-                                    );
-                                  }),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    bundle.difficultyDisplay,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Arrow Icon
-                        Icon(
-                          Icons.chevron_right,
-                          color: AppTheme.grey400,
-                          size: 24,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            }).toList(),
+            },
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildPlaceholder() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Icon(
-        Icons.fitness_center,
-        size: 32,
-        color: AppTheme.primaryColor.withOpacity(0.5),
+/// Gradient card for workout bundle (similar to Browse Programs style)
+class _BundleCard extends StatelessWidget {
+  final ExerciseBundle bundle;
+  final List<Color> gradientColors;
+  final VoidCallback? onTap;
+
+  const _BundleCard({
+    required this.bundle,
+    required this.gradientColors,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 200,
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Gradient Header with badges
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Difficulty Badge (top-left)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          bundle.difficultyDisplay,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Days Badge (top-right)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${bundle.totalDays} Days',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Center Icon
+                    Center(
+                      child: Icon(
+                        Icons.fitness_center,
+                        size: 36,
+                        color: AppTheme.white.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // White Content Section
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Bundle Name
+                      Text(
+                        bundle.name,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.black,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+
+                      // Description
+                      Text(
+                        bundle.description.isNotEmpty
+                            ? bundle.description
+                            : '${bundle.totalDays} days program',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: AppTheme.grey500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const Spacer(),
+
+                      // Exercise count badge
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.fitness_center_rounded,
+                            size: 12,
+                            color: AppTheme.accentColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${bundle.totalExercises} exercises',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

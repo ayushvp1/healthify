@@ -34,13 +34,13 @@ class RecommendedCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(36), // Increased for smoother look
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
             color: backgroundColor.withOpacity(0.4),
-            blurRadius: 24, // Softer blur
-            offset: const Offset(0, 12), // Deeper offset
-            spreadRadius: -4,
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+            spreadRadius: -2,
           ),
         ],
       ),
@@ -76,7 +76,7 @@ class RecommendedCard extends StatelessWidget {
 
           // Content Pattern
           Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,8 +89,8 @@ class RecommendedCard extends StatelessWidget {
                       // Badge Pill
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 6,
+                          horizontal: 12,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
@@ -100,113 +100,113 @@ class RecommendedCard extends StatelessWidget {
                           badge,
                           style: GoogleFonts.inter(
                             textStyle: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
 
                       // Title
                       Text(
                         title,
                         style: GoogleFonts.inter(
                           textStyle: const TextStyle(
-                            fontSize: 26,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             height: 1.1,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
 
                       // Metadata (Time & Exercises)
                       Row(
                         children: [
                           const Icon(
                             Icons.access_time_filled_rounded,
-                            size: 16,
+                            size: 14,
                             color: Colors.white,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Text(
                             duration,
                             style: GoogleFonts.inter(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           const Icon(
                             Icons.fitness_center_rounded,
-                            size: 16,
+                            size: 14,
                             color: Colors.white,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                           Text(
                             exercises,
                             style: GoogleFonts.inter(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
 
                       // Level (Lightning bolts)
                       Row(
                         children: [
-                          const Icon(Icons.bolt, color: Colors.white, size: 20),
+                          const Icon(Icons.bolt, color: Colors.white, size: 18),
                           Icon(
                             Icons.bolt,
                             color: Colors.white.withOpacity(0.6),
-                            size: 20,
+                            size: 18,
                           ),
                           Icon(
                             Icons.bolt,
                             color: Colors.white.withOpacity(0.6),
-                            size: 20,
+                            size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             level,
                             style: GoogleFonts.inter(
                               color: Colors.white,
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.5,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Start Button
                       SizedBox(
-                        height: 48,
+                        height: 40,
                         child: ElevatedButton.icon(
                           onPressed: onStart,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.white,
                             foregroundColor:
                                 backgroundColor, // Match text to card bg
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          icon: const Icon(Icons.play_arrow_rounded, size: 24),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
                           label: Text(
                             'Start Bundle',
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 14,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -217,18 +217,18 @@ class RecommendedCard extends StatelessWidget {
                 ),
 
                 // Right Column: Decorative Squircle
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   flex: 2,
                   child: Center(
                     child: Container(
-                      width: 110,
-                      height: 110,
+                      width: 90,
+                      height: 90,
                       decoration: BoxDecoration(
                         color: const Color(
                           0xFFB2EBF2,
                         ).withOpacity(0.3), // Cyan tint
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.05),

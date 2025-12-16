@@ -9,7 +9,6 @@ import '../../providers/providers.dart';
 import 'widgets/widgets.dart';
 import '../../services/water_service.dart';
 import '../../services/water_reminder_service.dart';
-import '../../services/exercise_bundle_service.dart';
 
 import '../about/about_screen.dart';
 import '../contact/contact_screen.dart';
@@ -25,11 +24,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _displayName = 'User';
   String _greeting = 'Good Morning!';
-  String _searchQuery = '';
-
-  // Bundles for recommended section
-  List<ExerciseBundle> _bundles = [];
-  bool _bundlesLoading = true;
 
   @override
   void initState() {
@@ -37,31 +31,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _updateGreeting();
     _loadUserName();
     _startWaterReminders();
-    _loadBundles();
-  }
-
-  Future<void> _loadBundles() async {
-    final token = ref.read(authProvider).user?.token;
-    if (token == null) {
-      setState(() => _bundlesLoading = false);
-      return;
-    }
-
-    try {
-      final service = ExerciseBundleService(token);
-      final response = await service.getBundles(limit: 3);
-      if (mounted) {
-        setState(() {
-          _bundles = response.bundles;
-          _bundlesLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Failed to load bundles: $e');
-      if (mounted) {
-        setState(() => _bundlesLoading = false);
-      }
-    }
   }
 
   void _startWaterReminders() {
@@ -135,7 +104,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const SizedBox(height: 24),
                     const WellnessSection(),
                     const SizedBox(height: 24),
-                    _buildTodaysPlan(context),
+                    const TodaysPlanSection(),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -143,19 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             // Body Focus - Workout Programs by Category
             const SliverToBoxAdapter(child: BodyFocusWidget()),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRecommendedSection(),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
       ),
@@ -241,224 +198,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF5F8), // Very light pinkish-white
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(
-              0xFF5B0C23,
-            ).withOpacity(0.08), // Subtle burgundy shadow
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: TextField(
-        onChanged: (value) {
-          setState(() {
-            _searchQuery = value.trim().toLowerCase();
-          });
-        },
-        style: GoogleFonts.inter(
-          color: AppTheme.black87,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Search Workouts',
-          hintStyle: GoogleFonts.inter(
-            color: AppTheme.grey700, // Darker text as requested
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(
-              8.0,
-            ), // Slightly more padding for the icon container
-            child: Container(
-              width: 44, // Slightly larger touch target
-              height: 44,
-              decoration: const BoxDecoration(
-                color: AppTheme.primaryColor, // Dark Burgundy
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.search, color: AppTheme.white, size: 24),
-            ),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTodaysPlan(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Today's Plan",
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              'See all',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.primaryColor, // Dark Burgundy
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TodaysPlanCard(
-          title: 'Russian Twist',
-          description: 'Our intense ab set based on the ground.',
-          calories: '350 Kcal',
-          duration: '10 min',
-          imagePath: 'assets/todays_plan.jpg',
-          onTap: () => Navigator.of(context).pushNamed('/workout_detail'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecommendedSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recommended for You',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/bundles'),
-              child: Text(
-                'See all',
-                style: GoogleFonts.inter(
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Personalized workout suggestions',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(fontSize: 13, color: AppTheme.grey500),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Show loading or bundles
-        if (_bundlesLoading)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: CircularProgressIndicator(color: AppTheme.accentColor),
-            ),
-          )
-        else
-          // Display actual bundles or static fallback
-          Column(
-            children: [
-              // Purple Card (Static or mapped from bundle 1)
-              RecommendedCard(
-                title: _bundles.isNotEmpty
-                    ? _bundles[0].name
-                    : '30 Days Challenge',
-                duration: _bundles.isNotEmpty
-                    ? '${_bundles[0].totalDays} Days'
-                    : '20 mins',
-                exercises: _bundles.isNotEmpty
-                    ? '${_bundles[0].totalExercises} Exercises'
-                    : '7 Exercises',
-                level: _bundles.isNotEmpty
-                    ? _bundles[0].difficultyDisplay
-                    : 'Beginner',
-                backgroundColor: const Color(0xFF8E44AD), // Deep Purple
-                accentColor: const Color(0xFFD980FA), // Light Magenta
-                onStart: () => _bundles.isNotEmpty
-                    ? Navigator.pushNamed(context, '/bundle/${_bundles[0].id}')
-                    : Navigator.pushNamed(context, '/bundles'),
-              ),
-              const SizedBox(height: 16),
-
-              // Teal Card (Static or mapped from bundle 2)
-              RecommendedCard(
-                title: _bundles.length > 1
-                    ? _bundles[1].name
-                    : '30 Days Challenge',
-                duration: _bundles.length > 1
-                    ? '${_bundles[1].totalDays} Days'
-                    : '20 mins',
-                exercises: _bundles.length > 1
-                    ? '${_bundles[1].totalExercises} Exercises'
-                    : '7 Exercises',
-                level: _bundles.length > 1
-                    ? _bundles[1].difficultyDisplay
-                    : 'Beginner',
-                backgroundColor: const Color(0xFF1ABC9C), // Teal
-                accentColor: const Color(0xFF16A085), // Dark teal/Green mix
-                onStart: () => _bundles.length > 1
-                    ? Navigator.pushNamed(context, '/bundle/${_bundles[1].id}')
-                    : Navigator.pushNamed(context, '/bundles'),
-              ),
-              const SizedBox(height: 16),
-
-              // Orange Card (Static or mapped from bundle 3)
-              RecommendedCard(
-                title: _bundles.length > 2
-                    ? _bundles[2].name
-                    : '30 Days Challenge',
-                duration: _bundles.length > 2
-                    ? '${_bundles[2].totalDays} Days'
-                    : '20 mins',
-                exercises: _bundles.length > 2
-                    ? '${_bundles[2].totalExercises} Exercises'
-                    : '7 Exercises',
-                level: _bundles.length > 2
-                    ? _bundles[2].difficultyDisplay
-                    : 'Beginner',
-                backgroundColor: const Color(0xFFF39C12), // Orange
-                accentColor: const Color(0xFFF1C40F), // Yellow/Amber
-                onStart: () => _bundles.length > 2
-                    ? Navigator.pushNamed(context, '/bundle/${_bundles[2].id}')
-                    : Navigator.pushNamed(context, '/bundles'),
-              ),
-            ],
-          ),
       ],
     );
   }

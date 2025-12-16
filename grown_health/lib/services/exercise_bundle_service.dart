@@ -134,6 +134,27 @@ class ExerciseBundleService {
       throw Exception('Network error: Unable to start workout');
     }
   }
+
+  /// GET /api/workout-progress/current - Get active workout session
+  Future<ActiveSession?> getCurrentSession() async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/workout-progress/current');
+
+    try {
+      final res = await http.get(uri, headers: _headers);
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        if (data['data'] == null) {
+          return null; // No active session
+        }
+        return ActiveSession.fromJson(data['data']);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 // ============ MODELS ============
@@ -441,4 +462,173 @@ class DayStatus {
       rating: json['rating'] as int?,
     );
   }
+}
+
+/// Active workout session model
+class ActiveSession {
+  final String id;
+  final String title;
+  final String date;
+  final String status;
+  final SessionProgram? program;
+  final int? programDay;
+  final String? programDayTitle;
+  final int currentExerciseIndex;
+  final int completedExercises;
+  final int totalExercises;
+  final List<SessionExercise> exercises;
+
+  ActiveSession({
+    required this.id,
+    required this.title,
+    required this.date,
+    required this.status,
+    this.program,
+    this.programDay,
+    this.programDayTitle,
+    required this.currentExerciseIndex,
+    required this.completedExercises,
+    required this.totalExercises,
+    required this.exercises,
+  });
+
+  factory ActiveSession.fromJson(Map<String, dynamic> json) {
+    return ActiveSession(
+      id: json['_id'] as String? ?? '',
+      title: json['title'] as String? ?? 'Workout',
+      date: json['date'] as String? ?? '',
+      status: json['status'] as String? ?? 'in_progress',
+      program: json['program'] != null
+          ? SessionProgram.fromJson(json['program'])
+          : null,
+      programDay: json['programDay'] as int?,
+      programDayTitle: json['programDayTitle'] as String?,
+      currentExerciseIndex: json['currentExerciseIndex'] as int? ?? 0,
+      completedExercises: json['completedExercises'] as int? ?? 0,
+      totalExercises: json['totalExercises'] as int? ?? 0,
+      exercises:
+          (json['exercises'] as List?)
+              ?.map((e) => SessionExercise.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+
+  /// Get progress percentage
+  int get progressPercentage {
+    if (totalExercises == 0) return 0;
+    return ((completedExercises / totalExercises) * 100).round();
+  }
+}
+
+class SessionProgram {
+  final String id;
+  final String name;
+  final String slug;
+  final String thumbnail;
+
+  SessionProgram({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.thumbnail,
+  });
+
+  factory SessionProgram.fromJson(Map<String, dynamic> json) {
+    return SessionProgram(
+      id: json['_id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      thumbnail: json['thumbnail'] as String? ?? '',
+    );
+  }
+}
+
+class SessionExercise {
+  final SessionExerciseInfo? exercise;
+  final int targetReps;
+  final int targetSets;
+  final int completedReps;
+  final int completedSets;
+  final int duration;
+  final String status; // pending, in_progress, completed, skipped
+  final int order;
+
+  SessionExercise({
+    this.exercise,
+    required this.targetReps,
+    required this.targetSets,
+    required this.completedReps,
+    required this.completedSets,
+    required this.duration,
+    required this.status,
+    required this.order,
+  });
+
+  factory SessionExercise.fromJson(Map<String, dynamic> json) {
+    return SessionExercise(
+      exercise: json['exercise'] != null
+          ? SessionExerciseInfo.fromJson(json['exercise'])
+          : null,
+      targetReps: json['targetReps'] as int? ?? 0,
+      targetSets: json['targetSets'] as int? ?? 1,
+      completedReps: json['completedReps'] as int? ?? 0,
+      completedSets: json['completedSets'] as int? ?? 0,
+      duration: json['duration'] as int? ?? 0,
+      status: json['status'] as String? ?? 'pending',
+      order: json['order'] as int? ?? 0,
+    );
+  }
+
+  /// Get display text for reps/sets or duration
+  String get displayText {
+    if (targetReps > 0) {
+      return '${targetSets}x$targetReps';
+    } else if (duration > 0) {
+      return '${duration}s';
+    }
+    return '${targetSets} sets';
+  }
+
+  bool get isCompleted => status == 'completed';
+  bool get isInProgress => status == 'in_progress';
+  bool get isSkipped => status == 'skipped';
+}
+
+class SessionExerciseInfo {
+  final String id;
+  final String title;
+  final String slug;
+  final String image;
+  final String gif;
+  final String difficulty;
+  final int duration;
+  final String description;
+
+  SessionExerciseInfo({
+    required this.id,
+    required this.title,
+    required this.slug,
+    required this.image,
+    required this.gif,
+    required this.difficulty,
+    required this.duration,
+    required this.description,
+  });
+
+  factory SessionExerciseInfo.fromJson(Map<String, dynamic> json) {
+    return SessionExerciseInfo(
+      id: json['_id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      image: json['image'] as String? ?? '',
+      gif: json['gif'] as String? ?? '',
+      difficulty: json['difficulty'] as String? ?? 'beginner',
+      duration: json['duration'] as int? ?? 0,
+      description: json['description'] as String? ?? '',
+    );
+  }
+
+  /// Get the best available image (prefer gif)
+  String get displayImage => gif.isNotEmpty ? gif : image;
 }
