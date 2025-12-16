@@ -13,6 +13,7 @@ import 'screens/workout/bundle_detail_screen.dart';
 import 'screens/workout/bundles_list_screen.dart';
 import 'screens/workout/exercise_detail_screen.dart';
 import 'screens/workout/exercise_timer_screen.dart';
+import 'screens/workout/workout_history_screen.dart';
 import 'screens/nutrition/nutrition_screen.dart';
 
 void main() async {

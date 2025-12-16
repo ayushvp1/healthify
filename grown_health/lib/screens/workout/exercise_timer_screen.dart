@@ -1,24 +1,33 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+
+import '../../api_config.dart';
+import '../../providers/auth_provider.dart';
 
 /// Simple Exercise Timer Screen - For standalone exercise playback
 /// Receives exercise data as arguments via Navigator
-class ExerciseTimerScreen extends StatefulWidget {
+class ExerciseTimerScreen extends ConsumerStatefulWidget {
   const ExerciseTimerScreen({super.key});
 
   @override
-  State<ExerciseTimerScreen> createState() => _ExerciseTimerScreenState();
+  ConsumerState<ExerciseTimerScreen> createState() =>
+      _ExerciseTimerScreenState();
 }
 
-class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
+class _ExerciseTimerScreenState extends ConsumerState<ExerciseTimerScreen> {
   Timer? _timer;
   int _remainingSeconds = 30;
   int _totalDuration = 30;
   bool _isPaused = false;
   bool _isComplete = false;
+  bool _isSaving = false;
   Map<String, dynamic>? _exercise;
+  DateTime? _startTime;
 
   @override
   void didChangeDependencies() {
@@ -31,6 +40,7 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
       _totalDuration = _exercise!['duration'] ?? 30;
       if (_totalDuration <= 0) _totalDuration = 30;
       _remainingSeconds = _totalDuration;
+      _startTime = DateTime.now();
       _startTimer();
     }
   }
@@ -66,6 +76,51 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
     });
   }
 
+  Future<void> _logExerciseToHistory() async {
+    if (_isSaving) return;
+
+    final token = ref.read(authProvider).user?.token;
+    if (token == null) {
+      debugPrint('No auth token available');
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final actualDuration = _startTime != null
+          ? DateTime.now().difference(_startTime!).inSeconds
+          : _totalDuration;
+
+      final res = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/workout-progress/log-exercise'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'exerciseId': _exercise?['_id'],
+          'exerciseTitle': _exercise?['title'] ?? 'Exercise',
+          'duration': actualDuration,
+          'reps': _exercise?['reps'] ?? 0,
+          'sets': _exercise?['sets'] ?? 1,
+        }),
+      );
+
+      if (res.statusCode == 201) {
+        debugPrint('Exercise logged successfully');
+      } else {
+        debugPrint('Failed to log exercise: ${res.body}');
+      }
+    } catch (e) {
+      debugPrint('Error logging exercise: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   void _showCompletionDialog() {
     showDialog(
       context: context,
@@ -88,28 +143,46 @@ class _ExerciseTimerScreenState extends State<ExerciseTimerScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Done',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primaryColor,
-              ),
-            ),
+            onPressed: _isSaving
+                ? null
+                : () async {
+                    // Log the exercise and close
+                    await _logExerciseToHistory();
+                    if (mounted) {
+                      Navigator.pop(ctx);
+                      Navigator.pop(
+                        context,
+                        true,
+                      ); // Return true to indicate completion
+                    }
+                  },
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    'Done',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              setState(() {
-                _remainingSeconds = _totalDuration;
-                _isComplete = false;
-                _isPaused = false;
-              });
-              _startTimer();
-            },
+            onPressed: _isSaving
+                ? null
+                : () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _remainingSeconds = _totalDuration;
+                      _isComplete = false;
+                      _isPaused = false;
+                      _startTime = DateTime.now();
+                    });
+                    _startTimer();
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
               shape: RoundedRectangleBorder(

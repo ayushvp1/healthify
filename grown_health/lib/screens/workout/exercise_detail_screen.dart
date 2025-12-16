@@ -1,39 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:grown_health/core/core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
 /// Exercise Detail Screen - Shows details of a specific exercise
 /// Receives exercise data as arguments via Navigator
-class ExerciseDetailScreen extends StatelessWidget {
+class ExerciseDetailScreen extends StatefulWidget {
   const ExerciseDetailScreen({super.key});
 
   @override
+  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
+}
+
+class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  bool _isVideoPlaying = false;
+  bool _isVideoLoading = false;
+  Map<String, dynamic>? _exercise;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exercise == null) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      _exercise =
+          args ??
+          {
+            'title': 'Exercise',
+            'description': 'No description available',
+            'instructions': '',
+            'duration': 30,
+            'difficulty': 'beginner',
+            'image': '',
+            'gif': '',
+            'video': '',
+            'category': {'name': 'General'},
+          };
+      // Debug: Check what data is received
+      debugPrint('=== Exercise Detail Screen ===');
+      debugPrint('Title: ${_exercise!['title']}');
+      debugPrint('Video URL: "${_exercise!['video'] ?? 'NULL'}"');
+      debugPrint('Image URL: "${_exercise!['image'] ?? 'NULL'}"');
+      _initializeVideo();
+    }
+  }
+
+  void _initializeVideo() async {
+    final videoUrl = _exercise?['video'] ?? '';
+    debugPrint('Attempting to load video: $videoUrl');
+
+    if (videoUrl.isNotEmpty) {
+      // Mark that we're loading video
+      setState(() {
+        _isVideoLoading = true;
+      });
+
+      try {
+        _videoController = VideoPlayerController.networkUrl(
+          Uri.parse(videoUrl),
+        );
+
+        // Increase timeout for mobile networks
+        await _videoController!.initialize().timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            debugPrint('Video initialization timed out after 30 seconds');
+            throw Exception('Video load timeout');
+          },
+        );
+
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = true;
+            _isVideoLoading = false;
+          });
+          debugPrint('Video initialized successfully');
+        }
+      } catch (e) {
+        debugPrint('Video initialization failed: $e');
+        // Dispose controller and fall back to image
+        _videoController?.dispose();
+        _videoController = null;
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = false;
+            _isVideoLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _toggleVideo() {
+    if (_videoController != null && _isVideoInitialized) {
+      setState(() {
+        if (_videoController!.value.isPlaying) {
+          _videoController!.pause();
+          _isVideoPlaying = false;
+        } else {
+          _videoController!.play();
+          _isVideoPlaying = true;
+        }
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Get exercise data from route arguments
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (_exercise == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    final exercise =
-        args ??
-        {
-          'title': 'Exercise',
-          'description': 'No description available',
-          'instructions': '',
-          'duration': 30,
-          'difficulty': 'beginner',
-          'image': '',
-          'gif': '',
-          'category': {'name': 'General'},
-        };
-
-    final title = exercise['title'] ?? 'Exercise';
-    final description = exercise['description'] ?? 'No description available';
-    final instructions = exercise['instructions'] ?? '';
-    final duration = exercise['duration'] ?? 30;
-    final difficulty = exercise['difficulty'] ?? 'beginner';
-    final categoryName = exercise['category']?['name'] ?? 'General';
-    final gifUrl = exercise['gif'] ?? '';
-    final imageUrl = exercise['image'] ?? '';
+    final title = _exercise!['title'] ?? 'Exercise';
+    final description = _exercise!['description'] ?? 'No description available';
+    final instructions = _exercise!['instructions'] ?? '';
+    final duration = _exercise!['duration'] ?? 30;
+    final difficulty = _exercise!['difficulty'] ?? 'beginner';
+    final categoryName = _exercise!['category']?['name'] ?? 'General';
+    final gifUrl = _exercise!['gif'] ?? '';
+    final imageUrl = _exercise!['image'] ?? '';
+    final videoUrl = _exercise!['video'] ?? '';
+    final hasVideo = videoUrl.isNotEmpty;
     final visualUrl = gifUrl.isNotEmpty ? gifUrl : imageUrl;
 
     return Scaffold(
@@ -79,8 +174,13 @@ class ExerciseDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Exercise Image/GIF
-              _buildIllustration(visualUrl),
+              // Video or Image/GIF - show image if video failed to load
+              if (hasVideo && _isVideoInitialized && _videoController != null)
+                _buildVideoPlayer()
+              else if (hasVideo && _isVideoLoading)
+                _buildVideoLoading(visualUrl)
+              else
+                _buildIllustration(visualUrl),
               const SizedBox(height: 20),
 
               // Title and Category
@@ -109,7 +209,102 @@ class ExerciseDetailScreen extends StatelessWidget {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _buildStartButton(context, exercise),
+      floatingActionButton: _buildStartButton(context, _exercise!),
+    );
+  }
+
+  Widget _buildVideoPlayer() {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.black,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AspectRatio(
+              aspectRatio: _videoController!.value.aspectRatio,
+              child: VideoPlayer(_videoController!),
+            ),
+            // Play/Pause overlay
+            GestureDetector(
+              onTap: _toggleVideo,
+              child: Container(
+                color: Colors.transparent,
+                child: AnimatedOpacity(
+                  opacity: _isVideoPlaying ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.white.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _isVideoPlaying ? Icons.pause : Icons.play_arrow,
+                      size: 40,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoLoading(String imageUrl) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.grey100,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Show image as background while video loads
+          if (imageUrl.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.network(
+                imageUrl,
+                height: 220,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox(),
+              ),
+            ),
+          // Loading overlay
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.black.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: AppTheme.white),
+              SizedBox(height: 12),
+              Text(
+                'Loading video...',
+                style: TextStyle(
+                  color: AppTheme.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

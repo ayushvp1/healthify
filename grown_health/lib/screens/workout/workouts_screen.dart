@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../api_config.dart';
+import '../../providers/auth_provider.dart';
+import 'workout_history_screen.dart';
 
 class WorkoutsScreen extends ConsumerStatefulWidget {
   const WorkoutsScreen({super.key});
@@ -18,12 +20,15 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   List<dynamic> _categories = [];
   List<dynamic> _exercises = [];
   List<dynamic> _filteredExercises = [];
+  List<dynamic> _recentWorkouts = [];
   bool _loadingCategories = true;
   bool _loadingExercises = true;
+  bool _loadingHistory = true;
   String? _selectedCategoryId;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  bool _showAllExercises = false;
 
   @override
   void initState() {
@@ -66,7 +71,11 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([_loadCategories(), _loadExercises(null)]);
+    await Future.wait([
+      _loadCategories(),
+      _loadExercises(null),
+      _loadRecentWorkouts(),
+    ]);
   }
 
   Future<void> _loadCategories() async {
@@ -74,13 +83,11 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
 
     try {
       final uri = Uri.parse('${ApiConfig.baseUrl}/categories?limit=50');
-      debugPrint('Loading categories from: $uri');
       final res = await http.get(uri);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body);
         final categories = data['data'] as List<dynamic>? ?? [];
-        debugPrint('Loaded ${categories.length} categories');
 
         if (mounted) {
           setState(() {
@@ -106,13 +113,11 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
         url += '&category=$categoryId';
       }
       final uri = Uri.parse(url);
-      debugPrint('Loading exercises from: $uri');
       final res = await http.get(uri);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final data = jsonDecode(res.body);
         final exercises = data['data'] as List<dynamic>? ?? [];
-        debugPrint('Loaded ${exercises.length} exercises');
 
         if (mounted) {
           setState(() {
@@ -136,6 +141,46 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
     }
   }
 
+  Future<void> _loadRecentWorkouts() async {
+    setState(() => _loadingHistory = true);
+
+    try {
+      final token = ref.read(authProvider).user?.token;
+      if (token == null) {
+        setState(() => _loadingHistory = false);
+        return;
+      }
+
+      final uri = Uri.parse(
+        '${ApiConfig.baseUrl}/workout-progress/history?days=30&status=completed',
+      );
+      final res = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body);
+        final sessions = data['data']?['sessions'] as List<dynamic>? ?? [];
+
+        if (mounted) {
+          setState(() {
+            _recentWorkouts = sessions.take(5).toList(); // Show last 5
+            _loadingHistory = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to load history');
+      }
+    } catch (e) {
+      debugPrint('Error loading workout history: $e');
+      if (mounted) setState(() => _loadingHistory = false);
+    }
+  }
+
   void _selectCategory(String? categoryId) {
     if (_selectedCategoryId == categoryId) return;
     setState(() => _selectedCategoryId = categoryId);
@@ -150,58 +195,107 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.white,
-        elevation: 0,
-        automaticallyImplyLeading: true,
-        foregroundColor: AppTheme.black,
-      ),
       body: GestureDetector(
         onTap: () => _searchFocusNode.unfocus(),
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: _loadData,
             color: AppTheme.accentColor,
-            child: SingleChildScrollView(
+            child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Workouts',
-                    style: GoogleFonts.inter(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.black,
+              slivers: [
+                // Header
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Workouts',
+                              style: GoogleFonts.inter(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.black,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Build your strength, one rep at a time',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: AppTheme.grey500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        // History Button
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const WorkoutHistoryScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.bar_chart_rounded,
+                              color: AppTheme.primaryColor,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Explore exercises by category',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppTheme.grey500,
-                      fontWeight: FontWeight.w500,
+                ),
+
+                // Search Bar
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
                     ),
+                    child: _buildSearchBar(),
                   ),
-                  const SizedBox(height: 20),
+                ),
 
-                  // Functional Search Bar
-                  _buildSearchBar(),
-                  const SizedBox(height: 20),
+                // Recent Workouts Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    child: _buildRecentWorkoutsSection(),
+                  ),
+                ),
 
-                  // Categories Section
-                  _buildCategoriesSection(),
+                // Exercise Library Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    child: _buildExerciseLibrarySection(),
+                  ),
+                ),
 
-                  const SizedBox(height: 24),
-
-                  // Exercises Section
-                  _buildExercisesSection(),
-
-                  const SizedBox(height: 80),
-                ],
-              ),
+                // Bottom padding
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
             ),
           ),
         ),
@@ -268,76 +362,123 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
     );
   }
 
-  Widget _buildCategoriesSection() {
+  // ==================== RECENT WORKOUTS SECTION ====================
+  Widget _buildRecentWorkoutsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Categories',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.black,
-          ),
-        ),
         const SizedBox(height: 16),
-        if (_loadingCategories)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Workouts',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.black,
+              ),
+            ),
+            // Always show View History button
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const WorkoutHistoryScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.bar_chart, size: 18),
+              label: Text(
+                _recentWorkouts.isEmpty ? 'View History' : 'See All',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (_loadingHistory)
           const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
               child: CircularProgressIndicator(color: AppTheme.accentColor),
             ),
           )
-        else if (_categories.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text(
-                'No categories found',
-                style: GoogleFonts.inter(color: AppTheme.grey500),
-              ),
-            ),
-          )
+        else if (_recentWorkouts.isEmpty)
+          _buildEmptyRecentWorkouts()
         else
-          SizedBox(
-            height: 110,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _categories.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _CategoryCard(
-                    name: 'All',
-                    imageUrl: '',
-                    icon: Icons.apps,
-                    isSelected: _selectedCategoryId == null,
-                    onTap: () => _selectCategory(null),
-                  );
-                }
-                final cat = _categories[index - 1];
-                return _CategoryCard(
-                  name: cat['name'] ?? 'Category',
-                  imageUrl: cat['image'] ?? '',
-                  isSelected: cat['_id'] == _selectedCategoryId,
-                  onTap: () => _selectCategory(cat['_id']),
-                );
-              },
-            ),
-          ),
+          ..._recentWorkouts
+              .map((session) => _RecentWorkoutCard(session: session))
+              .toList(),
       ],
     );
   }
 
-  Widget _buildExercisesSection() {
-    final categoryName = _selectedCategoryId == null
-        ? 'All Exercises'
-        : _categories.firstWhere(
-            (c) => c['_id'] == _selectedCategoryId,
-            orElse: () => {'name': 'Exercises'},
-          )['name'];
+  Widget _buildEmptyRecentWorkouts() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.grey50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.grey200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.fitness_center,
+              color: AppTheme.primaryColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No workouts yet',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Complete your first workout to see it here',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: AppTheme.grey500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  // ==================== EXERCISE LIBRARY SECTION ====================
+  Widget _buildExerciseLibrarySection() {
     final displayExercises = _filteredExercises;
     final showingFiltered = _searchQuery.isNotEmpty;
+    final exercisesToShow = _showAllExercises
+        ? displayExercises
+        : displayExercises.take(4).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,24 +487,68 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              showingFiltered ? 'Search Results' : categoryName,
+              'Exercise Library',
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.black,
               ),
             ),
-            Text(
-              '${displayExercises.length} found',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.grey600,
+            TextButton(
+              onPressed: () {
+                setState(() => _showAllExercises = !_showAllExercises);
+              },
+              child: Text(
+                _showAllExercises ? 'Show Less' : 'Browse All',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+
+        // Categories
+        if (!showingFiltered) ...[
+          _buildCategoriesRow(),
+          const SizedBox(height: 16),
+        ],
+
+        // Exercises count
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              showingFiltered
+                  ? 'Search Results'
+                  : _selectedCategoryId == null
+                  ? 'All Exercises'
+                  : _categories.firstWhere(
+                      (c) => c['_id'] == _selectedCategoryId,
+                      orElse: () => {'name': 'Exercises'},
+                    )['name'],
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.grey700,
+              ),
+            ),
+            Text(
+              '${displayExercises.length} found',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.grey500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Exercises grid or list
         if (_loadingExercises)
           const Center(
             child: Padding(
@@ -372,38 +557,9 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
             ),
           )
         else if (displayExercises.isEmpty)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(Icons.search_off, color: AppTheme.grey300, size: 48),
-                  const SizedBox(height: 12),
-                  Text(
-                    showingFiltered
-                        ? 'No matching exercises'
-                        : 'No exercises found',
-                    style: GoogleFonts.inter(
-                      color: AppTheme.grey500,
-                      fontSize: 14,
-                    ),
-                  ),
-                  if (!showingFiltered) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add exercises in Admin Panel',
-                      style: GoogleFonts.inter(
-                        color: AppTheme.grey400,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          )
+          _buildEmptyExercises(showingFiltered)
         else
-          ...displayExercises.map((ex) {
+          ...exercisesToShow.map((ex) {
             final exerciseMap = ex as Map<String, dynamic>;
             return _ExerciseRow(
               title: exerciseMap['title'] ?? 'Exercise',
@@ -415,22 +571,270 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
               onTap: () => _navigateToExerciseDetail(exerciseMap),
             );
           }),
+
+        // Show more button if there are more exercises
+        if (!_showAllExercises && displayExercises.length > 4)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: TextButton.icon(
+                onPressed: () => setState(() => _showAllExercises = true),
+                icon: const Icon(Icons.expand_more, size: 20),
+                label: Text(
+                  'Show ${displayExercises.length - 4} more',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                ),
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  Widget _buildCategoriesRow() {
+    if (_loadingCategories) {
+      return const SizedBox(
+        height: 50,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.accentColor,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
+    if (_categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _categories.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _CategoryChip(
+              name: 'All',
+              isSelected: _selectedCategoryId == null,
+              onTap: () => _selectCategory(null),
+            );
+          }
+          final cat = _categories[index - 1];
+          return _CategoryChip(
+            name: cat['name'] ?? 'Category',
+            isSelected: cat['_id'] == _selectedCategoryId,
+            onTap: () => _selectCategory(cat['_id']),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyExercises(bool showingFiltered) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          children: [
+            Icon(Icons.search_off, color: AppTheme.grey300, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              showingFiltered ? 'No matching exercises' : 'No exercises found',
+              style: GoogleFonts.inter(color: AppTheme.grey500, fontSize: 14),
+            ),
+            if (!showingFiltered) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Add exercises in Admin Panel',
+                style: GoogleFonts.inter(color: AppTheme.grey400, fontSize: 12),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _CategoryCard extends StatelessWidget {
+// ==================== RECENT WORKOUT CARD ====================
+class _RecentWorkoutCard extends StatelessWidget {
+  final Map<String, dynamic> session;
+
+  const _RecentWorkoutCard({required this.session});
+
+  String _formatDuration(int? seconds) {
+    if (seconds == null || seconds == 0) return '0 min';
+    final mins = (seconds / 60).ceil();
+    return '$mins min';
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final dateOnly = DateTime(date.year, date.month, date.day);
+
+      if (dateOnly == today) return 'Today';
+      if (dateOnly == yesterday) return 'Yesterday';
+
+      final diff = today.difference(dateOnly).inDays;
+      if (diff < 7) return '$diff days ago';
+
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${date.day} ${months[date.month - 1]}';
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = session['title'] ?? session['programDayTitle'] ?? 'Workout';
+    final duration = session['totalDuration'] as int? ?? 0;
+    final completedExercises = session['completedExercises'] ?? 0;
+    final totalExercises = session['totalExercises'] ?? 0;
+    final date = session['date'] as String?;
+    final rating = session['rating'] as int?;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.checkGreen.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.check_circle,
+              color: AppTheme.checkGreen,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.black,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      _formatDate(date),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.grey500,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(
+                        Icons.circle,
+                        size: 4,
+                        color: AppTheme.grey400,
+                      ),
+                    ),
+                    Text(
+                      _formatDuration(duration),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.grey500,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Icon(
+                        Icons.circle,
+                        size: 4,
+                        color: AppTheme.grey400,
+                      ),
+                    ),
+                    Text(
+                      '$completedExercises/$totalExercises',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.grey500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (rating != null)
+            Row(
+              children: [
+                Icon(Icons.star, size: 16, color: Colors.amber[600]),
+                const SizedBox(width: 2),
+                Text(
+                  '$rating',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.amber[700],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==================== CATEGORY CHIP ====================
+class _CategoryChip extends StatelessWidget {
   final String name;
-  final String imageUrl;
-  final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CategoryCard({
+  const _CategoryChip({
     required this.name,
-    required this.imageUrl,
-    this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -440,62 +844,29 @@ class _CategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 90,
-        margin: const EdgeInsets.only(right: 12),
-        child: Column(
-          children: [
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.highlightPink : AppTheme.grey100,
-                borderRadius: BorderRadius.circular(20),
-                border: isSelected
-                    ? Border.all(color: AppTheme.accentColor, width: 2)
-                    : null,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          icon ?? Icons.fitness_center,
-                          color: isSelected
-                              ? AppTheme.accentColor
-                              : AppTheme.grey500,
-                          size: 28,
-                        ),
-                      )
-                    : Icon(
-                        icon ?? Icons.fitness_center,
-                        color: isSelected
-                            ? AppTheme.accentColor
-                            : AppTheme.grey500,
-                        size: 28,
-                      ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              name,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppTheme.primaryColor : AppTheme.grey700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor : AppTheme.grey100,
+          borderRadius: BorderRadius.circular(20),
+          border: isSelected
+              ? null
+              : Border.all(color: AppTheme.grey200, width: 1),
+        ),
+        child: Text(
+          name,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isSelected ? AppTheme.white : AppTheme.grey600,
+          ),
         ),
       ),
     );
   }
 }
 
+// ==================== EXERCISE ROW ====================
 class _ExerciseRow extends StatelessWidget {
   final String title;
   final String duration;
@@ -516,30 +887,30 @@ class _ExerciseRow extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppTheme.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: AppTheme.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 56,
-              height: 56,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: AppTheme.highlightPink,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
                 child: imageUrl.isNotEmpty
                     ? Image.network(
                         imageUrl,
@@ -547,17 +918,17 @@ class _ExerciseRow extends StatelessWidget {
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.fitness_center_rounded,
                           color: AppTheme.accentColor,
-                          size: 24,
+                          size: 22,
                         ),
                       )
                     : const Icon(
                         Icons.fitness_center_rounded,
                         color: AppTheme.accentColor,
-                        size: 24,
+                        size: 22,
                       ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,8 +936,8 @@ class _ExerciseRow extends StatelessWidget {
                   Text(
                     title,
                     style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                       color: AppTheme.black,
                     ),
                   ),
@@ -576,13 +947,13 @@ class _ExerciseRow extends StatelessWidget {
                       Text(
                         duration,
                         style: GoogleFonts.inter(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: AppTheme.grey500,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
                         child: Icon(
                           Icons.circle,
                           size: 4,
@@ -592,7 +963,7 @@ class _ExerciseRow extends StatelessWidget {
                       Text(
                         difficulty[0].toUpperCase() + difficulty.substring(1),
                         style: GoogleFonts.inter(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: AppTheme.grey500,
                           fontWeight: FontWeight.w500,
                         ),
@@ -605,7 +976,7 @@ class _ExerciseRow extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
-              color: AppTheme.grey500,
+              color: AppTheme.grey400,
             ),
           ],
         ),
