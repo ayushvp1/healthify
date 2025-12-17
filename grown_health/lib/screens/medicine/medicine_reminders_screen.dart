@@ -3,6 +3,7 @@ import 'package:grown_health/core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../widgets/widgets.dart';
 import '../../services/medicine_service.dart';
 import '../../providers/auth_provider.dart';
 
@@ -171,6 +172,15 @@ class _MedicineRemindersScreenState
     await prefs.setString('latest_medicine_time', timeStr);
   }
 
+  Future<void> _openAddMedicine() async {
+    final result = await Navigator.of(context).pushNamed('/add_medicine');
+    if (!context.mounted) return;
+
+    if (result is Map<String, dynamic>) {
+      await _addMedicine(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -213,7 +223,18 @@ class _MedicineRemindersScreenState
             _buildSearchBar(),
             const SizedBox(height: 24),
             if (_medicines.isEmpty)
-              _buildEmptyState()
+              Expanded(
+                child: Center(
+                  child: EmptyStateWidget(
+                    icon: Icons.medication_rounded,
+                    title: 'No medicine reminders found',
+                    description:
+                        'Keep track of your medications and never miss a dose.',
+                    actionLabel: 'Add Medicine',
+                    onAction: _openAddMedicine,
+                  ),
+                ),
+              )
             else
               _buildMedicineList(),
           ],
@@ -221,14 +242,7 @@ class _MedicineRemindersScreenState
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.accentColor,
-        onPressed: () async {
-          final result = await Navigator.of(context).pushNamed('/add_medicine');
-          if (!context.mounted) return;
-
-          if (result is Map<String, dynamic>) {
-            await _addMedicine(result);
-          }
-        },
+        onPressed: _openAddMedicine,
         child: const Icon(Icons.add, color: AppTheme.white),
       ),
     );
@@ -317,42 +331,6 @@ class _MedicineRemindersScreenState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppTheme.lightAccentBg,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.add_box_outlined,
-                size: 20,
-                color: AppTheme.accentColor,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'No medicine reminders found',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.black87,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 

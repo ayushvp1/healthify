@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../widgets/widgets.dart';
 import '../../services/exercise_bundle_service.dart';
 import '../../providers/auth_provider.dart';
 
@@ -201,26 +202,10 @@ class _BundlesListScreenState extends ConsumerState<BundlesListScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.fitness_center, color: AppTheme.grey300, size: 80),
-            const SizedBox(height: 16),
-            Text(
-              'No programs available',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.grey600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for new workout programs!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey500),
-            ),
-          ],
+        child: EmptyStateWidget(
+          icon: Icons.fitness_center,
+          title: 'No programs available',
+          description: 'Check back later for new workout programs!',
         ),
       ),
     );

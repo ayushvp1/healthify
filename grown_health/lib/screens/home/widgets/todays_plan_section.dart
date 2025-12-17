@@ -3,6 +3,7 @@ import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../widgets/widgets.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/exercise_bundle_service.dart';
 
@@ -109,50 +110,12 @@ class _TodaysPlanSectionState extends ConsumerState<TodaysPlanSection> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.fitness_center_rounded, size: 48, color: AppTheme.grey400),
-          const SizedBox(height: 12),
-          Text(
-            'No active workout today',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.grey600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Start a program to see today\'s exercises',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.grey500),
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton(
-            onPressed: () => Navigator.pushNamed(context, '/bundles'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.primaryColor,
-              side: const BorderSide(color: AppTheme.primaryColor),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(
-              'Browse Programs',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
+    return EmptyStateWidget(
+      icon: Icons.fitness_center_rounded,
+      title: 'No active workout today',
+      description: 'Start a program to see today\'s exercises',
+      actionLabel: 'Browse Programs',
+      onAction: () => Navigator.pushNamed(context, '/bundles'),
     );
   }
 

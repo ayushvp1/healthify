@@ -22,6 +22,18 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final int _totalPages = 2;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill name from auth provider if available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final name = ref.read(authProvider).user?.name;
+      if (name != null && name.isNotEmpty) {
+        _nameController.text = name;
+      }
+    });
+  }
+
   // Step 1 fields
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
@@ -205,7 +217,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       };
       await prefs.setString('profile_data_$userEmail', jsonEncode(profileData));
 
-      ref.read(authProvider.notifier).setProfileCompleted(true);
+      ref
+          .read(authProvider.notifier)
+          .updateUser(name: name, profileCompleted: true);
 
       if (!mounted) return;
 
@@ -265,7 +279,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           jsonEncode(profileData),
         );
 
-        ref.read(authProvider.notifier).setProfileCompleted(true);
+        ref
+            .read(authProvider.notifier)
+            .updateUser(name: name, profileCompleted: true);
 
         if (mounted) {
           Navigator.of(

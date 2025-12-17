@@ -4,9 +4,9 @@ import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:grown_health/core/constants/app_constants.dart';
 import 'package:grown_health/providers/auth_provider.dart';
 import 'package:grown_health/providers/water_provider.dart';
+import 'package:grown_health/screens/nutrition/recipes_list_screen.dart';
 import 'package:grown_health/services/nutrition_service.dart';
 import 'recipe_detail_screen.dart';
-import 'recipes_list_screen.dart';
 
 class NutritionScreen extends StatelessWidget {
   const NutritionScreen({super.key});

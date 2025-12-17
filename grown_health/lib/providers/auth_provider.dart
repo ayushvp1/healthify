@@ -20,6 +20,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _checkAuthStatus() async {
     final token = _storageService.getToken();
     final email = _storageService.getEmail();
+    final name = _storageService.getName();
     final profileCompleted = _storageService.getProfileCompleted();
 
     if (token != null && token.isNotEmpty) {
@@ -28,6 +29,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         user: UserModel(
           email: email,
           token: token,
+          name: name,
           isProfileComplete: profileCompleted,
         ),
       );
@@ -55,6 +57,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       await _storageService.saveToken(token);
       await _storageService.saveEmail(email);
+      if (name.isNotEmpty) {
+        await _storageService.saveName(name);
+      }
       await _storageService.saveProfileCompleted(profileCompleted);
 
       state = AuthState(
@@ -97,9 +102,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (token.isNotEmpty) {
         await _storageService.saveToken(token);
         await _storageService.saveEmail(email);
+        if (name != null) {
+          await _storageService.saveName(name);
+        }
         state = AuthState(
           status: AuthStatus.authenticated,
-          user: UserModel(email: email, token: token),
+          user: UserModel(email: email, token: token, name: name),
         );
       } else {
         // Registration succeeded but no auto-login
@@ -130,11 +138,29 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> setProfileCompleted(bool completed) async {
     await _storageService.saveProfileCompleted(completed);
     if (state.user != null) {
-      state = AuthState(
-        status: state.status,
+      state = state.copyWith(
         user: state.user!.copyWith(isProfileComplete: completed),
       );
     }
+  }
+
+  /// Update user information in state and storage
+  Future<void> updateUser({String? name, bool? profileCompleted}) async {
+    if (state.user == null) return;
+
+    final updatedUser = state.user!.copyWith(
+      name: name ?? state.user!.name,
+      isProfileComplete: profileCompleted ?? state.user!.isProfileComplete,
+    );
+
+    if (name != null) {
+      await _storageService.saveName(name);
+    }
+    if (profileCompleted != null) {
+      await _storageService.saveProfileCompleted(profileCompleted);
+    }
+
+    state = state.copyWith(user: updatedUser);
   }
 }
 

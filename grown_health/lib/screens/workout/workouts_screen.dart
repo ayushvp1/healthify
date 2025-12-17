@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../api_config.dart';
+import '../../widgets/widgets.dart';
 import '../../providers/auth_provider.dart';
 import 'workout_history_screen.dart';
 
@@ -664,26 +665,14 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
   }
 
   Widget _buildEmptyExercises(bool showingFiltered) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          children: [
-            Icon(Icons.search_off, color: AppTheme.grey300, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              showingFiltered ? 'No matching exercises' : 'No exercises found',
-              style: GoogleFonts.inter(color: AppTheme.grey500, fontSize: 14),
-            ),
-            if (!showingFiltered) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Add exercises in Admin Panel',
-                style: GoogleFonts.inter(color: AppTheme.grey400, fontSize: 12),
-              ),
-            ],
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: EmptyStateWidget(
+        icon: showingFiltered ? Icons.search_off : Icons.fitness_center_rounded,
+        title: showingFiltered ? 'No matching exercises' : 'No exercises found',
+        description: showingFiltered
+            ? 'Try adjusting your search or filters'
+            : 'Add exercises in the admin panel to see them here.',
       ),
     );
   }

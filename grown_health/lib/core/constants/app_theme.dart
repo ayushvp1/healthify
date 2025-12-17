@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_constants.dart';
 
 /// App theme configuration with Material 3 design.
-/// Uses dark maroon (#5B0C23) as primary color with Inter font.
+/// Uses dark maroon (#64091A) as primary color with Inter font.
 class AppTheme {
   // Primary colors
   static const Color primaryColor = Color(AppConstants.primaryColorValue);

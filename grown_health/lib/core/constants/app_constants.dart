@@ -6,10 +6,10 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Primary Colors - Dark Maroon theme
-  static const int primaryColorValue = 0xFF5B0C23;
+  static const int primaryColorValue = 0xFF64091A;
   static const int secondaryColorValue = 0xFFFAFAFA;
   static const int tertiaryColorValue = 0xFF000000;
-  static const int accentColorValue = 0xFFAA3D50;
+  static const int accentColorValue = 0xFF64091A;
   static const int splashBackgroundValue = 0xFF64091A;
 
   // Error/Status Colors
@@ -54,7 +54,8 @@ class AppConstants {
   static const int highlightPinkValue = 0xFFFFF0F3; // Light pink highlight
   static const int lightBlueValue = 0xFFE3F2FD; // Light blue background
   static const int lightPinkBgValue = 0xFFFAF0F1; // Very light pink bg
-  static const int darkRedTextValue = 0xFF8B2030; // Dark red text
+  static const int darkRedTextValue =
+      0xFF64091A; // Dark red text matching main theme
   static const int darkGreenValue = 0xFF1B5E20; // Dark green icons
   static const int checkGreenValue = 0xFF4CAF50; // Success checkmark
   static const int lightCyanValue = 0xFFB3E5FC; // Gradient cyan

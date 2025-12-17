@@ -793,13 +793,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String? selectedGoal = _profile?.fitnessGoal;
 
     final genderOptions = ['male', 'female', 'other'];
-    final goalOptions = [
-      'Lose Weight',
-      'Build Muscle',
-      'Keep Fit',
-      'Improve Endurance',
-      'Reduce Stress',
-    ];
+    final goalOptions = ['Get Fit', 'Be Active', 'Be Healthy', 'Find Balance'];
 
     _showStyledBottomSheet(
       title: 'Edit Personal Info',
