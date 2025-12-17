@@ -7,6 +7,7 @@ import 'dart:convert';
 import '../../api_config.dart';
 import '../../providers/auth_provider.dart';
 import 'assessment_results_screen.dart';
+import 'category_summary_screen.dart';
 
 class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key});
@@ -195,6 +196,36 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     }
   }
 
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Body':
+        return Icons.fitness_center_rounded;
+      case 'Mind':
+        return Icons.psychology_rounded;
+      case 'Nutrition':
+        return Icons.restaurant_menu_rounded;
+      case 'Lifestyle':
+        return Icons.spa_rounded;
+      default:
+        return Icons.health_and_safety_rounded;
+    }
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Body':
+        return const Color(0xFF8E44AD); // Purple
+      case 'Mind':
+        return const Color(0xFF3498DB); // Blue
+      case 'Nutrition':
+        return const Color(0xFF1ABC9C); // Teal
+      case 'Lifestyle':
+        return const Color(0xFFF39C12); // Orange
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
   Future<void> _submitAnswer(String questionId, int optionIndex) async {
     final token = ref.read(authProvider).user?.token;
     if (token == null) return;
@@ -257,14 +288,36 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         _selectedOption = null;
       });
     } else {
-      // Finished current category
-      if (_currentCategoryIndex < _categories.length - 1) {
-        // Move to next category
-        _showCategoryCompletionDialog(_categories[_currentCategoryIndex + 1]);
-      } else {
-        // Finished all categories
-        _showFinalCompletionDialog();
-      }
+      // Finished current category - show summary
+      final completedCategory = _categories[_currentCategoryIndex];
+      final isLastCategory = _currentCategoryIndex >= _categories.length - 1;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => CategorySummaryScreen(
+            category: completedCategory,
+            isLastCategory: isLastCategory,
+            onContinue: () {
+              if (!isLastCategory) {
+                // Move to next category
+                setState(() {
+                  _currentCategoryIndex++;
+                  _currentQuestionIndex = 0;
+                  _selectedOption = null;
+                });
+              } else {
+                // All done - show final results
+                setState(() => _isComplete = true);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AssessmentResultsScreen(),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -542,44 +595,44 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _TopTab(
-                    label: 'Body',
-                    icon: Icons.fitness_center_rounded,
-                    selected: _currentCategoryIndex == 0,
-                    completed:
-                        (_answeredPerCategory['Body'] ?? 0) >=
-                        (_questionsByCategory['Body']?.length ?? 0),
-                    color: AppTheme.primaryColor,
-                  ),
-                  _TopTab(
-                    label: 'Mind',
-                    icon: Icons.psychology_rounded,
-                    selected: _currentCategoryIndex == 1,
-                    completed:
-                        (_answeredPerCategory['Mind'] ?? 0) >=
-                        (_questionsByCategory['Mind']?.length ?? 0),
-                    color: AppTheme.primaryColor,
-                  ),
-                  _TopTab(
-                    label: 'Nutrition',
-                    icon: Icons.restaurant_menu_rounded,
-                    selected: _currentCategoryIndex == 2,
-                    completed:
-                        (_answeredPerCategory['Nutrition'] ?? 0) >=
-                        (_questionsByCategory['Nutrition']?.length ?? 0),
-                    color: AppTheme.primaryColor,
-                  ),
-                  _TopTab(
-                    label: 'Lifestyle',
-                    icon: Icons.spa_rounded,
-                    selected: _currentCategoryIndex == 3,
-                    completed:
-                        (_answeredPerCategory['Lifestyle'] ?? 0) >=
-                        (_questionsByCategory['Lifestyle']?.length ?? 0),
-                    color: AppTheme.primaryColor,
-                  ),
-                ],
+                children: List.generate(_categories.length, (index) {
+                  final category = _categories[index];
+                  final isCompleted =
+                      (_answeredPerCategory[category] ?? 0) >=
+                      (_questionsByCategory[category]?.length ?? 0);
+                  final totalQuestions =
+                      _questionsByCategory[category]?.length ?? 0;
+
+                  return GestureDetector(
+                    onTap: () {
+                      // Allow tapping on completed sections to view summary
+                      if (isCompleted && totalQuestions > 0) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => CategorySummaryScreen(
+                              category: category,
+                              isLastCategory: index == _categories.length - 1,
+                            ),
+                          ),
+                        );
+                      } else if (index <= _currentCategoryIndex) {
+                        // Allow navigating to current or previous sections
+                        setState(() {
+                          _currentCategoryIndex = index;
+                          _currentQuestionIndex = 0;
+                          _selectedOption = null;
+                        });
+                      }
+                    },
+                    child: _TopTab(
+                      label: category,
+                      icon: _getCategoryIcon(category),
+                      selected: _currentCategoryIndex == index,
+                      completed: isCompleted && totalQuestions > 0,
+                      color: _getCategoryColor(category),
+                    ),
+                  );
+                }),
               ),
             ),
             const SizedBox(height: 32),
@@ -744,82 +797,198 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           ),
         ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppTheme.successColor.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: AppTheme.successColor,
-                  size: 60,
-                ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // Success header
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppTheme.successColor.withOpacity(0.15),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 32),
-              Text(
-                'Assessment Completed!',
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.black,
-                ),
+              child: const Icon(
+                Icons.check_circle,
+                color: AppTheme.successColor,
+                size: 48,
               ),
-              const SizedBox(height: 12),
-              Text(
-                'You have already completed the health assessment. View your results or retake the assessment.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey600),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Assessment Completed!',
+              style: GoogleFonts.inter(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.black,
               ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tap any section to view detailed results',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey600),
+            ),
+            const SizedBox(height: 32),
+
+            // Category Cards
+            ...List.generate(_categories.length, (index) {
+              final category = _categories[index];
+              final color = _getCategoryColor(category);
+              final icon = _getCategoryIcon(category);
+              final answeredCount = _answeredPerCategory[category] ?? 0;
+              final totalCount = _questionsByCategory[category]?.length ?? 0;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: InkWell(
+                  onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const AssessmentResultsScreen(),
+                        builder: (_) => CategorySummaryScreen(
+                          category: category,
+                          isLastCategory: index == _categories.length - 1,
+                        ),
                       ),
                     );
                   },
-                  icon: const Icon(Icons.insights_rounded),
-                  label: const Text('View My Results'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: color.withOpacity(0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(icon, color: color, size: 24),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category,
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$answeredCount/$totalCount questions completed',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: AppTheme.grey600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.successColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: AppTheme.successColor,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Done',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.successColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: color,
+                          size: 16,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _showResetConfirmation,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Retake Assessment'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: AppTheme.primaryColor),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              );
+            }),
+
+            const SizedBox(height: 24),
+
+            // View Full Results Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AssessmentResultsScreen(),
                     ),
+                  );
+                },
+                icon: const Icon(Icons.insights_rounded),
+                label: const Text('View Full Results & Recommendations'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: AppTheme.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _showResetConfirmation,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Retake Assessment'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: AppTheme.primaryColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -857,29 +1026,39 @@ class _TopTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Use category color for completed sections, show that they're tappable
+    final displayColor = selected
+        ? color
+        : completed
+        ? color.withOpacity(0.7)
+        : AppTheme.grey400;
+
     return Column(
       children: [
         Stack(
+          clipBehavior: Clip.none,
           children: [
-            Icon(
-              icon,
-              size: 28,
-              color: selected
-                  ? color
-                  : completed
-                  ? AppTheme.successColor
-                  : AppTheme.grey400,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (selected || completed)
+                    ? color.withOpacity(0.1)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 24, color: displayColor),
             ),
             if (completed)
               Positioned(
-                right: -4,
-                top: -4,
+                right: -2,
+                top: -2,
                 child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: const BoxDecoration(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
                     color: AppTheme.successColor,
                     shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.white, width: 2),
                   ),
                   child: const Icon(
                     Icons.check,
@@ -890,22 +1069,18 @@ class _TopTab extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-            color: selected
-                ? color
-                : completed
-                ? AppTheme.successColor
-                : AppTheme.grey400,
+            color: displayColor,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Container(
-          width: 40,
+          width: 36,
           height: 3,
           decoration: BoxDecoration(
             color: selected ? color : AppTheme.transparent,

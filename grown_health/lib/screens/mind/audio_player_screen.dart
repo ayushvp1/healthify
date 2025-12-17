@@ -41,7 +41,7 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
   bool _hasError = false;
   String? _errorMessage;
   Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
+  late Duration _duration;
   bool _isPlaying = false;
   bool _isCompleted = false;
 
@@ -53,6 +53,8 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
   void initState() {
     super.initState();
     _player = AudioPlayer();
+    // Use duration from admin panel (durationSeconds)
+    _duration = Duration(seconds: widget.durationSeconds);
     _initBreathingAnimation();
     _initAudio();
   }
@@ -81,10 +83,10 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
     try {
       await _player.setUrl(widget.audioUrl!);
 
+      // Note: We intentionally don't update _duration from audio file
+      // We use the duration set in admin panel instead
       _durationSubscription = _player.durationStream.listen((d) {
-        if (d != null && mounted) {
-          setState(() => _duration = d);
-        }
+        // Duration is fixed from admin panel, no update needed
       });
 
       _positionSubscription = _player.positionStream.listen((p) {
@@ -356,8 +358,9 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
   }
 
   Widget _buildPlayer() {
+    // Clamp progress to 0.0 - 1.0 range
     final progress = _duration.inMilliseconds > 0
-        ? _position.inMilliseconds / _duration.inMilliseconds
+        ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
         : 0.0;
 
     return Padding(
@@ -468,13 +471,20 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                   thumbColor: Colors.white,
                   overlayColor: Colors.white.withOpacity(0.2),
                 ),
-                child: Slider(
-                  value: _position.inMilliseconds.toDouble(),
-                  max: _duration.inMilliseconds > 0
-                      ? _duration.inMilliseconds.toDouble()
-                      : widget.durationSeconds * 1000.0,
-                  onChanged: (v) {
-                    _player.seek(Duration(milliseconds: v.toInt()));
+                child: Builder(
+                  builder: (context) {
+                    final maxMs = _duration.inMilliseconds.toDouble();
+                    // Clamp position to max to prevent slider crash
+                    final positionMs = _position.inMilliseconds
+                        .toDouble()
+                        .clamp(0.0, maxMs);
+                    return Slider(
+                      value: positionMs,
+                      max: maxMs > 0 ? maxMs : 1.0,
+                      onChanged: (v) {
+                        _player.seek(Duration(milliseconds: v.toInt()));
+                      },
+                    );
                   },
                 ),
               ),
@@ -484,7 +494,10 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _formatDuration(_position),
+                      // Clamp displayed position to duration
+                      _formatDuration(
+                        _position > _duration ? _duration : _position,
+                      ),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: Colors.white60,

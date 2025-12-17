@@ -6,6 +6,7 @@ import 'package:grown_health/providers/auth_provider.dart';
 import 'package:grown_health/providers/water_provider.dart';
 import 'package:grown_health/services/nutrition_service.dart';
 import 'recipe_detail_screen.dart';
+import 'recipes_list_screen.dart';
 
 class NutritionScreen extends StatelessWidget {
   const NutritionScreen({super.key});
@@ -68,7 +69,11 @@ class NutritionScreen extends StatelessWidget {
             const _QuickActionsGrid(),
             const SizedBox(height: 24),
             // Featured Foods Section
-            _buildSectionHeader('Featured Foods', () {}),
+            _buildSectionHeader('Featured Foods', () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RecipesListScreen()),
+              );
+            }),
             const SizedBox(height: 16),
             const _FoodListItem(
               name: 'NT!',
@@ -960,24 +965,30 @@ class _QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.5,
+    return Row(
       children: [
-        _buildActionCard(Icons.camera_alt, 'Scan Food', Colors.deepPurple),
-        _buildActionCard(Icons.restaurant_menu, 'Log Meal', Colors.teal),
-        _buildActionCard(Icons.history, 'View History', Colors.green),
-        _buildActionCard(Icons.notifications, 'Set Reminder', Colors.blue),
+        Expanded(
+          child: _buildActionCard(
+            Icons.camera_alt,
+            'Scan Food',
+            Colors.deepPurple,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildActionCard(
+            Icons.restaurant_menu,
+            'Log Meal',
+            Colors.teal,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildActionCard(IconData icon, String label, Color color) {
     return Container(
+      height: 80,
       decoration: BoxDecoration(
         color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
