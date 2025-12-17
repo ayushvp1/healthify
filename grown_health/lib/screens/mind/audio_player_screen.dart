@@ -92,6 +92,12 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
       _positionSubscription = _player.positionStream.listen((p) {
         if (mounted) {
           setState(() => _position = p);
+
+          // Stop playback when admin-set duration is reached
+          if (p >= _duration && !_isCompleted) {
+            _player.pause();
+            _handleCompletion();
+          }
         }
       });
 
@@ -231,9 +237,9 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF1A1A2E),
-              const Color(0xFF16213E),
-              const Color(0xFF0F3460),
+              const Color(0xFF5B0C23), // Primary maroon
+              const Color(0xFF3D0816), // Darker maroon
+              const Color(0xFF2A0510), // Darkest maroon
             ],
           ),
         ),
@@ -565,7 +571,7 @@ class _AudioPlayerScreenState extends ConsumerState<AudioPlayerScreen>
                   ),
                   child: Icon(
                     _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                    color: const Color(0xFF1A1A2E),
+                    color: const Color(0xFF5B0C23), // Primary maroon
                     size: 40,
                   ),
                 ),

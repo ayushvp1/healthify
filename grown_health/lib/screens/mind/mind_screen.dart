@@ -89,7 +89,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
             expandedHeight: 140,
             floating: false,
             pinned: true,
-            backgroundColor: const Color(0xFF1A1A2E),
+            backgroundColor: const Color(0xFF5B0C23), // Primary maroon
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
@@ -106,9 +106,9 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF1A1A2E),
-                      Color(0xFF16213E),
-                      Color(0xFF0F3460),
+                      Color(0xFF5B0C23), // Primary maroon
+                      Color(0xFF8B2030), // Dark red
+                      Color(0xFFAA3D50), // Accent maroon
                     ],
                   ),
                 ),
@@ -236,15 +236,9 @@ class _MindScreenState extends ConsumerState<MindScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Featured Section
-        if (_meditations.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          _buildFeaturedSection(),
-        ],
-
         // Category Filter Chips
         if (_groupedByCategory.keys.length > 1) ...[
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _buildCategoryChips(),
         ],
 
@@ -276,173 +270,6 @@ class _MindScreenState extends ConsumerState<MindScreen> {
     );
   }
 
-  Widget _buildFeaturedSection() {
-    final featured = _meditations.take(3).toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Featured',
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.black,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: featured.length,
-            itemBuilder: (context, index) {
-              return _buildFeaturedCard(featured[index], index);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturedCard(Meditation meditation, int index) {
-    final gradients = [
-      [const Color(0xFF667eea), const Color(0xFF764ba2)],
-      [const Color(0xFF11998e), const Color(0xFF38ef7d)],
-      [const Color(0xFFfc4a1a), const Color(0xFFf7b733)],
-    ];
-    final colors = gradients[index % gradients.length];
-
-    return GestureDetector(
-      onTap: () => _playMeditation(meditation),
-      child: Container(
-        width: 280,
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: colors[0].withOpacity(0.4),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Decorative circles
-            Positioned(
-              top: -20,
-              right: -20,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -30,
-              left: -30,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
-                ),
-              ),
-            ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          meditation.categoryName ?? 'Meditation',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    meditation.title,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.timer_outlined,
-                        size: 14,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        meditation.formattedDuration,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.white70,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.play_arrow_rounded,
-                          color: colors[0],
-                          size: 22,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoryChips() {
     final categories = ['All', ..._groupedByCategory.keys];
     return SizedBox(
@@ -468,13 +295,13 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 color: isSelected ? Colors.white : AppTheme.grey700,
               ),
               backgroundColor: Colors.white,
-              selectedColor: const Color(0xFF1A1A2E),
+              selectedColor: const Color(0xFF5B0C23), // Primary maroon
               checkmarkColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
                   color: isSelected
-                      ? const Color(0xFF1A1A2E)
+                      ? const Color(0xFF5B0C23) // Primary maroon
                       : AppTheme.grey300,
                 ),
               ),
@@ -611,11 +438,11 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
+                  color: const Color(0xFF5B0C23), // Primary maroon
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1A1A2E).withOpacity(0.3),
+                      color: const Color(0xFF5B0C23).withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
