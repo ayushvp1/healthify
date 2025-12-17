@@ -3,10 +3,10 @@ import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/core.dart';
 import '../../providers/providers.dart';
 import '../../services/meditation_service.dart';
 import 'mind_detail_screen.dart';
+import 'audio_player_screen.dart';
 
 /// Mind/Meditation screen with featured section and category grouping.
 /// Fetches meditations from backend API.
@@ -22,6 +22,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
   String? _error;
   List<Meditation> _meditations = [];
   Map<String, List<Meditation>> _groupedByCategory = {};
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -69,245 +70,564 @@ class _MindScreenState extends ConsumerState<MindScreen> {
     }
   }
 
+  List<Meditation> get _filteredMeditations {
+    if (_selectedCategory == null) return _meditations;
+    return _meditations
+        .where((m) => m.categoryName == _selectedCategory)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.white,
-      appBar: AppBar(
-        backgroundColor: AppTheme.white,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Mind',
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.black,
+      backgroundColor: const Color(0xFFF8F9FC),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // App Bar with gradient
+          SliverAppBar(
+            expandedHeight: 140,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF1A1A2E),
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                'Mind',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF1A1A2E),
+                      Color(0xFF16213E),
+                      Color(0xFF0F3460),
+                    ],
+                  ),
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(
+                          'Find your calm',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white60,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                onPressed: _loadMeditations,
+              ),
+            ],
           ),
-        ),
-        foregroundColor: AppTheme.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadMeditations,
-          ),
+          // Body content
+          SliverToBoxAdapter(child: _buildBody()),
         ],
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primaryColor),
+      return SizedBox(
+        height: 400,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(
+                color: Color(0xFF1A1A2E),
+                strokeWidth: 2,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading meditations...',
+                style: GoogleFonts.inter(color: AppTheme.grey500),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
-            const SizedBox(height: 16),
-            Text(_error!, style: GoogleFonts.inter(color: AppTheme.grey600)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadMeditations,
-              child: const Text('Retry'),
-            ),
-          ],
+      return SizedBox(
+        height: 400,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
+              const SizedBox(height: 16),
+              Text(_error!, style: GoogleFonts.inter(color: AppTheme.grey600)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadMeditations,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_meditations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.self_improvement, size: 64, color: AppTheme.grey300),
-            const SizedBox(height: 16),
-            Text(
-              'No meditations available',
-              style: GoogleFonts.inter(fontSize: 16, color: AppTheme.grey600),
-            ),
-          ],
+      return SizedBox(
+        height: 400,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A2E).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.self_improvement_rounded,
+                  size: 48,
+                  color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No meditations available',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.grey700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Check back later for new sessions',
+                style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey500),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadMeditations,
-      color: AppTheme.primaryColor,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Categories
-            ..._groupedByCategory.entries.map((entry) {
-              final categoryName = entry.key;
-              final meditations = entry.value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Featured Section
+        if (_meditations.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _buildFeaturedSection(),
+        ],
 
-              return Column(
+        // Category Filter Chips
+        if (_groupedByCategory.keys.length > 1) ...[
+          const SizedBox(height: 24),
+          _buildCategoryChips(),
+        ],
+
+        // Meditations List
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            _selectedCategory ?? 'All Sessions',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.black,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Display filtered meditations
+        ..._filteredMeditations.map(
+          (m) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: _buildMeditationCard(m),
+          ),
+        ),
+
+        const SizedBox(height: 100), // Bottom padding for nav bar
+      ],
+    );
+  }
+
+  Widget _buildFeaturedSection() {
+    final featured = _meditations.take(3).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Featured',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.black,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: featured.length,
+            itemBuilder: (context, index) {
+              return _buildFeaturedCard(featured[index], index);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeaturedCard(Meditation meditation, int index) {
+    final gradients = [
+      [const Color(0xFF667eea), const Color(0xFF764ba2)],
+      [const Color(0xFF11998e), const Color(0xFF38ef7d)],
+      [const Color(0xFFfc4a1a), const Color(0xFFf7b733)],
+    ];
+    final colors = gradients[index % gradients.length];
+
+    return GestureDetector(
+      onTap: () => _playMeditation(meditation),
+      child: Container(
+        width: 280,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colors[0].withOpacity(0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              top: -20,
+              right: -20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -30,
+              left: -30,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader(
-                    categoryName,
-                    onSeeAll: () {
-                      // Handle see all action
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  ...meditations
-                      .take(3)
-                      .map(
-                        (m) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildMeditationCard(m),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          meditation.categoryName ?? 'Meditation',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                  const SizedBox(height: 12),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    meditation.title,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 14,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        meditation.formattedDuration,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.play_arrow_rounded,
+                          color: colors[0],
+                          size: 22,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              );
-            }),
-
-            const SizedBox(height: 80), // Bottom padding for nav bar
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, {VoidCallback? onSeeAll}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: GoogleFonts.inter(
-            textStyle: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700, // Made bolder as per design
-              color: AppTheme.black,
-            ),
-          ),
-        ),
-        if (onSeeAll != null)
-          GestureDetector(
-            onTap: onSeeAll,
-            child: Text(
-              'See all',
-              style: GoogleFonts.inter(
-                textStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.darkRedText, // Matches red in design
+  Widget _buildCategoryChips() {
+    final categories = ['All', ..._groupedByCategory.keys];
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected =
+              (category == 'All' && _selectedCategory == null) ||
+              category == _selectedCategory;
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: FilterChip(
+              selected: isSelected,
+              label: Text(category),
+              labelStyle: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white : AppTheme.grey700,
+              ),
+              backgroundColor: Colors.white,
+              selectedColor: const Color(0xFF1A1A2E),
+              checkmarkColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected
+                      ? const Color(0xFF1A1A2E)
+                      : AppTheme.grey300,
                 ),
               ),
+              onSelected: (selected) {
+                setState(() {
+                  _selectedCategory = category == 'All' ? null : category;
+                });
+              },
             ),
-          ),
-      ],
-    ); // _buildSectionHeader
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildMeditationCard(Meditation meditation) {
     return GestureDetector(
       onTap: () => _navigateToDetail(meditation),
       child: Container(
-        height: 80, // Slightly reduced height to match compact design
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppTheme.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.black.withOpacity(0.05),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(8), // Padding inside the card
         child: Row(
           children: [
-            // Image
+            // Thumbnail
             Container(
-              width: 64,
-              height: 64,
+              width: 70,
+              height: 70,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: AppTheme.grey100,
-                image: meditation.image != null
-                    ? DecorationImage(
-                        image: NetworkImage(meditation.image!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    _getCategoryColor(meditation.categoryName),
+                    _getCategoryColor(meditation.categoryName).withOpacity(0.7),
+                  ],
+                ),
               ),
-              child: meditation.image == null
-                  ? Icon(
-                      Icons.image_not_supported,
-                      color: AppTheme.grey400,
-                      size: 24,
+              child: meditation.image != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.network(
+                        meditation.image!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.self_improvement_rounded,
+                          color: Colors.white70,
+                          size: 32,
+                        ),
+                      ),
                     )
-                  : null,
+                  : const Icon(
+                      Icons.self_improvement_rounded,
+                      color: Colors.white70,
+                      size: 32,
+                    ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
 
             // Text Content
             Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     meditation.title,
                     style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700, // Bold title
-                        color: AppTheme.black,
-                      ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.black,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    meditation.formattedDuration,
-                    style: GoogleFonts.inter(
-                      textStyle: const TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.grey500, // Grey subtitle
-                        fontWeight: FontWeight.w500,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 14,
+                        color: AppTheme.grey500,
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      Text(
+                        meditation.formattedDuration,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppTheme.grey500,
+                        ),
+                      ),
+                      if (meditation.categoryName != null) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getCategoryColor(
+                              meditation.categoryName,
+                            ).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            meditation.categoryName!,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: _getCategoryColor(meditation.categoryName),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
             ),
 
             // Play Button
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppTheme.darkGreen, // Dark green play button
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.play_arrow_rounded,
-                color: AppTheme.white,
-                size: 24,
+            GestureDetector(
+              onTap: () => _playMeditation(meditation),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A2E),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1A1A2E).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
           ],
         ),
       ),
@@ -323,16 +643,33 @@ class _MindScreenState extends ConsumerState<MindScreen> {
     );
   }
 
+  void _playMeditation(Meditation meditation) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AudioPlayerScreen(
+          meditationId: meditation.id,
+          title: meditation.title,
+          audioUrl: meditation.audioUrl,
+          thumbnailUrl: meditation.image,
+          durationSeconds: meditation.duration,
+          categoryName: meditation.categoryName,
+        ),
+      ),
+    );
+  }
+
   Color _getCategoryColor(String? categoryName) {
     final colors = {
-      'Relaxation': AppTheme.blue400,
-      'Focus': AppTheme.purple400,
-      'Sleep': AppTheme.indigo400,
-      'Stress': AppTheme.teal400,
-      'Anxiety': AppTheme.green400,
-      'Energy': AppTheme.orange400,
+      'Relaxation': const Color(0xFF667eea),
+      'Focus': const Color(0xFF764ba2),
+      'Sleep': const Color(0xFF0F3460),
+      'Stress': const Color(0xFF11998e),
+      'Anxiety': const Color(0xFF38ef7d),
+      'Energy': const Color(0xFFfc4a1a),
+      'Breathing': const Color(0xFF00b4db),
     };
-    return colors[categoryName] ?? AppTheme.orange300;
+    return colors[categoryName] ?? const Color(0xFF667eea);
   }
 }
 
@@ -382,13 +719,14 @@ class Meditation {
       difficulty: json['difficulty'] as String?,
       categoryName: categoryName,
       categoryId: categoryId,
-      image: json['image'] as String?,
+      image: json['thumbnail'] as String? ?? json['image'] as String?,
       videoUrl: json['videoUrl'] as String?,
       audioUrl: json['audioUrl'] as String?,
     );
   }
 
   bool get hasVideo => videoUrl != null && videoUrl!.isNotEmpty;
+  bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
 
   String get formattedDuration {
     final mins = (duration / 60).floor();

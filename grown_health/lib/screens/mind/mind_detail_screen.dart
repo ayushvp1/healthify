@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/core.dart';
 import '../../providers/providers.dart';
 import '../../services/meditation_service.dart';
+import 'audio_player_screen.dart';
 
 /// Meditation detail screen that fetches meditation by ID from backend.
 class MindDetailScreen extends ConsumerStatefulWidget {
@@ -395,11 +396,18 @@ class _MindDetailScreenState extends ConsumerState<MindDetailScreen> {
   }
 
   void _startMeditation() {
-    // TODO: Implement meditation player (audio/video playback)
-    SnackBarUtils.showInfo(
+    Navigator.push(
       context,
-      'Starting meditation...',
-      duration: const Duration(seconds: 1),
+      MaterialPageRoute(
+        builder: (_) => AudioPlayerScreen(
+          meditationId: widget.meditationId ?? '',
+          title: _title,
+          audioUrl: _audioUrl,
+          thumbnailUrl: _meditation?['thumbnail'] as String?,
+          durationSeconds: _duration,
+          categoryName: _categoryName,
+        ),
+      ),
     );
   }
 
