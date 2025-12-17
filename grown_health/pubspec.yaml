@@ -41,6 +41,8 @@ dependencies:
   image_picker: ^1.2.1
   percent_indicator: ^4.2.3
   video_player: ^2.8.3
+  flutter_tts: ^4.2.3
+  just_audio: ^0.9.36
 
 dev_dependencies:
   flutter_test:

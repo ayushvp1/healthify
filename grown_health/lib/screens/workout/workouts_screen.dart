@@ -745,111 +745,138 @@ class _RecentWorkoutCard extends StatelessWidget {
     final date = session['date'] as String?;
     final rating = session['rating'] as int?;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.checkGreen.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        // If we have an exercise ID (single exercise), navigate to detail
+        // Note: The history API might return partial exercise data.
+        // We'll try to reconstruct minimal exercise object or fetch it.
+        // For now, if we have exerciseId/exerciseTitle, we try to navigate.
+        if (session['exerciseId'] != null) {
+          final exercise = {
+            '_id': session['exerciseId'],
+            'title': session['title'] ?? 'Exercise',
+            'duration': duration,
+            // Add defaults or other available fields
+          };
+          Navigator.of(
+            context,
+          ).pushNamed('/exercise_detail', arguments: exercise);
+        } else {
+          // If it's a full workout program, we might navigate elsewhere,
+          // but for now we just show a snackbar or do nothing.
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Detail view not available for this session type'),
             ),
-            child: const Icon(
-              Icons.check_circle,
-              color: AppTheme.checkGreen,
-              size: 24,
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.black,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.checkGreen.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.check_circle,
+                color: AppTheme.checkGreen,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      _formatDate(date),
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppTheme.grey500,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        _formatDate(date),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.grey500,
+                        ),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      child: Icon(
-                        Icons.circle,
-                        size: 4,
-                        color: AppTheme.grey400,
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(
+                          Icons.circle,
+                          size: 4,
+                          color: AppTheme.grey400,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _formatDuration(duration),
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppTheme.grey500,
+                      Text(
+                        _formatDuration(duration),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.grey500,
+                        ),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      child: Icon(
-                        Icons.circle,
-                        size: 4,
-                        color: AppTheme.grey400,
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(
+                          Icons.circle,
+                          size: 4,
+                          color: AppTheme.grey400,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '$completedExercises/$totalExercises',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: AppTheme.grey500,
+                      Text(
+                        '$completedExercises/$totalExercises',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.grey500,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (rating != null)
-            Row(
-              children: [
-                Icon(Icons.star, size: 16, color: Colors.amber[600]),
-                const SizedBox(width: 2),
-                Text(
-                  '$rating',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.amber[700],
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-        ],
+            if (rating != null)
+              Row(
+                children: [
+                  Icon(Icons.star, size: 16, color: Colors.amber[600]),
+                  const SizedBox(width: 2),
+                  Text(
+                    '$rating',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.amber[700],
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

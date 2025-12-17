@@ -198,10 +198,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Widget _buildVideoPlayer() {
     return Container(
-      height: 220,
+      height: 350,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppTheme.black,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(20),
       ),
       child: ClipRRect(
@@ -244,7 +244,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Widget _buildVideoLoading(String imageUrl) {
     return Container(
-      height: 220,
+      height: 350,
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppTheme.grey100,
@@ -259,7 +259,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               borderRadius: BorderRadius.circular(20),
               child: Image.network(
                 imageUrl,
-                height: 220,
+                height: 350,
                 width: double.infinity,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const SizedBox(),
