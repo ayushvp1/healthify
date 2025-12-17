@@ -277,15 +277,15 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
                 ),
 
                 // Recent Workouts Section
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                    child: _buildRecentWorkoutsSection(),
-                  ),
-                ),
+                // SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 20,
+                //       vertical: 8,
+                //     ),
+                //     child: _buildRecentWorkoutsSection(),
+                //   ),
+                // ),
 
                 // Exercise Library Section
                 SliverToBoxAdapter(
@@ -310,59 +310,80 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
 
   Widget _buildSearchBar() {
     return Container(
+      height: 56,
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.searchBarBg,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppTheme.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.search, color: AppTheme.white, size: 20),
+      child: TextField(
+        controller: _searchController,
+        focusNode: _searchFocusNode,
+        style: GoogleFonts.inter(
+          fontSize: 15,
+          fontWeight: FontWeight.w400,
+          color: AppTheme.black87,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search exercises...',
+          hintStyle: GoogleFonts.inter(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: AppTheme.grey500,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              decoration: InputDecoration(
-                hintText: 'Search exercises...',
-                hintStyle: GoogleFonts.inter(
-                  fontSize: 15,
-                  color: AppTheme.grey500,
-                  fontWeight: FontWeight.w500,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: AppTheme.black,
-                fontWeight: FontWeight.w500,
-              ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 12),
+            child: Icon(
+              Icons.search_rounded,
+              color: AppTheme.grey500,
+              size: 22,
             ),
           ),
-          if (_searchQuery.isNotEmpty)
-            IconButton(
-              icon: Icon(Icons.clear, color: AppTheme.grey600, size: 20),
-              onPressed: () {
-                _searchController.clear();
-                _searchFocusNode.unfocus();
-              },
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: AppTheme.grey500,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    _searchFocusNode.unfocus();
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: AppTheme.transparent,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 16,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: AppTheme.accentColor.withOpacity(0.3),
+              width: 1.5,
             ),
-        ],
+          ),
+        ),
       ),
     );
   }

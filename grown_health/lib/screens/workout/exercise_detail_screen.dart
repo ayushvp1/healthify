@@ -150,23 +150,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: CircleAvatar(
-              backgroundColor: AppTheme.grey100,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.favorite_border_rounded,
-                  color: AppTheme.grey500,
-                ),
-                onPressed: () {
-                  SnackBarUtils.showSuccess(context, 'Added to favorites');
-                },
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
