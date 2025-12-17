@@ -321,7 +321,9 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
 
   Widget _buildExerciseList(BundleDay day) {
     final isCompleted = _progress?.isDayCompleted(day.day) ?? false;
-    final isCurrentDay = _progress?.currentDay == day.day;
+    // Use canStartDay for date-based locking (one day per calendar day)
+    final canStart = _progress?.canStartDay(day.day) ?? true;
+    final isLocked = !isCompleted && !canStart;
 
     return Column(
       children: [
@@ -394,6 +396,36 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                       ),
                     ],
                   ),
+                )
+              else if (isLocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warningColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.lock_outline,
+                        color: AppTheme.warningColor,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _progress?.getLockedMessage(day.day) ?? 'Locked',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.warningColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
@@ -406,16 +438,13 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
             itemCount: day.exercises.length,
             itemBuilder: (context, index) {
               final ex = day.exercises[index];
-              return _buildExerciseCard(ex, index + 1);
+              return _buildExerciseCard(ex, index + 1, isLocked);
             },
           ),
         ),
 
-        // Start button
-        if (!isCompleted &&
-            (isCurrentDay ||
-                _progress?.currentDay == null ||
-                widget.dayNumber <= (_progress?.currentDay ?? 1)))
+        // Start button - show disabled when locked
+        if (!isCompleted)
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -423,21 +452,34 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _startWorkout,
+                  onPressed: isLocked ? null : _startWorkout,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.infoColor,
+                    backgroundColor: isLocked
+                        ? AppTheme.grey300
+                        : AppTheme.infoColor,
                     foregroundColor: AppTheme.white,
+                    disabledBackgroundColor: AppTheme.grey200,
+                    disabledForegroundColor: AppTheme.grey500,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Start Workout',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (isLocked) ...[
+                        const Icon(Icons.lock_outline, size: 20),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        isLocked ? 'Locked' : 'Start Workout',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -447,7 +489,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
     );
   }
 
-  Widget _buildExerciseCard(BundleDayExercise ex, int order) {
+  Widget _buildExerciseCard(BundleDayExercise ex, int order, bool isLocked) {
     final exercise = ex.exercise;
     if (exercise == null) return const SizedBox.shrink();
 
@@ -455,136 +497,143 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
     final imageUrl = exercise.gif.isNotEmpty ? exercise.gif : exercise.image;
 
     return GestureDetector(
-      onTap: _startWorkout,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Order number
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppTheme.highlightPink,
-                borderRadius: BorderRadius.circular(8),
+      onTap: isLocked ? null : _startWorkout,
+      child: Opacity(
+        opacity: isLocked ? 0.6 : 1.0,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                '$order',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.accentColor,
+            ],
+          ),
+          child: Row(
+            children: [
+              // Order number
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isLocked ? AppTheme.grey100 : AppTheme.highlightPink,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$order',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isLocked ? AppTheme.grey500 : AppTheme.accentColor,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-            // Exercise image
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppTheme.highlightPink,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: imageUrl.isNotEmpty
-                    ? Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+              // Exercise image
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isLocked ? AppTheme.grey100 : AppTheme.highlightPink,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.fitness_center,
+                            color: isLocked
+                                ? AppTheme.grey400
+                                : AppTheme.accentColor,
+                          ),
+                        )
+                      : Icon(
                           Icons.fitness_center,
-                          color: AppTheme.accentColor,
+                          color: isLocked
+                              ? AppTheme.grey400
+                              : AppTheme.accentColor,
                         ),
-                      )
-                    : const Icon(
-                        Icons.fitness_center,
-                        color: AppTheme.accentColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Exercise details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      exercise.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isLocked ? AppTheme.grey500 : AppTheme.black,
                       ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Exercise details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    exercise.title,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.black,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (ex.duration > 0) ...[
-                        Icon(
-                          Icons.timer_outlined,
-                          size: 14,
-                          color: AppTheme.grey600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${ex.duration}s',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (ex.duration > 0) ...[
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 14,
                             color: AppTheme.grey600,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      if (ex.reps > 0) ...[
-                        Icon(Icons.repeat, size: 14, color: AppTheme.grey600),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${ex.sets}×${ex.reps}',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: AppTheme.grey600,
+                          const SizedBox(width: 4),
+                          Text(
+                            '${ex.duration}s',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.grey600,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                        ],
+                        if (ex.reps > 0) ...[
+                          Icon(Icons.repeat, size: 14, color: AppTheme.grey600),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${ex.sets}×${ex.reps}',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.grey600,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Play icon
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: AppTheme.lightBlue,
-                shape: BoxShape.circle,
+              // Play icon or Lock icon
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: isLocked ? AppTheme.grey100 : AppTheme.lightBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isLocked ? Icons.lock_outline : Icons.play_arrow_rounded,
+                  color: isLocked ? AppTheme.grey400 : AppTheme.infoColor,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.play_arrow_rounded,
-                color: AppTheme.infoColor,
-                size: 20,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

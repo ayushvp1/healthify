@@ -203,7 +203,7 @@ class _TodaysPlanSectionState extends ConsumerState<TodaysPlanSection> {
 
         // Horizontal Exercise Cards - Larger and more prominent
         SizedBox(
-          height: 180,
+          height: 240,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -212,7 +212,7 @@ class _TodaysPlanSectionState extends ConsumerState<TodaysPlanSection> {
               final ex = session.exercises[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index < session.exercises.length - 1 ? 14 : 0,
+                  right: index < session.exercises.length - 1 ? 16 : 0,
                 ),
                 child: _ExerciseCard(
                   exercise: ex,
@@ -249,7 +249,7 @@ class _ExerciseCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 150,
+        width: 260,
         decoration: BoxDecoration(
           color: AppTheme.white,
           borderRadius: BorderRadius.circular(18),
@@ -276,7 +276,7 @@ class _ExerciseCard extends StatelessWidget {
           children: [
             // Image section - takes most of the space
             Expanded(
-              flex: 3,
+              flex: 5,
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(17),
@@ -388,7 +388,7 @@ class _ExerciseCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -396,7 +396,7 @@ class _ExerciseCard extends StatelessWidget {
                     Text(
                       info?.title ?? 'Exercise',
                       style: GoogleFonts.inter(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.black87,
                       ),
