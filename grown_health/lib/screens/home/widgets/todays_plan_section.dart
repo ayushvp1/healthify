@@ -249,35 +249,38 @@ class _ExerciseCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 120,
+        width: 150,
         decoration: BoxDecoration(
           color: AppTheme.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isCurrentExercise
                 ? AppTheme.accentColor
                 : isCompleted
                 ? AppTheme.checkGreen
                 : AppTheme.grey200,
-            width: isCurrentExercise ? 2 : 1,
+            width: isCurrentExercise ? 2.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: isCurrentExercise
+                  ? AppTheme.accentColor.withOpacity(0.2)
+                  : AppTheme.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Image section - takes most of the space
             Expanded(
+              flex: 3,
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(15),
-                  topRight: Radius.circular(15),
+                  topLeft: Radius.circular(17),
+                  topRight: Radius.circular(17),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -291,6 +294,26 @@ class _ExerciseCard extends StatelessWidget {
                           )
                         : _buildPlaceholder(),
 
+                    // Gradient overlay for better text visibility
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              AppTheme.black.withOpacity(0.3),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
                     // Status overlay
                     if (isCompleted || isSkipped)
                       Container(
@@ -298,36 +321,60 @@ class _ExerciseCard extends StatelessWidget {
                             (isCompleted
                                     ? AppTheme.checkGreen
                                     : AppTheme.grey500)
-                                .withOpacity(0.7),
+                                .withOpacity(0.8),
                         child: Center(
-                          child: Icon(
-                            isCompleted ? Icons.check_circle : Icons.skip_next,
-                            color: AppTheme.white,
-                            size: 32,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isCompleted
+                                    ? Icons.check_circle
+                                    : Icons.skip_next,
+                                color: AppTheme.white,
+                                size: 36,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isCompleted ? 'Done' : 'Skipped',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
 
-                    // Current indicator
+                    // Current indicator badge
                     if (isCurrentExercise && !isCompleted && !isSkipped)
                       Positioned(
-                        top: 6,
-                        right: 6,
+                        top: 8,
+                        left: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: 8,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: AppTheme.accentColor,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.accentColor.withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Text(
-                            'NOW',
+                            'UP NEXT',
                             style: GoogleFonts.inter(
-                              fontSize: 9,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: AppTheme.white,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -337,31 +384,42 @@ class _ExerciseCard extends StatelessWidget {
               ),
             ),
 
-            // Info
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    info?.title ?? 'Exercise',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.black87,
+            // Info section
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      info?.title ?? 'Exercise',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    exercise.displayText,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: AppTheme.grey600,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.repeat, size: 14, color: AppTheme.grey500),
+                        const SizedBox(width: 4),
+                        Text(
+                          exercise.displayText,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.grey600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
