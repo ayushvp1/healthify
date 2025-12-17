@@ -144,7 +144,11 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
 
           if (result == 'continue') {
             // Just go to player with existing session
-            if (mounted) Navigator.of(context).pushNamed('/player');
+            if (mounted) {
+              Navigator.of(context).pushNamed('/player').then((_) {
+                if (mounted) _loadData();
+              });
+            }
             return;
           } else if (result == 'abandon') {
             // Abandon the session and start fresh
@@ -177,7 +181,11 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
 
       if (startRes.statusCode >= 200 && startRes.statusCode < 300) {
         // Success - go to player
-        if (mounted) Navigator.of(context).pushNamed('/player');
+        if (mounted) {
+          Navigator.of(context).pushNamed('/player').then((_) {
+            if (mounted) _loadData();
+          });
+        }
       } else {
         // Check if error is about active session
         final errorData = jsonDecode(startRes.body);
@@ -185,7 +193,11 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
 
         if (errorMsg.contains('active') || errorMsg.contains('already')) {
           // There's an active session - just go to player
-          if (mounted) Navigator.of(context).pushNamed('/player');
+          if (mounted) {
+            Navigator.of(context).pushNamed('/player').then((_) {
+              if (mounted) _loadData();
+            });
+          }
         } else {
           // Other error
           if (mounted) {
@@ -201,7 +213,9 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         Navigator.of(context).pop(); // Close loading dialog
         // If error mentions active session, just navigate to player
         if (e.toString().toLowerCase().contains('active')) {
-          Navigator.of(context).pushNamed('/player');
+          Navigator.of(context).pushNamed('/player').then((_) {
+            if (mounted) _loadData();
+          });
         } else {
           SnackBarUtils.showError(
             context,
@@ -216,16 +230,16 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: AppTheme.primaryColor,
         body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.accentColor),
+          child: CircularProgressIndicator(color: AppTheme.white),
         ),
       );
     }
 
     if (_error != null || _bundle == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: AppTheme.primaryColor,
         appBar: AppBar(
           backgroundColor: AppTheme.transparent,
           elevation: 0,
@@ -260,11 +274,42 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     final progress = _progress!;
     final daysLeft = bundle.totalDays - progress.completedDays;
 
+    final bool hasStarted =
+        progress.completedDays > 0 || progress.currentDay > 1;
+
+    // Check if user can start the current day
+    final int nextDay = progress.currentDay;
+    final bool canStartNextDay = progress.canStartDay(nextDay);
+    final bool allDaysComplete = progress.completedDays >= bundle.totalDays;
+
+    // Button text and state
+    String buttonText;
+    bool isButtonEnabled;
+    IconData buttonIcon;
+
+    if (allDaysComplete) {
+      buttonText = 'Program Complete! 🎉';
+      isButtonEnabled = false;
+      buttonIcon = Icons.check_circle;
+    } else if (!canStartNextDay) {
+      buttonText = progress.getLockedMessage(nextDay);
+      isButtonEnabled = false;
+      buttonIcon = Icons.lock_clock;
+    } else if (hasStarted) {
+      buttonText = 'Continue Program';
+      isButtonEnabled = true;
+      buttonIcon = Icons.play_arrow_rounded;
+    } else {
+      buttonText = 'Start Program';
+      isButtonEnabled = true;
+      buttonIcon = Icons.fitness_center;
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.white,
       body: Column(
         children: [
-          // Hero Section (Dark background)
+          // Hero Section (Maroon gradient background)
           _buildHeroSection(bundle, progress, daysLeft),
 
           // Days List (White background with rounded top)
@@ -283,7 +328,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   topRight: Radius.circular(28),
                 ),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -296,7 +341,6 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                       ),
                       // Fill remaining days if schedule is incomplete
                       ..._buildRemainingDays(bundle, progress),
-                      const SizedBox(height: 50),
                     ],
                   ),
                 ),
@@ -304,6 +348,56 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             ),
           ),
         ],
+      ),
+      // Floating Start Button at bottom
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: isButtonEnabled ? () => _startDay(nextDay) : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isButtonEnabled
+                    ? AppTheme.primaryColor
+                    : AppTheme.grey300,
+                foregroundColor: AppTheme.white,
+                disabledBackgroundColor: AppTheme.grey200,
+                disabledForegroundColor: AppTheme.grey500,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(buttonIcon, size: 24),
+                  const SizedBox(width: 8),
+                  Text(
+                    buttonText,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -314,7 +408,13 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     int daysLeft,
   ) {
     return Container(
-      color: const Color(0xFF1A1A2E),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor, AppTheme.accentColor],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -585,8 +685,10 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
   Widget _buildDayCard(BundleDay day, BundleProgress progress) {
     final isCompleted = progress.isDayCompleted(day.day);
     final isExpanded = _expandedDay == day.day;
-    final isLocked = day.day > progress.currentDay && !isCompleted;
-    final isCurrentDay = day.day == progress.currentDay;
+    // Use canStartDay for date-based locking (one day per calendar day)
+    final canStart = progress.canStartDay(day.day);
+    final isLocked = !isCompleted && !canStart;
+    final isCurrentDay = !isCompleted && canStart;
 
     return Column(
       children: [
@@ -740,8 +842,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   ],
                 ),
 
-                // Show Start button for current day
-                if (isCurrentDay && !day.isRestDay && !isCompleted) ...[
+                // Show Start button for unlocked, incomplete days
+                if (!day.isRestDay && !isCompleted && canStart) ...[
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,

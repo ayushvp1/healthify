@@ -56,7 +56,7 @@ class _SharedBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 16),
         child: Container(
           height: 80,
           decoration: BoxDecoration(
@@ -64,9 +64,9 @@ class _SharedBottomNav extends StatelessWidget {
             borderRadius: BorderRadius.circular(40),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                color: AppTheme.black.withOpacity(0.15),
+                blurRadius: 25,
+                offset: const Offset(0, 8),
               ),
             ],
           ),

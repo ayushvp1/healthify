@@ -428,11 +428,54 @@ class BundleProgress {
   }
 
   /// Get the current day user should be on (first incomplete day)
+  /// Always returns at least 1 since days are 1-indexed
   int get currentDay {
+    // If no totalDays info, default to day 1
+    if (totalDays <= 0) return 1;
+
     for (int i = 1; i <= totalDays; i++) {
       if (!isDayCompleted(i)) return i;
     }
-    return totalDays;
+    return totalDays > 0 ? totalDays : 1;
+  }
+
+  /// Check if user can start a specific day based on date rules
+  /// Day 1 is always available. Other days require previous day to be
+  /// completed on a previous calendar date (one day per calendar day).
+  bool canStartDay(int day) {
+    // Day 1 is always available
+    if (day == 1) return true;
+
+    // Check if this day is already completed
+    if (isDayCompleted(day)) return true;
+
+    // Check if previous day is completed
+    final prevDayStatus = dayStatus[(day - 1).toString()];
+    if (prevDayStatus?.status != 'completed') return false;
+
+    // Check if previous day was completed today - if so, lock this day until tomorrow
+    final completedAt = prevDayStatus?.completedAt;
+    if (completedAt == null) return true; // No date info, allow starting
+
+    final now = DateTime.now();
+    final completedDate = DateTime(
+      completedAt.year,
+      completedAt.month,
+      completedAt.day,
+    );
+    final todayDate = DateTime(now.year, now.month, now.day);
+
+    // Can start only if previous day was completed on a previous date
+    return completedDate.isBefore(todayDate);
+  }
+
+  /// Get message for why a day is locked
+  String getLockedMessage(int day) {
+    final prevDayStatus = dayStatus[(day - 1).toString()];
+    if (prevDayStatus?.status != 'completed') {
+      return 'Complete Day ${day - 1} first';
+    }
+    return 'Available tomorrow';
   }
 }
 

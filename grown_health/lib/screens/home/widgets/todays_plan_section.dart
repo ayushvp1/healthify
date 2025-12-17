@@ -157,129 +157,62 @@ class _TodaysPlanSectionState extends ConsumerState<TodaysPlanSection> {
   }
 
   Widget _buildActiveSession(ActiveSession session) {
+    if (session.exercises.isEmpty) {
+      return _buildEmptyState();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Session Info Card
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppTheme.primaryColor, AppTheme.accentColor],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        // Subtitle with exercise count and program name
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                session.program != null
+                    ? '${session.program!.name} • Day ${session.programDay}'
+                    : '${session.totalExercises} Exercises',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.grey600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+            // Progress indicator
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Program Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (session.program != null) ...[
-                      Text(
-                        session.program!.name,
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                    ],
-                    Text(
-                      session.programDayTitle ?? 'Day ${session.programDay}',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: AppTheme.white.withOpacity(0.9),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Progress
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: session.progressPercentage / 100,
-                              backgroundColor: AppTheme.white.withOpacity(0.3),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppTheme.white,
-                              ),
-                              minHeight: 6,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '${session.progressPercentage}%',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+              child: Text(
+                '${session.completedExercises}/${session.totalExercises}',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primaryColor,
                 ),
               ),
-              const SizedBox(width: 16),
-              // Continue Button
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/player'),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    color: AppTheme.primaryColor,
-                    size: 28,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
-        // Exercise count
-        Text(
-          '${session.totalExercises} Exercises',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.grey600,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Horizontal Exercise Cards
+        // Horizontal Exercise Cards - Larger and more prominent
         SizedBox(
-          height: 140,
+          height: 180,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
             itemCount: session.exercises.length,
             itemBuilder: (context, index) {
               final ex = session.exercises[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  right: index < session.exercises.length - 1 ? 12 : 0,
+                  right: index < session.exercises.length - 1 ? 14 : 0,
                 ),
                 child: _ExerciseCard(
                   exercise: ex,

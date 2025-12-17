@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'core/core.dart';
 import 'providers/providers.dart';
 import 'screens/screens.dart';
@@ -13,8 +12,6 @@ import 'screens/workout/bundle_detail_screen.dart';
 import 'screens/workout/bundles_list_screen.dart';
 import 'screens/workout/exercise_detail_screen.dart';
 import 'screens/workout/exercise_timer_screen.dart';
-import 'screens/workout/workout_history_screen.dart';
-import 'screens/nutrition/nutrition_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -115,25 +115,33 @@ class _WaterTrackingCardState extends ConsumerState<WaterTrackingCard> {
       final waterService = WaterService(token);
       final result = await waterService.addWaterGlass();
 
-      setState(() {
-        _todayData = result;
-        _loading = false;
-        _error = null;
-      });
-
-      // Show success feedback
       if (mounted) {
+        setState(() {
+          _todayData = result;
+          _loading = false;
+          _error = null;
+        });
+
+        // Show success feedback
         SnackBarUtils.showSuccess(
           context,
-          'Added 250ml! ${result.count}/${result.goal} glasses',
-          duration: const Duration(seconds: 1),
+          '💧 Added 250ml! ${result.count}/${result.goal} glasses',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceFirst('Exception: ', '');
+          _loading = false;
+        });
+
+        // Show error feedback
+        SnackBarUtils.showError(
+          context,
+          'Failed to add water: ${e.toString().replaceFirst('Exception: ', '')}',
+        );
+      }
     }
   }
 

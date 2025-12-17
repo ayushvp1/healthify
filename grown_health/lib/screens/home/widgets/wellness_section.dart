@@ -214,9 +214,19 @@ class _WaterTrackerCard extends ConsumerWidget {
                       size: 20,
                     ),
                     GestureDetector(
-                      onTap: () => ref
-                          .read(waterNotifierProvider(token).notifier)
-                          .addWater(),
+                      onTap: () {
+                        ref
+                            .read(waterNotifierProvider(token).notifier)
+                            .addWater();
+                        final waterState = ref.read(
+                          waterNotifierProvider(token),
+                        );
+                        SnackBarUtils.showSuccess(
+                          context,
+                          '💧 Added 250ml! ${waterState.currentMl + 250}/${waterState.goalMl}ml',
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
                       onLongPress: () => ref
                           .read(waterNotifierProvider(token).notifier)
                           .removeWater(),
