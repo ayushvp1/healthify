@@ -203,4 +203,19 @@ class NutritionService {
       return [];
     }
   }
+
+  /// Delete a meal log
+  static Future<bool> deleteMeal(String token, String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/meals/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting meal: $e');
+      return false;
+    }
+  }
 }

@@ -15,6 +15,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/loading_widget.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/meal_provider.dart';
 
 class CalorieScannerScreen extends ConsumerStatefulWidget {
   const CalorieScannerScreen({super.key});
@@ -766,21 +767,22 @@ class _AnalysisDialogState extends ConsumerState<_AnalysisDialog> {
                           const Center(child: CircularProgressIndicator()),
                     );
 
-                    final success = await NutritionService.logMeal(
-                      token: token,
-                      name: result.foodItems.isNotEmpty
-                          ? result.foodItems.first.name
-                          : 'Scanned Food',
-                      calories: result.totalCalories,
-                      items: result.foodItems
-                          .map(
-                            (item) => {
-                              'name': item.name,
-                              'calories': item.calories,
-                            },
-                          )
-                          .toList(),
-                    );
+                    final success = await ref
+                        .read(mealProvider.notifier)
+                        .addMeal(
+                          name: result.foodItems.isNotEmpty
+                              ? result.foodItems.first.name
+                              : 'Scanned Food',
+                          calories: result.totalCalories,
+                          items: result.foodItems
+                              .map(
+                                (item) => {
+                                  'name': item.name,
+                                  'calories': item.calories,
+                                },
+                              )
+                              .toList(),
+                        );
 
                     Navigator.of(context).pop(); // Remove loading
 

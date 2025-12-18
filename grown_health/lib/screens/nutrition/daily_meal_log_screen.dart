@@ -4,41 +4,16 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_theme.dart';
 import '../../services/nutrition_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/meal_provider.dart';
 
-class DailyMealLogScreen extends ConsumerStatefulWidget {
+class DailyMealLogScreen extends ConsumerWidget {
   const DailyMealLogScreen({super.key});
 
   @override
-  ConsumerState<DailyMealLogScreen> createState() => _DailyMealLogScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mealsAsync = ref.watch(mealProvider);
+    final totalCalories = ref.watch(totalCaloriesProvider);
 
-class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
-  List<MealLog> _meals = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMeals();
-  }
-
-  Future<void> _loadMeals() async {
-    final token = ref.read(authProvider).user?.token;
-    if (token == null) return;
-
-    final meals = await NutritionService.getTodayMeals(token);
-    if (mounted) {
-      setState(() {
-        _meals = meals;
-        _loading = false;
-      });
-    }
-  }
-
-  int get _totalCalories => _meals.fold(0, (sum, meal) => sum + meal.calories);
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: AppBar(
@@ -48,42 +23,62 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryColor),
-            )
-          : RefreshIndicator(
-              onRefresh: _loadMeals,
-              color: AppTheme.primaryColor,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryCard(),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Logged Meals',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (_meals.isEmpty)
-                      _buildEmptyState()
-                    else
-                      ..._meals.map((meal) => _buildMealListItem(meal)),
-                  ],
+      body: mealsAsync.when(
+        data: (meals) => RefreshIndicator(
+          onRefresh: () => ref.read(mealProvider.notifier).loadMeals(),
+          color: AppTheme.primaryColor,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSummaryCard(meals.length, totalCalories),
+                const SizedBox(height: 24),
+                Text(
+                  'Logged Meals',
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.black,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+                if (meals.isEmpty)
+                  _buildEmptyState()
+                else
+                  ...meals.map(
+                    (meal) => _buildMealListItem(context, ref, meal),
+                  ),
+              ],
             ),
+          ),
+        ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Failed to load logs',
+                style: GoogleFonts.inter(fontSize: 16),
+              ),
+              TextButton(
+                onPressed: () => ref.read(mealProvider.notifier).loadMeals(),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(int mealCount, int totalCalories) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -111,27 +106,34 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
             'Total Calories Today',
             style: GoogleFonts.inter(
               color: Colors.white.withOpacity(0.9),
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '$_totalCalories',
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 48,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'kcal',
-            style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                '$totalCalories',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 48,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'kcal',
+                style: GoogleFonts.inter(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Container(
@@ -143,10 +145,10 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.insights, color: Colors.white, size: 18),
+                const Icon(Icons.restaurant, color: Colors.white, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  '${_meals.length} meals logged',
+                  '$mealCount meals logged',
                   style: GoogleFonts.inter(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -160,7 +162,7 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
     );
   }
 
-  Widget _buildMealListItem(MealLog meal) {
+  Widget _buildMealListItem(BuildContext context, WidgetRef ref, MealLog meal) {
     IconData icon;
     Color color;
     switch (meal.type) {
@@ -181,111 +183,153 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
         color = Colors.teal;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 24),
+    return Dismissible(
+      key: Key(meal.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Log'),
+            content: const Text(
+              'Are you sure you want to remove this meal log?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      meal.name,
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      meal.type,
-                      style: GoogleFonts.inter(
-                        color: AppTheme.grey500,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${meal.calories}',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  Text(
-                    'kcal',
-                    style: GoogleFonts.inter(
-                      color: AppTheme.grey500,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
               ),
             ],
           ),
-          if (meal.items.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1),
+        );
+      },
+      onDismissed: (_) {
+        ref.read(mealProvider.notifier).deleteMeal(meal.id);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${meal.name} removed')));
+      },
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            ...meal.items.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        meal.name,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        meal.type,
+                        style: GoogleFonts.inter(
+                          color: AppTheme.grey500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      item['name'] ?? '',
+                      '${meal.calories}',
                       style: GoogleFonts.inter(
-                        color: AppTheme.grey700,
-                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: AppTheme.primaryColor,
                       ),
                     ),
                     Text(
-                      '${item['calories']} kcal',
+                      'kcal',
                       style: GoogleFonts.inter(
-                        color: AppTheme.grey600,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                        color: AppTheme.grey500,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
+            if (meal.items.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1),
+              ),
+              ...meal.items.map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        item['name'] ?? '',
+                        style: GoogleFonts.inter(
+                          color: AppTheme.grey700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '${item['calories']} kcal',
+                        style: GoogleFonts.inter(
+                          color: AppTheme.grey600,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -302,7 +346,7 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
                 color: AppTheme.grey50,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.restaurant_menu,
                 color: AppTheme.grey400,
                 size: 64,
@@ -319,7 +363,7 @@ class _DailyMealLogScreenState extends ConsumerState<DailyMealLogScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Use the scanner to track your nutrition!',
+              'Use the tracker to log your nutrition!',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(color: AppTheme.grey500, fontSize: 14),
             ),
