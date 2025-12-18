@@ -11,6 +11,7 @@ import 'calorie_scanner_screen.dart';
 import 'widgets/widgets.dart';
 import 'nutrition_chat_screen.dart';
 import 'meal_plan_screen.dart';
+import 'daily_meal_log_screen.dart';
 
 class NutritionScreen extends StatelessWidget {
   const NutritionScreen({super.key});
@@ -36,7 +37,12 @@ class NutritionScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.paddingMedium,
+          AppConstants.paddingMedium,
+          AppConstants.paddingMedium,
+          120,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,11 +64,14 @@ class NutritionScreen extends StatelessWidget {
             // const SizedBox(height: 16),
             // const _MacronutrientRatioChart(),
             // const SizedBox(height: 24),
-            // Today's Meals Section - commented out for cleanup
-            // _buildSectionTitle('Today\'s Meals'),
-            // const SizedBox(height: 16),
-            // const _TodaysMealsSection(),
-            // const SizedBox(height: 24),
+            _buildSectionHeader('Today\'s Meals', () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const DailyMealLogScreen()),
+              );
+            }),
+            const SizedBox(height: 16),
+            const _TodaysMealsSection(),
+            const SizedBox(height: 24),
             // Healthy Habits Section - commented out for cleanup
             // const _HealthyHabitsSection(),
             // const SizedBox(height: 24),
@@ -903,113 +912,210 @@ class _MacronutrientRatioChart extends StatelessWidget {
   }
 }
 
-class _TodaysMealsSection extends StatelessWidget {
+class _TodaysMealsSection extends ConsumerStatefulWidget {
   const _TodaysMealsSection();
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildMealCard(
-            'Breakfast',
-            'Avocado Toast',
-            '350 cal',
-            Icons.breakfast_dining,
-          ),
-          const SizedBox(width: 16),
-          _buildMealCard(
-            'Lunch',
-            'Grilled Chicken',
-            '450 cal',
-            Icons.lunch_dining,
-          ),
-          const SizedBox(width: 16),
-          _buildMealCard('Dinner', 'Salmon', '400 cal', Icons.dinner_dining),
-        ],
-      ),
-    );
+  ConsumerState<_TodaysMealsSection> createState() =>
+      _TodaysMealsSectionState();
+}
+
+class _TodaysMealsSectionState extends ConsumerState<_TodaysMealsSection> {
+  List<MealLog> _meals = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMeals();
   }
 
-  Widget _buildMealCard(
-    String mealType,
-    String foodName,
-    String calories,
-    IconData icon,
-  ) {
-    return Container(
-      width: 160,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.lightBlue.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(12),
+  Future<void> _loadMeals() async {
+    final token = ref.read(authProvider).user?.token;
+    if (token == null) return;
+
+    final meals = await NutritionService.getTodayMeals(token);
+    if (mounted) {
+      setState(() {
+        _meals = meals;
+        _loading = false;
+      });
+    }
+  }
+
+  IconData _getMealIcon(String type) {
+    switch (type) {
+      case 'Breakfast':
+        return Icons.breakfast_dining;
+      case 'Lunch':
+        return Icons.lunch_dining;
+      case 'Dinner':
+        return Icons.dinner_dining;
+      default:
+        return Icons.fastfood;
+    }
+  }
+
+  int get _totalCalories => _meals.fold(0, (sum, meal) => sum + meal.calories);
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
+      );
+    }
+
+    if (_meals.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.grey50,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
+        ),
+        child: Column(
+          children: [
+            const Icon(
+              Icons.restaurant_menu,
+              color: AppTheme.grey400,
+              size: 40,
             ),
-            child: Icon(icon, color: AppTheme.primaryColor),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            mealType,
-            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            foodName,
-            style: AppTheme.lightTheme.textTheme.bodySmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(calories, style: AppTheme.lightTheme.textTheme.bodySmall),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.lightPinkBg,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: 16,
-                    color: AppTheme.primaryColor,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'Log Meal',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 12),
+            const Text(
+              'No meals logged today',
+              style: TextStyle(
+                color: AppTheme.grey600,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 4),
+            const Text(
+              'Scan food to add your first meal!',
+              style: TextStyle(color: AppTheme.grey500, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const DailyMealLogScreen()));
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              AppTheme.primaryColor,
+              Color(0xFF8B2E42), // Slightly lighter maroon
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -20,
+              top: -20,
+              child: Icon(
+                Icons.restaurant,
+                size: 100,
+                color: Colors.white.withOpacity(0.1),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Daily Intake',
+                      style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$_totalCalories',
+                      style: AppTheme.lightTheme.textTheme.headlineLarge
+                          ?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 42,
+                          ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'kcal',
+                      style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.insights_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_meals.length} meals logged',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -12,7 +12,7 @@ class GeminiService {
 
   // Placeholder key - in production use environment variables
   static const String _defaultApiKey =
-      'AIzaSyD1iRa_Ln9wV6YBgCJ7utJeoXARsQDAZ4M';
+      'AIzaSyD8HfEVFRQ-NdJ7MtQkZ_jBGb1ME_qHPcM';
 
   static void initialize({String? apiKey}) {
     _apiKey =

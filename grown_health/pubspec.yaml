@@ -49,6 +49,7 @@ dependencies:
   camera: ^0.11.3
   permission_handler: ^12.0.1
   path_provider: ^2.1.5
+  rename_app: ^1.6.5
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +61,16 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default:21
+  adaptive_icon_background: "#64091A" # Using your theme maroon
+  adaptive_icon_foreground: "assets/logo.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

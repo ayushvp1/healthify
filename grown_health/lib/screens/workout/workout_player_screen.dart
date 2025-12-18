@@ -196,21 +196,34 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         final data = jsonDecode(res.body);
 
         if (data['data'] == null) {
-          // No active session - this is expected if user hasn't started one
+          // If no session, wait 1 second and retry once (in case backend is slow)
+          await Future.delayed(const Duration(milliseconds: 1000));
+          final retryRes = await http.get(uri, headers: _headers);
+          if (retryRes.statusCode >= 200 && retryRes.statusCode < 300) {
+            final retryData = jsonDecode(retryRes.body);
+            if (retryData['data'] != null) {
+              if (mounted) {
+                setState(() {
+                  _session = retryData['data'];
+                  _exercises = _session!['exercises'] ?? [];
+                  _currentIndex = _session!['currentExerciseIndex'] ?? 0;
+                  _loading = false;
+                });
+                if (_exercises.isNotEmpty) _startPrepPhase();
+              }
+              return;
+            }
+          }
+
           if (mounted) {
             setState(() {
               _error =
-                  'No active workout session.\n\nPlease go to a workout program and tap "Start Workout" first.';
+                  'No active workout session found.\n\nPlease go back and try starting the exercise again.';
               _loading = false;
             });
           }
           return;
         }
-
-        debugPrint('Session loaded: ${data['data']['_id']}');
-        debugPrint(
-          'Exercises count: ${(data['data']['exercises'] as List?)?.length ?? 0}',
-        );
 
         if (mounted) {
           setState(() {

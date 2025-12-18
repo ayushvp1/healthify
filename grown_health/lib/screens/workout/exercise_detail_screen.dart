@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:grown_health/core/core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../api_config.dart';
+import '../../providers/auth_provider.dart';
 
 /// Exercise Detail Screen - Shows details of a specific exercise
 /// Receives exercise data as arguments via Navigator
-class ExerciseDetailScreen extends StatefulWidget {
+class ExerciseDetailScreen extends ConsumerStatefulWidget {
   const ExerciseDetailScreen({super.key});
 
   @override
-  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
+  ConsumerState<ExerciseDetailScreen> createState() =>
+      _ExerciseDetailScreenState();
 }
 
-class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
+class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
   bool _isVideoPlaying = false;
@@ -494,34 +500,100 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.of(context).pushNamed('/player', arguments: exercise);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+      child: Consumer(
+        builder: (context, ref, child) {
+          return SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final exerciseId = exercise['_id'] ?? exercise['id'];
+                if (exerciseId != null) {
+                  // Show loading
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (ctx) => const Center(
+                      child: CircularProgressIndicator(color: AppTheme.white),
+                    ),
+                  );
+
+                  try {
+                    // Start session on backend
+                    final token = ref.read(authProvider).user?.token;
+                    final uri = Uri.parse(
+                      '${ApiConfig.baseUrl}/workout-progress/start',
+                    );
+                    final res = await http.post(
+                      uri,
+                      headers: {
+                        'Content-Type': 'application/json',
+                        if (token != null) 'Authorization': 'Bearer $token',
+                      },
+                      body: jsonEncode({'exerciseId': exerciseId}),
+                    );
+
+                    if (context.mounted)
+                      Navigator.of(context).pop(); // pop loading
+
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                      if (context.mounted) {
+                        Navigator.of(
+                          context,
+                        ).pushNamed('/player', arguments: exercise);
+                      }
+                    } else {
+                      final errorData = jsonDecode(res.body);
+                      final message = errorData['message'] ?? 'Failed to start';
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: AppTheme.errorColor,
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: AppTheme.errorColor,
+                        ),
+                      );
+                    }
+                  }
+                } else {
+                  Navigator.of(
+                    context,
+                  ).pushNamed('/player', arguments: exercise);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 4,
+              ),
+              icon: const Icon(
+                Icons.play_arrow_rounded,
+                color: AppTheme.white,
+                size: 28,
+              ),
+              label: Text(
+                'Start Exercise',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.white,
+                ),
+              ),
             ),
-            elevation: 4,
-          ),
-          icon: const Icon(
-            Icons.play_arrow_rounded,
-            color: AppTheme.white,
-            size: 28,
-          ),
-          label: Text(
-            'Start Exercise',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.white,
-            ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

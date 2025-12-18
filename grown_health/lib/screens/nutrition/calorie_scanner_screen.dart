@@ -1,24 +1,30 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/core.dart';
 import '../../services/gemini_service.dart';
+import '../../services/nutrition_service.dart';
 import '../../models/calorie_analysis_result.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/loading_widget.dart';
 
-class CalorieScannerScreen extends StatefulWidget {
+import '../../providers/auth_provider.dart';
+
+class CalorieScannerScreen extends ConsumerStatefulWidget {
   const CalorieScannerScreen({super.key});
 
   @override
-  State<CalorieScannerScreen> createState() => _CalorieScannerScreenState();
+  ConsumerState<CalorieScannerScreen> createState() =>
+      _CalorieScannerScreenState();
 }
 
-class _CalorieScannerScreenState extends State<CalorieScannerScreen> {
+class _CalorieScannerScreenState extends ConsumerState<CalorieScannerScreen> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
@@ -428,17 +434,17 @@ class ScanOverlayPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
-class _AnalysisDialog extends StatefulWidget {
+class _AnalysisDialog extends ConsumerStatefulWidget {
   final File imageFile;
   final VoidCallback onClose;
 
   const _AnalysisDialog({required this.imageFile, required this.onClose});
 
   @override
-  State<_AnalysisDialog> createState() => _AnalysisDialogState();
+  ConsumerState<_AnalysisDialog> createState() => _AnalysisDialogState();
 }
 
-class _AnalysisDialogState extends State<_AnalysisDialog> {
+class _AnalysisDialogState extends ConsumerState<_AnalysisDialog> {
   CalorieAnalysisResult? _result;
   bool _isLoading = true;
   String? _error;
@@ -742,10 +748,57 @@ class _AnalysisDialogState extends State<_AnalysisDialog> {
               Expanded(
                 child: CustomButton(
                   text: 'Log Food',
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    widget.onClose();
-                    // Log functionality would go here
+                  onPressed: () async {
+                    final token = ref.read(authProvider).user?.token;
+                    if (token == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please login to log food'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    final success = await NutritionService.logMeal(
+                      token: token,
+                      name: result.foodItems.isNotEmpty
+                          ? result.foodItems.first.name
+                          : 'Scanned Food',
+                      calories: result.totalCalories,
+                      items: result.foodItems
+                          .map(
+                            (item) => {
+                              'name': item.name,
+                              'calories': item.calories,
+                            },
+                          )
+                          .toList(),
+                    );
+
+                    Navigator.of(context).pop(); // Remove loading
+
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Food logged successfully!'),
+                        ),
+                      );
+                      Navigator.of(context).pop();
+                      widget.onClose();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to log food. Try again.'),
+                        ),
+                      );
+                    }
                   },
                   type: ButtonType.primary,
                 ),

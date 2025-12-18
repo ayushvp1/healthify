@@ -316,22 +316,11 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             category: completedCategory,
             isLastCategory: isLastCategory,
             onContinue: () {
-              if (!isLastCategory) {
-                // Move to next category
-                setState(() {
-                  _currentCategoryIndex++;
-                  _currentQuestionIndex = 0;
-                  _selectedOption = null;
-                  _showIntro = true;
-                  _isShowingDashboard = false; // Keep in assessment mode
-                });
-              } else {
-                // Return to dashboard but marked as complete
-                setState(() {
-                  _isShowingDashboard = true;
-                  _selectedOption = null;
-                });
-              }
+              // Return to dashboard to allow non-linear selection in any order
+              setState(() {
+                _isShowingDashboard = true;
+                _selectedOption = null;
+              });
             },
           ),
         ),
@@ -551,7 +540,24 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const BackButton(color: AppTheme.black),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.black,
+          ),
+          onPressed: () {
+            if (_isShowingDashboard) {
+              // If on dashboard, go back to Home tab (index 0)
+              // We can't easily reach MainShell state, so we'll just push /home
+              // or rely on the fact that popping might work if it was pushed.
+              // Given it's a tab, we'll just go to dashboard if was in question,
+              // or navigate home if already on dashboard.
+              Navigator.of(context).pushReplacementNamed('/home');
+            } else {
+              setState(() => _isShowingDashboard = true);
+            }
+          },
+        ),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded, color: AppTheme.grey600),
@@ -629,7 +635,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         backgroundColor: AppTheme.white,
         elevation: 0,
         centerTitle: true,
-        leading: const BackButton(color: AppTheme.black),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.black,
+          ),
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/home'),
+        ),
         title: Text(
           'Health Assessment',
           style: GoogleFonts.inter(
@@ -646,9 +658,9 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Wellness Journey',
@@ -778,24 +790,35 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             }),
             const SizedBox(height: 20),
             if (_totalAnswered > 0)
-              Center(
-                child: TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AssessmentResultsScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.insights_rounded),
-                  label: const Text('View Current Progress & Results'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.primaryColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AssessmentResultsScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.white,
+                  foregroundColor: AppTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 2,
+                  shadowColor: AppTheme.black.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 1.5,
                     ),
                   ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.insights_rounded),
+                    SizedBox(width: 8),
+                    Text('View Current Progress & Results'),
+                  ],
                 ),
               ),
           ],
@@ -918,13 +941,14 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                         ),
                       ),
                     );
-                  } else if (index <= _currentCategoryIndex) {
-                    // Allow navigating to current or previous sections
+                  } else {
+                    // Allow navigating to any section in any order
                     setState(() {
                       _currentCategoryIndex = index;
                       _currentQuestionIndex = 0;
                       _selectedOption = null;
                       _showIntro = true;
+                      _isShowingDashboard = false;
                     });
                   }
                 },
@@ -1004,7 +1028,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         ),
         // Bottom Button
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
           child: SizedBox(
             width: double.infinity,
             height: 56,
@@ -1042,7 +1066,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         backgroundColor: AppTheme.white,
         elevation: 0,
         centerTitle: true,
-        leading: const BackButton(color: AppTheme.black),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.black,
+          ),
+          onPressed: () => Navigator.of(context).pushReplacementNamed('/home'),
+        ),
         title: Text(
           'Health Assessment',
           style: GoogleFonts.inter(
@@ -1053,26 +1083,30 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Success header
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppTheme.successColor.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle,
-                color: AppTheme.successColor,
-                size: 48,
+            Center(
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppTheme.successColor.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: AppTheme.successColor,
+                  size: 48,
+                ),
               ),
             ),
             const SizedBox(height: 20),
             Text(
               'Assessment Completed!',
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -1203,43 +1237,49 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             const SizedBox(height: 24),
 
             // View Full Results Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AssessmentResultsScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.insights_rounded),
-                label: const Text('View Full Results & Recommendations'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: AppTheme.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AssessmentResultsScreen(),
                   ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: AppTheme.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.insights_rounded),
+                  SizedBox(width: 8),
+                  Text('View Full Results'),
+                ],
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _showResetConfirmation,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retake Assessment'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: AppTheme.primaryColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+            OutlinedButton(
+              onPressed: _showResetConfirmation,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: AppTheme.primaryColor),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.refresh_rounded),
+                  SizedBox(width: 8),
+                  Text('Retake Assessment'),
+                ],
               ),
             ),
             const SizedBox(height: 32),

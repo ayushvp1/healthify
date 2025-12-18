@@ -49,6 +49,38 @@ class NutritionItem {
   }
 }
 
+/// Model class for logged meals
+class MealLog {
+  final String id;
+  final String name;
+  final int calories;
+  final String type;
+  final List<Map<String, dynamic>> items;
+  final DateTime date;
+
+  MealLog({
+    required this.id,
+    required this.name,
+    required this.calories,
+    required this.type,
+    required this.items,
+    required this.date,
+  });
+
+  factory MealLog.fromJson(Map<String, dynamic> json) {
+    return MealLog(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      calories: json['calories'] ?? 0,
+      type: json['type'] ?? 'Snack',
+      items: List<Map<String, dynamic>>.from(json['items'] ?? []),
+      date: json['date'] != null
+          ? DateTime.parse(json['date'])
+          : DateTime.now(),
+    );
+  }
+}
+
 /// Service for nutrition-related API calls
 class NutritionService {
   static const String _baseUrl = ApiConfig.baseUrl;
@@ -119,6 +151,56 @@ class NutritionService {
     } catch (e) {
       print('Error fetching recipe: $e');
       return null;
+    }
+  }
+
+  /// Log a new meal
+  static Future<bool> logMeal({
+    required String token,
+    required String name,
+    required int calories,
+    String type = 'Snack',
+    List<Map<String, dynamic>>? items,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/meals/log'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'name': name,
+          'calories': calories,
+          'type': type,
+          'items': items ?? [],
+        }),
+      );
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error logging meal: $e');
+      return false;
+    }
+  }
+
+  /// Fetch today's logged meals
+  static Future<List<MealLog>> getTodayMeals(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/meals/today'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> mealsJson = data['data'] ?? [];
+        return mealsJson.map((json) => MealLog.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching today meals: $e');
+      return [];
     }
   }
 }
