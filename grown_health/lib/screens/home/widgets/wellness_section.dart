@@ -45,7 +45,7 @@ class _MedicineCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF0F3), // Very light pink
+              color: AppTheme.highlightPink, // Light maroon/pink highlight
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -182,7 +182,7 @@ class _WaterTrackerCard extends ConsumerWidget {
       onTap: () => Navigator.of(context).pushNamed('/water_history'),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFE8F4FA), // Very light blue/cyan
+          color: AppTheme.lightBlue, // Soft blue background
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

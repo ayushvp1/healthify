@@ -206,7 +206,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
         child: SafeArea(
           child: RefreshIndicator(
             onRefresh: _loadData,
-            color: AppTheme.accentColor,
+            color: AppTheme.primaryColor,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -380,7 +380,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: AppTheme.accentColor.withOpacity(0.3),
+              color: AppTheme.primaryColor.withOpacity(0.3),
               width: 1.5,
             ),
           ),
@@ -582,7 +582,7 @@ class _WorkoutsScreenState extends ConsumerState<WorkoutsScreen> {
           const Center(
             child: Padding(
               padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(color: AppTheme.accentColor),
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
             ),
           )
         else if (displayExercises.isEmpty)
@@ -852,14 +852,14 @@ class _RecentWorkoutCard extends StatelessWidget {
             if (rating != null)
               Row(
                 children: [
-                  Icon(Icons.star, size: 16, color: Colors.amber[600]),
+                  Icon(Icons.star, size: 16, color: AppTheme.amber),
                   const SizedBox(width: 2),
                   Text(
                     '$rating',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.amber[700],
+                      color: AppTheme.amber,
                     ),
                   ),
                 ],
@@ -961,7 +961,7 @@ class _ExerciseRow extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.fitness_center_rounded,
-                          color: AppTheme.accentColor,
+                          color: AppTheme.primaryColor,
                           size: 22,
                         ),
                       )

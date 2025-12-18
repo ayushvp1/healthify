@@ -17,6 +17,7 @@ export 'home/water_history_screen.dart';
 
 // Nutrition
 export 'nutrition/nutrition_screen.dart';
+export 'nutrition/calorie_scanner_screen.dart';
 
 // Mind
 export 'mind/mind_screen.dart';

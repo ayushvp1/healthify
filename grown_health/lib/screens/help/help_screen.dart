@@ -25,6 +25,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
   String? _error;
   bool _isComplete = false;
   int _totalAnswered = 0;
+  bool _showIntro = false;
+  bool _isShowingDashboard = true; // New state to show all 4 categories first
 
   final List<String> _categories = ['Body', 'Mind', 'Nutrition', 'Lifestyle'];
   Map<String, List<_QuestionData>> _questionsByCategory = {};
@@ -176,7 +178,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         _currentCategoryIndex = 0;
         _currentQuestionIndex = 0;
         _selectedOption = null;
-        _isComplete = false;
         _totalAnswered = 0;
         _answeredPerCategory = {
           'Body': 0,
@@ -184,6 +185,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           'Nutrition': 0,
           'Lifestyle': 0,
         };
+        _isComplete = false;
+        _isShowingDashboard = true;
       });
 
       if (mounted) {
@@ -223,6 +226,21 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         return const Color(0xFFF39C12); // Orange
       default:
         return AppTheme.primaryColor;
+    }
+  }
+
+  String _getCategoryDescription(String category) {
+    switch (category) {
+      case 'Body':
+        return 'Let\'s assess your physical health, activity levels, and body awareness.';
+      case 'Mind':
+        return 'Focusing on your mental well-being, stress levels, and emotional balance.';
+      case 'Nutrition':
+        return 'Understanding your dietary habits, hydration, and fueling choices.';
+      case 'Lifestyle':
+        return 'Reviewing your sleep, work-life balance, and daily routines.';
+      default:
+        return 'Continuing your journey towards better health.';
     }
   }
 
@@ -304,15 +322,15 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   _currentCategoryIndex++;
                   _currentQuestionIndex = 0;
                   _selectedOption = null;
+                  _showIntro = true;
+                  _isShowingDashboard = false; // Keep in assessment mode
                 });
               } else {
-                // All done - show final results
-                setState(() => _isComplete = true);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const AssessmentResultsScreen(),
-                  ),
-                );
+                // Return to dashboard but marked as complete
+                setState(() {
+                  _isShowingDashboard = true;
+                  _selectedOption = null;
+                });
               }
             },
           ),
@@ -510,6 +528,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       return _buildCompletedScreen();
     }
 
+    if (_isShowingDashboard) {
+      return _buildDashboard();
+    }
+
     final currentCategory = _categories[_currentCategoryIndex];
     final currentQuestions = _questionsByCategory[currentCategory] ?? [];
 
@@ -522,21 +544,14 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
 
     final question = currentQuestions[_currentQuestionIndex];
 
+    final categoryColor = _getCategoryColor(currentCategory);
+
     return Scaffold(
       backgroundColor: AppTheme.white,
       appBar: AppBar(
-        backgroundColor: AppTheme.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        centerTitle: true,
         leading: const BackButton(color: AppTheme.black),
-        title: Text(
-          'Health Assessment',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.black,
-          ),
-        ),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded, color: AppTheme.grey600),
@@ -583,200 +598,440 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            // Progress indicator
-            _buildProgressIndicator(),
-            const SizedBox(height: 20),
-            // Top Tabs
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(_categories.length, (index) {
-                  final category = _categories[index];
-                  final isCompleted =
-                      (_answeredPerCategory[category] ?? 0) >=
-                      (_questionsByCategory[category]?.length ?? 0);
-                  final totalQuestions =
-                      _questionsByCategory[category]?.length ?? 0;
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.white,
+              categoryColor.withOpacity(0.05),
+              categoryColor.withOpacity(0.12),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: _showIntro
+                ? _buildCategoryIntro(currentCategory)
+                : _buildQuestionView(currentCategory, question, categoryColor),
+          ),
+        ),
+      ),
+    );
+  }
 
-                  return GestureDetector(
-                    onTap: () {
-                      // Allow tapping on completed sections to view summary
-                      if (isCompleted && totalQuestions > 0) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => CategorySummaryScreen(
-                              category: category,
-                              isLastCategory: index == _categories.length - 1,
-                            ),
-                          ),
-                        );
-                      } else if (index <= _currentCategoryIndex) {
-                        // Allow navigating to current or previous sections
-                        setState(() {
-                          _currentCategoryIndex = index;
-                          _currentQuestionIndex = 0;
-                          _selectedOption = null;
-                        });
-                      }
-                    },
-                    child: _TopTab(
-                      label: category,
-                      icon: _getCategoryIcon(category),
-                      selected: _currentCategoryIndex == index,
-                      completed: isCompleted && totalQuestions > 0,
-                      color: _getCategoryColor(category),
-                    ),
-                  );
-                }),
+  Widget _buildDashboard() {
+    return Scaffold(
+      backgroundColor: AppTheme.white,
+      appBar: AppBar(
+        backgroundColor: AppTheme.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: const BackButton(color: AppTheme.black),
+        title: Text(
+          'Health Assessment',
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.black,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppTheme.grey600),
+            onPressed: _showResetConfirmation,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Wellness Journey',
+              style: GoogleFonts.outfit(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.black,
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Complete all 4 categories to see your overall health score.',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.grey600),
+            ),
             const SizedBox(height: 32),
-            // Question Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Question Header
-                    Row(
+            ...List.generate(_categories.length, (index) {
+              final category = _categories[index];
+              final color = _getCategoryColor(category);
+              final icon = _getCategoryIcon(category);
+              final desc = _getCategoryDescription(category);
+              final answered = _answeredPerCategory[category] ?? 0;
+              final total = _questionsByCategory[category]?.length ?? 0;
+              final isDone = total > 0 && answered >= total;
+              final progress = total > 0 ? answered / total : 0.0;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _currentCategoryIndex = index;
+                      _currentQuestionIndex = answered < total ? answered : 0;
+                      _selectedOption = null;
+                      _isShowingDashboard = false;
+                      _showIntro =
+                          answered == 0; // Show intro only for first time
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppTheme.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDone ? color : AppTheme.grey200,
+                        width: isDone ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.health_and_safety_outlined,
-                            color: Color(0xFF2E7D32),
-                            size: 24,
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Icon(icon, color: color, size: 28),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    category,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.black,
+                                    ),
+                                  ),
+                                  Text(
+                                    isDone
+                                        ? 'Completed'
+                                        : '$answered/$total Questions',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDone ? color : AppTheme.grey600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isDone)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: color,
+                                size: 28,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          desc,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppTheme.grey700,
+                            height: 1.4,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Text(
-                          question.title,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.black87,
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: color.withOpacity(0.05),
+                            valueColor: AlwaysStoppedAnimation<Color>(color),
+                            minHeight: 6,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      question.body,
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        height: 1.3,
-                        color: AppTheme.black,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Options
-                    ...List.generate(question.options.length, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _OptionButton(
-                          label: question.options[index],
-                          selected: _selectedOption == index,
-                          onTap: () => setState(() => _selectedOption = index),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
-            // Bottom Button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _goNext,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
                   ),
-                  child: _isSubmitting
-                      ? const CircularProgressIndicator(color: AppTheme.white)
-                      : Text(
-                          'Next',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.white,
-                          ),
-                        ),
+                ),
+              );
+            }),
+            const SizedBox(height: 20),
+            if (_totalAnswered > 0)
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AssessmentResultsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.insights_rounded),
+                  label: const Text('View Current Progress & Results'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProgressIndicator() {
-    final totalQuestions = _questionsByCategory.values.fold<int>(
-      0,
-      (sum, list) => sum + list.length,
-    );
-    final progress = totalQuestions > 0 ? _totalAnswered / totalQuestions : 0.0;
+  Widget _buildCategoryIntro(String category) {
+    final color = _getCategoryColor(category);
+    final icon = _getCategoryIcon(category);
+    final description = _getCategoryDescription(category);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progress',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.grey600,
-                ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 800),
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Opacity(opacity: value, child: child),
+              );
+            },
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withOpacity(0.2), width: 2),
               ),
-              Text(
-                '$_totalAnswered / $totalQuestions',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-            ],
+              child: Icon(icon, size: 60, color: color),
+            ),
           ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppTheme.grey200,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppTheme.primaryColor,
+          const SizedBox(height: 40),
+          Text(
+            category,
+            style: GoogleFonts.outfit(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.black,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: AppTheme.grey700,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 60),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () => setState(() => _showIntro = false),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: color.withOpacity(0.4),
               ),
-              minHeight: 6,
+              child: Text(
+                'Start Section',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.white,
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildQuestionView(
+    String currentCategory,
+    _QuestionData question,
+    Color categoryColor,
+  ) {
+    return Column(
+      key: ValueKey('question_${question.id}'),
+      children: [
+        const SizedBox(height: 10),
+        // Progress indicator removed as per user request
+        const SizedBox(height: 10),
+        // Top Tabs
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(_categories.length, (index) {
+              final category = _categories[index];
+              final isCompleted =
+                  (_answeredPerCategory[category] ?? 0) >=
+                  (_questionsByCategory[category]?.length ?? 0);
+              final totalQuestions =
+                  _questionsByCategory[category]?.length ?? 0;
+
+              return GestureDetector(
+                onTap: () {
+                  // Allow tapping on completed sections to view summary
+                  if (isCompleted && totalQuestions > 0) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CategorySummaryScreen(
+                          category: category,
+                          isLastCategory: index == _categories.length - 1,
+                        ),
+                      ),
+                    );
+                  } else if (index <= _currentCategoryIndex) {
+                    // Allow navigating to current or previous sections
+                    setState(() {
+                      _currentCategoryIndex = index;
+                      _currentQuestionIndex = 0;
+                      _selectedOption = null;
+                      _showIntro = true;
+                    });
+                  }
+                },
+                child: _TopTab(
+                  label: category,
+                  icon: _getCategoryIcon(category),
+                  selected: _currentCategoryIndex == index,
+                  completed: isCompleted && totalQuestions > 0,
+                  color: _getCategoryColor(category),
+                ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(height: 32),
+        // Question Content
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Question Header
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(currentCategory),
+                        color: categoryColor,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      question.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  question.body,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    color: AppTheme.black,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Options
+                ...List.generate(question.options.length, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _OptionButton(
+                      label: question.options[index],
+                      selected: _selectedOption == index,
+                      activeColor: categoryColor,
+                      onTap: () => setState(() => _selectedOption = index),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        // Bottom Button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isSubmitting ? null : _goNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: categoryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: categoryColor.withOpacity(0.35),
+              ),
+              child: _isSubmitting
+                  ? const CircularProgressIndicator(color: AppTheme.white)
+                  : Text(
+                      'Next',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.white,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1096,32 +1351,41 @@ class _OptionButton extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final Color activeColor;
 
   const _OptionButton({
     required this.label,
     required this.selected,
     required this.onTap,
+    this.activeColor = AppTheme.primaryColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.white,
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? activeColor.withOpacity(0.05) : AppTheme.white,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: selected ? AppTheme.primaryColor : AppTheme.grey300,
+            color: selected ? activeColor : AppTheme.grey300,
             width: selected ? 1.5 : 1,
           ),
           boxShadow: [
-            if (!selected)
+            if (selected)
               BoxShadow(
-                color: AppTheme.black.withOpacity(0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: activeColor.withOpacity(0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              )
+            else
+              BoxShadow(
+                color: AppTheme.black.withOpacity(0.01),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
               ),
           ],
         ),
@@ -1131,18 +1395,14 @@ class _OptionButton extends StatelessWidget {
               child: Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.black87,
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  color: selected ? activeColor : AppTheme.black87,
                 ),
               ),
             ),
             if (selected)
-              const Icon(
-                Icons.check_circle_rounded,
-                color: AppTheme.primaryColor,
-                size: 20,
-              ),
+              Icon(Icons.check_circle_rounded, color: activeColor, size: 18),
           ],
         ),
       ),

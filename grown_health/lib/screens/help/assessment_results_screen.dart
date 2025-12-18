@@ -6,6 +6,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/health_assessment_service.dart';
+import '../../services/gemini_service.dart';
 import 'assessment_history_screen.dart';
 
 class AssessmentResultsScreen extends ConsumerStatefulWidget {
@@ -24,6 +25,8 @@ class _AssessmentResultsScreenState
   AssessmentResults? _results;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  String? _aiAnalysis;
+  bool _isAnalyzing = false;
 
   @override
   void initState() {
@@ -42,6 +45,52 @@ class _AssessmentResultsScreenState
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _generateAIAnalysis() async {
+    if (_results == null) return;
+
+    setState(() {
+      _isAnalyzing = true;
+      _aiAnalysis = null;
+    });
+
+    try {
+      final categoryScores = <String, int>{};
+      for (var score in _results!.categoryScores) {
+        categoryScores[score.category] = score.percentage;
+      }
+
+      final recommendations = _results!.recommendations
+          .map(
+            (r) => {
+              'category': r.category,
+              'title': r.title,
+              'description': r.description,
+            },
+          )
+          .toList();
+
+      final analysis = await GeminiService.analyzeHealthAssessment(
+        scores: categoryScores,
+        recommendations: recommendations,
+        totalAnswered: _results!.totalQuestionsAnswered,
+      );
+
+      if (mounted) {
+        setState(() {
+          _aiAnalysis = analysis;
+          _isAnalyzing = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+        });
+        SnackBarUtils.showError(context, 'Failed to generate AI analysis');
+      }
+    }
   }
 
   Future<void> _loadResults() async {
@@ -262,6 +311,10 @@ class _AssessmentResultsScreenState
             ),
             const SizedBox(height: 16),
             _buildRecommendations(results.recommendations),
+            const SizedBox(height: 32),
+
+            // AI Insights
+            _buildAIInsightsSection(),
             const SizedBox(height: 32),
 
             // Action Buttons
@@ -649,6 +702,192 @@ class _AssessmentResultsScreenState
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAIInsightsSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.06),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'AI Health Insight',
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.black,
+                    ),
+                  ),
+                  Text(
+                    'Powered by Gemini AI',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (_aiAnalysis == null) ...[
+            Text(
+              'Want a deeper dive? Let our AI analyze your results to provide a comprehensive, personalized wellness report.',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.grey700,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: _isAnalyzing ? null : _generateAIAnalysis,
+                icon: _isAnalyzing
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.white,
+                        ),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded),
+                label: Text(
+                  _isAnalyzing
+                      ? 'Analyzing Results...'
+                      : 'Generate AI Deep Dive',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: AppTheme.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ] else ...[
+            _MarkdownContent(text: _aiAnalysis!),
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton.icon(
+                onPressed: _generateAIAnalysis,
+                icon: const Icon(Icons.refresh_rounded, size: 20),
+                label: const Text('Regenerate Analysis'),
+                style: TextButton.styleFrom(foregroundColor: AppTheme.grey600),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _MarkdownContent extends StatelessWidget {
+  final String text;
+
+  const _MarkdownContent({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    // Simple parser for bullet points and bolding
+    final lines = text.split('\n');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: lines.map((line) {
+        if (line.trim().isEmpty) return const SizedBox(height: 8);
+
+        bool isHeading =
+            line.startsWith('#') || line.contains(':') && !line.startsWith('-');
+        bool isBullet =
+            line.trim().startsWith('-') || line.trim().startsWith('*');
+
+        String cleanText = line.replaceAll('#', '').replaceAll('*', '').trim();
+
+        if (isHeading) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Text(
+              cleanText,
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.black,
+              ),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isBullet)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, right: 8),
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: Text(
+                  isBullet ? cleanText.substring(1).trim() : cleanText,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: AppTheme.grey800,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

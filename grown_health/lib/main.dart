@@ -12,10 +12,14 @@ import 'screens/workout/bundle_detail_screen.dart';
 import 'screens/workout/bundles_list_screen.dart';
 import 'screens/workout/exercise_detail_screen.dart';
 import 'screens/auth/initial_workout_selection_screen.dart';
+import 'services/gemini_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+
+  // Initialize Services
+  GeminiService.initialize();
 
   runApp(
     ProviderScope(

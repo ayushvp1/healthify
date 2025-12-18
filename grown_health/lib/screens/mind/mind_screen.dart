@@ -80,64 +80,50 @@ class _MindScreenState extends ConsumerState<MindScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FC),
+      backgroundColor: AppTheme.white,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // App Bar with gradient
-          SliverAppBar(
-            expandedHeight: 140,
-            floating: false,
-            pinned: true,
-            backgroundColor: const Color(0xFF5B0C23), // Primary maroon
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: true,
-              title: Text(
-                'Mind',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF5B0C23), // Primary maroon
-                      Color(0xFF8B2030), // Dark red
-                      Color(0xFFAA3D50), // Accent maroon
+          // Minimal Header Section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mind',
+                        style: GoogleFonts.inter(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.black,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Find your calm',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppTheme.grey500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        Text(
-                          'Find your calm',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.white60,
-                          ),
-                        ),
-                      ],
+                  // Refresh Button
+                  IconButton(
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: AppTheme.primaryColor,
                     ),
+                    onPressed: _loadMeditations,
                   ),
-                ),
+                ],
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-                onPressed: _loadMeditations,
-              ),
-            ],
           ),
           // Body content
           SliverToBoxAdapter(child: _buildBody()),
@@ -155,7 +141,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const CircularProgressIndicator(
-                color: Color(0xFF1A1A2E),
+                color: AppTheme.primaryColor,
                 strokeWidth: 2,
               ),
               const SizedBox(height: 16),
@@ -183,7 +169,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
               ElevatedButton(
                 onPressed: _loadMeditations,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A2E),
+                  backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Retry'),
@@ -210,7 +196,7 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 child: Icon(
                   Icons.self_improvement_rounded,
                   size: 48,
-                  color: const Color(0xFF1A1A2E).withOpacity(0.5),
+                  color: AppTheme.primaryColor.withOpacity(0.5),
                 ),
               ),
               const SizedBox(height: 24),
@@ -295,13 +281,14 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 color: isSelected ? Colors.white : AppTheme.grey700,
               ),
               backgroundColor: Colors.white,
-              selectedColor: const Color(0xFF5B0C23), // Primary maroon
+              selectedColor: AppTheme.primaryColor, // Primary maroon
               checkmarkColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
                   color: isSelected
-                      ? const Color(0xFF5B0C23) // Primary maroon
+                      ? AppTheme
+                            .primaryColor // Primary maroon
                       : AppTheme.grey300,
                 ),
               ),
@@ -438,11 +425,11 @@ class _MindScreenState extends ConsumerState<MindScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5B0C23), // Primary maroon
+                  color: AppTheme.primaryColor, // Primary maroon
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF5B0C23).withOpacity(0.3),
+                      color: AppTheme.primaryColor.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

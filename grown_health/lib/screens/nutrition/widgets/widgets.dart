@@ -13,3 +13,4 @@ export 'quick_actions_grid.dart';
 export 'recipe_of_the_day_card.dart';
 export 'todays_meals_section.dart';
 export 'weight_goal_cards.dart';
+export 'smart_recommendations_card.dart';

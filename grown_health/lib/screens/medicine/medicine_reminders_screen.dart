@@ -187,7 +187,7 @@ class _MedicineRemindersScreenState
       return const Scaffold(
         backgroundColor: AppTheme.white,
         body: Center(
-          child: CircularProgressIndicator(color: AppTheme.accentColor),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
         ),
       );
     }
@@ -241,7 +241,7 @@ class _MedicineRemindersScreenState
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.accentColor,
+        backgroundColor: AppTheme.primaryColor,
         onPressed: _openAddMedicine,
         child: const Icon(Icons.add, color: AppTheme.white),
       ),
@@ -325,7 +325,7 @@ class _MedicineRemindersScreenState
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: AppTheme.accentColor.withOpacity(0.3),
+              color: AppTheme.primaryColor.withOpacity(0.3),
               width: 1.5,
             ),
           ),
@@ -544,7 +544,7 @@ class _MedicineCard extends StatelessWidget {
                         ),
                         child: Icon(
                           Icons.medication_rounded,
-                          color: AppTheme.accentColor,
+                          color: AppTheme.primaryColor,
                           size: 26,
                         ),
                       ),

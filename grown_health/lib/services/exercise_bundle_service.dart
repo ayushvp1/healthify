@@ -348,6 +348,7 @@ class ExerciseInfo {
   final String slug;
   final String image;
   final String gif; // GIF URL for animated demonstration
+  final String video;
   final String difficulty;
   final int duration;
   final String description;
@@ -358,6 +359,7 @@ class ExerciseInfo {
     required this.slug,
     required this.image,
     required this.gif,
+    required this.video,
     required this.difficulty,
     required this.duration,
     required this.description,
@@ -370,6 +372,7 @@ class ExerciseInfo {
       slug: json['slug'] as String? ?? '',
       image: json['image'] as String? ?? '',
       gif: json['gif'] as String? ?? '',
+      video: json['video'] as String? ?? '',
       difficulty: json['difficulty'] as String? ?? 'beginner',
       duration: json['duration'] as int? ?? 0,
       description: json['description'] as String? ?? '',
@@ -644,6 +647,7 @@ class SessionExerciseInfo {
   final String slug;
   final String image;
   final String gif;
+  final String video;
   final String difficulty;
   final int duration;
   final String description;
@@ -654,6 +658,7 @@ class SessionExerciseInfo {
     required this.slug,
     required this.image,
     required this.gif,
+    required this.video,
     required this.difficulty,
     required this.duration,
     required this.description,
@@ -666,6 +671,7 @@ class SessionExerciseInfo {
       slug: json['slug'] as String? ?? '',
       image: json['image'] as String? ?? '',
       gif: json['gif'] as String? ?? '',
+      video: json['video'] as String? ?? '',
       difficulty: json['difficulty'] as String? ?? 'beginner',
       duration: json['duration'] as int? ?? 0,
       description: json['description'] as String? ?? '',

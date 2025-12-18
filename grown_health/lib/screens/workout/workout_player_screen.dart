@@ -42,7 +42,10 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
   // Video & Audio
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
+  bool _isVideoError = false;
   late FlutterTts _flutterTts;
+  bool _isVoiceEnabled = true;
+  double _volume = 1.0;
 
   // Mode state
   bool _isSingleExerciseMode = false;
@@ -91,22 +94,45 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
   }
 
   Future<void> _speak(String text) async {
+    if (!_isVoiceEnabled) return;
+    await _flutterTts.setVolume(_volume);
     await _flutterTts.speak(text);
   }
 
   void _initializeVideo(String videoUrl) async {
-    if (videoUrl.isEmpty) return;
+    if (videoUrl.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = false;
+          _isVideoError = false;
+        });
+      }
+      return;
+    }
 
-    // Dispose old controller if exists
-    await _videoController?.dispose();
+    // Reset state for new video
+    if (mounted) {
+      setState(() {
+        _isVideoInitialized = false;
+        _isVideoError = false;
+      });
+    }
 
-    _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
     try {
+      final oldController = _videoController;
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+
+      // After creating new controller, dispose old one
+      if (oldController != null) {
+        await oldController.dispose();
+      }
+
       await _videoController!.initialize();
       if (mounted) {
         setState(() {
           _isVideoInitialized = true;
           _videoController!.setLooping(true);
+          _videoController!.setVolume(_volume);
           if (!_isPaused && !_isResting && !_isPrepPhase) {
             _videoController!.play();
           }
@@ -114,6 +140,12 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
       }
     } catch (e) {
       debugPrint('Error initializing video: $e');
+      if (mounted) {
+        setState(() {
+          _isVideoError = true;
+          _isVideoInitialized = false;
+        });
+      }
     }
   }
 
@@ -506,13 +538,149 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     return '$minutes:$seconds';
   }
 
+  void _showSoundSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: AppTheme.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.grey200,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Sound Settings',
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _isVoiceEnabled
+                        ? AppTheme.primaryColor.withOpacity(0.1)
+                        : AppTheme.grey100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _isVoiceEnabled
+                        ? Icons.volume_up_rounded
+                        : Icons.volume_off_rounded,
+                    color: _isVoiceEnabled
+                        ? AppTheme.primaryColor
+                        : AppTheme.grey500,
+                  ),
+                ),
+                title: Text(
+                  'Voice Cues',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text('Get audio instructions during workout'),
+                trailing: Switch.adaptive(
+                  value: _isVoiceEnabled,
+                  activeColor: AppTheme.primaryColor,
+                  onChanged: (value) {
+                    setState(() => _isVoiceEnabled = value);
+                    setModalState(() {});
+                  },
+                ),
+              ),
+              const Divider(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Volume',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          '${(_volume * 100).round()}%',
+                          style: GoogleFonts.inter(
+                            color: AppTheme.grey600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Slider(
+                    value: _volume,
+                    activeColor: AppTheme.primaryColor,
+                    inactiveColor: AppTheme.grey200,
+                    onChanged: (value) {
+                      setState(() {
+                        _volume = value;
+                        _videoController?.setVolume(value);
+                      });
+                      setModalState(() {});
+                    },
+                  ),
+                ],
+              ),
+              const Divider(height: 32),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.grey100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline_rounded,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                title: Text(
+                  'Exercise Instructions',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                subtitle: const Text('View step-by-step guide'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showHowTo();
+                },
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
         backgroundColor: AppTheme.white,
         body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.accentColor),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
         ),
       );
     }
@@ -524,7 +692,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           backgroundColor: AppTheme.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.black),
+            icon: const Icon(Icons.arrow_back, color: AppTheme.primaryColor),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -552,7 +720,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.accentColor,
+                    backgroundColor: AppTheme.primaryColor,
                   ),
                   child: const Text('Go Back'),
                 ),
@@ -581,93 +749,124 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
               stepIndex: _currentIndex,
               total: _exercises.length,
             ),
-            const SizedBox(height: 16),
-
-            // Condition/Phase Indicator (Prep or Rest)
-            if (_isPrepPhase || _isResting)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.lightBlue,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _isPrepPhase ? Icons.timer : Icons.self_improvement,
-                      color: AppTheme.infoColor,
-                      size: 32,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _isPrepPhase ? 'GET READY' : 'REST',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.infoColor,
-                            ),
-                          ),
-                          Text(
-                            _isPrepPhase
-                                ? 'Next: $exerciseName'
-                                : 'Take a breath',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: AppTheme.grey600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            const Spacer(),
 
             // Exercise Visual (Video or Image)
-            _buildExerciseVisual(
-              visualUrl,
-              exerciseName,
-              exercise['video'] ?? '',
-            ),
+            Expanded(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      // Phase Indicator Overlay (subtle)
+                      if (_isPrepPhase || _isResting)
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _isPrepPhase
+                                ? AppTheme.primaryColor.withOpacity(0.1)
+                                : AppTheme.infoColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _isPrepPhase
+                                  ? AppTheme.primaryColor.withOpacity(0.2)
+                                  : AppTheme.infoColor.withOpacity(0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isPrepPhase
+                                    ? Icons.timer_rounded
+                                    : Icons.self_improvement_rounded,
+                                color: _isPrepPhase
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.infoColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isPrepPhase ? 'PREPARING' : 'RESTING',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: _isPrepPhase
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.infoColor,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
 
-            const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-            // Exercise Name
-            Text(
-              _isResting ? 'Next: $exerciseName' : exerciseName.toUpperCase(),
-              style: GoogleFonts.inter(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.black,
+                      // Main Exercise Visual
+                      Expanded(
+                        child: _buildExerciseVisual(
+                          visualUrl,
+                          exerciseName,
+                          exercise['video'] ?? '',
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Exercise Name
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          children: [
+                            Text(
+                              _isResting
+                                  ? 'UP NEXT'
+                                  : 'EXERCISE ${_currentIndex + 1}',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.grey500,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              exerciseName,
+                              style: GoogleFonts.inter(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primaryColor,
+                                height: 1.2,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (!_isResting && !_isPrepPhase) ...[
+                              const SizedBox(height: 8),
+                              _buildExerciseInfo(exerciseData),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Timer Section
+                      _buildBigTimer(),
+
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-
-            // Exercise info (reps/sets)
-            if (!_isResting && !_isPrepPhase) ...[
-              const SizedBox(height: 8),
-              _buildExerciseInfo(exerciseData),
-            ],
-
-            const SizedBox(height: 30),
-
-            // Timer
-            _buildBigTimer(),
-
-            const Spacer(),
 
             // Controls
             _buildControls(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -680,63 +879,42 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     required int total,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.grey100,
-              shape: BoxShape.circle,
+          IconButton(
+            icon: const Icon(
+              Icons.close_rounded,
+              color: AppTheme.primaryColor,
+              size: 28,
             ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 18,
-                color: AppTheme.black,
+            onPressed: () => _confirmExit(),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value:
+                    (stepIndex +
+                        (1 -
+                            _remainingSeconds /
+                                (_totalDuration > 0 ? _totalDuration : 1))) /
+                    total,
+                backgroundColor: AppTheme.grey100,
+                valueColor: const AlwaysStoppedAnimation(AppTheme.primaryColor),
+                minHeight: 8,
               ),
-              onPressed: () => _confirmExit(),
             ),
           ),
-          // Progress indicator
-          Column(
-            children: [
-              Text(
-                '${stepIndex + 1}/$total',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.black,
-                ),
-              ),
-              const SizedBox(height: 4),
-              SizedBox(
-                width: 120,
-                child: LinearProgressIndicator(
-                  value: (stepIndex + 1) / total,
-                  backgroundColor: AppTheme.grey200,
-                  valueColor: const AlwaysStoppedAnimation(
-                    AppTheme.accentColor,
-                  ),
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ],
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.grey100,
-              shape: BoxShape.circle,
+          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(
+              Icons.tune_rounded,
+              color: AppTheme.primaryColor,
+              size: 24,
             ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.question_mark_rounded,
-                size: 20,
-                color: AppTheme.black,
-              ),
-              onPressed: () => _showHowTo(),
-            ),
+            onPressed: () => _showSoundSettings(),
           ),
         ],
       ),
@@ -810,81 +988,130 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     String exerciseName,
     String videoUrl,
   ) {
-    if (videoUrl.isNotEmpty &&
-        _isVideoInitialized &&
-        _videoController != null) {
-      return Container(
-        height: 250,
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        decoration: BoxDecoration(
-          color: AppTheme.black,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      decoration: BoxDecoration(
+        color: AppTheme.grey50,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Video Layer
+            if (videoUrl.isNotEmpty)
+              _isVideoInitialized && _videoController != null
+                  ? FittedBox(
+                      fit: BoxFit.cover,
+                      child: SizedBox(
+                        width: _videoController!.value.size.width,
+                        height: _videoController!.value.size.height,
+                        child: VideoPlayer(_videoController!),
+                      ),
+                    )
+                  : _isVideoError
+                  ? _buildImageFallback(imageUrl, exerciseName)
+                  : const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryColor,
+                        strokeWidth: 2,
+                      ),
+                    )
+            else
+              _buildImageFallback(imageUrl, exerciseName),
+
+            // Subtle Gradient Overlay
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.1),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.1),
+                  ],
+                ),
+              ),
             ),
+
+            // Pause Overlay
+            if (_isPaused)
+              Container(
+                color: Colors.black26,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.pause_rounded,
+                      color: Colors.white,
+                      size: 64,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: AspectRatio(
-            aspectRatio: _videoController!.value.aspectRatio,
-            child: VideoPlayer(_videoController!),
-          ),
-        ),
+      ),
+    );
+  }
+
+  Widget _buildImageFallback(String imageUrl, String exerciseName) {
+    if (imageUrl.isNotEmpty) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryColor,
+              strokeWidth: 2,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) =>
+            _buildIconPlaceholder(exerciseName),
       );
     }
+    return _buildIconPlaceholder(exerciseName);
+  }
 
-    return SizedBox(
-      height: 220,
-      width: double.infinity,
+  Widget _buildIconPlaceholder(String name) {
+    return Container(
+      color: AppTheme.grey100,
       child: Center(
-        child: Container(
-          width: 220,
-          height: 220,
-          decoration: BoxDecoration(
-            color: _isResting ? AppTheme.lightBlue : AppTheme.highlightPink,
-            shape: BoxShape.circle,
-          ),
-          child: ClipOval(
-            child: imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: AppTheme.accentColor,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        _isResting
-                            ? Icons.self_improvement
-                            : Icons.fitness_center,
-                        size: 80,
-                        color: _isResting
-                            ? AppTheme.infoColor
-                            : AppTheme.accentColor,
-                      );
-                    },
-                  )
-                : Icon(
-                    _isResting ? Icons.self_improvement : Icons.fitness_center,
-                    size: 80,
-                    color: _isResting
-                        ? AppTheme.infoColor
-                        : AppTheme.accentColor,
-                  ),
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _isResting
+                  ? Icons.self_improvement_rounded
+                  : Icons.fitness_center_rounded,
+              size: 80,
+              color: AppTheme.primaryColor.withOpacity(0.2),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No Media Available',
+              style: GoogleFonts.inter(
+                color: AppTheme.grey400,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -897,17 +1124,18 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     if (reps == 0 && sets <= 1) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        reps > 0 ? '$sets × $reps reps' : '$sets sets',
+        reps > 0 ? '$sets SETS × $reps REPS' : '$sets SETS',
         style: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.accentColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: AppTheme.primaryColor,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -918,135 +1146,155 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         ? 1 - (_remainingSeconds / _totalDuration)
         : 0.0;
 
-    // Use green color for timer to match reference design
-    const timerColor = AppTheme.successColor;
-    const restColor = AppTheme.infoColor;
+    final timerColor = _isResting ? AppTheme.infoColor : AppTheme.primaryColor;
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Timer circle with green outline
-        SizedBox(
-          width: 180,
-          height: 180,
-          child: CircularProgressIndicator(
-            value: progress,
-            strokeWidth: 6,
-            backgroundColor: AppTheme.grey200,
-            valueColor: AlwaysStoppedAnimation(
-              _isResting ? restColor : timerColor,
-            ),
-          ),
-        ),
-        // Timer text
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _formattedTime,
-              style: GoogleFonts.inter(
-                fontSize: 48,
-                fontWeight: FontWeight.w700,
-                color: _isResting ? restColor : timerColor,
-              ),
-            ),
-            if (_isResting)
-              Text(
-                'REST',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: restColor,
+    return Container(
+      width: 180,
+      height: 180,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background Glow (Pulsing effect if playing)
+          if (!_isPaused && !_isResting)
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.8, end: 1.0),
+              duration: const Duration(seconds: 1),
+              curve: Curves.easeInOutSine,
+              builder: (context, value, child) => Container(
+                width: 160 * value,
+                height: 160 * value,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: timerColor.withOpacity(0.15 * value),
+                      blurRadius: 30 * value,
+                      spreadRadius: 8 * value,
+                    ),
+                  ],
                 ),
               ),
-          ],
-        ),
-      ],
+              child: const SizedBox.shrink(),
+            ),
+
+          // Main Timer Ring
+          SizedBox(
+            width: 160,
+            height: 160,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 8,
+              backgroundColor: AppTheme.grey100,
+              strokeCap: StrokeCap.round,
+              valueColor: AlwaysStoppedAnimation(timerColor),
+            ),
+          ),
+
+          // Timer Center
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _formattedTime,
+                style: GoogleFonts.inter(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primaryColor,
+                  letterSpacing: -1,
+                ),
+              ),
+              Text(
+                _isResting ? 'REST' : 'SECONDS',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.grey400,
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildControls() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      child: Row(
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _togglePause,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _isResting
-                    ? AppTheme.infoColor
-                    : AppTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _isPaused ? 'Resume' : 'Pause',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                    color: AppTheme.white,
-                  ),
-                ],
+          // Previous Button
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.grey100,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: _currentIndex > 0 ? _goToPreviousStep : null,
+              icon: Icon(
+                Icons.skip_previous_rounded,
+                color: _currentIndex > 0
+                    ? AppTheme.primaryColor
+                    : AppTheme.grey300,
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton.icon(
-                onPressed: _currentIndex > 0 ? _goToPreviousStep : null,
-                icon: Icon(
-                  Icons.skip_previous_rounded,
-                  color: _currentIndex > 0
-                      ? AppTheme.grey500
-                      : AppTheme.grey300,
-                ),
-                label: Text(
-                  'Previous',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: _currentIndex > 0
-                        ? AppTheme.grey500
-                        : AppTheme.grey300,
+          const SizedBox(width: 16),
+
+          // Main Play/Pause Button
+          Expanded(
+            child: SizedBox(
+              height: 64,
+              child: ElevatedButton(
+                onPressed: _togglePause,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: AppTheme.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
                   ),
+                  elevation: 8,
+                  shadowColor: AppTheme.primaryColor.withOpacity(0.3),
                 ),
-              ),
-              TextButton(
-                onPressed: _goToNextStep,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      _isPaused
+                          ? Icons.play_arrow_rounded
+                          : Icons.pause_rounded,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 8),
                     Text(
-                      'Skip',
+                      _isPaused ? 'RESUME' : 'PAUSE',
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.grey500,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.skip_next_rounded,
-                      color: AppTheme.grey500,
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
+          ),
+          const SizedBox(width: 16),
+
+          // Next/Skip Button
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.grey100,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: _goToNextStep,
+              icon: const Icon(
+                Icons.skip_next_rounded,
+                color: AppTheme.primaryColor,
+              ),
+            ),
           ),
         ],
       ),
