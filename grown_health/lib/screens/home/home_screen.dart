@@ -9,9 +9,11 @@ import '../../providers/providers.dart';
 import 'widgets/widgets.dart';
 import '../../services/water_service.dart';
 import '../../services/water_reminder_service.dart';
+import '../../widgets/tutorial_overlay.dart';
 
 import '../about/about_screen.dart';
 import '../contact/contact_screen.dart';
+import '../main_shell.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _displayName = 'User';
   String _greeting = 'Good Morning!';
+  final GlobalKey _medicineKey = GlobalKey();
+  final GlobalKey _waterKey = GlobalKey();
+  final GlobalKey _todaysPlanKey = GlobalKey();
+  final GlobalKey _profileKey = GlobalKey();
+  OverlayEntry? _tutorialOverlayEntry;
 
   @override
   void initState() {
@@ -31,6 +38,90 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _updateGreeting();
     _loadUserName();
     _startWaterReminders();
+    _checkTutorial();
+  }
+
+  Future<void> _checkTutorial() async {
+    // Small delay to ensure all keys are rendered and state is loaded
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+
+      final hasSeenTutorial =
+          ref.read(authProvider).user?.hasSeenTutorial ?? false;
+      if (!hasSeenTutorial) {
+        _showTutorial();
+      }
+    });
+  }
+
+  void _showTutorial() {
+    _tutorialOverlayEntry = OverlayEntry(
+      builder: (context) => TutorialOverlay(
+        steps: [
+          TutorialStep(
+            targetKey: _todaysPlanKey,
+            title: 'Your Daily Plan',
+            description:
+                'Here you\'ll find all the exercises scheduled for today. Just tap "Start" to begin your workout.',
+          ),
+          TutorialStep(
+            targetKey: _waterKey,
+            title: 'Hydration Tracker',
+            description:
+                'Monitor your daily water intake. Tap the "+" to add water and long-press to remove it.',
+          ),
+          TutorialStep(
+            targetKey: _medicineKey,
+            title: 'Medicine Reminders',
+            description:
+                'Keep track of your medications and never miss a dose with timely reminders.',
+          ),
+          TutorialStep(
+            targetKey: MainShell.workoutsKey,
+            title: 'Workout Library',
+            description:
+                'Explore our full library of workout programs and exercises for all fitness levels.',
+          ),
+          TutorialStep(
+            targetKey: MainShell.nutritionKey,
+            title: 'Nutrition & Diet',
+            description:
+                'Get personalized nutrition plans and track your calorie intake to reach your goals faster.',
+          ),
+          TutorialStep(
+            targetKey: MainShell.mindKey,
+            title: 'Mindfulness',
+            description:
+                'Relax and recharge with guided meditation and mental wellness exercises.',
+          ),
+          TutorialStep(
+            targetKey: MainShell.profileKey,
+            title: 'Community & Support',
+            description:
+                'Connect with other members, get support, and share your fitness journey.',
+          ),
+          TutorialStep(
+            targetKey: _profileKey,
+            title: 'Track Your Progress',
+            description:
+                'Tap here to view your achievements, update your health stats, and manage your profile.',
+          ),
+        ],
+        onComplete: _markTutorialAsSeen,
+      ),
+    );
+
+    Overlay.of(context).insert(_tutorialOverlayEntry!);
+  }
+
+  Future<void> _markTutorialAsSeen() async {
+    await ref.read(authProvider.notifier).setTutorialSeen(true);
+    _dismissTutorial();
+  }
+
+  void _dismissTutorial() {
+    _tutorialOverlayEntry?.remove();
+    _tutorialOverlayEntry = null;
   }
 
   void _startWaterReminders() {
@@ -48,6 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   void dispose() {
+    _dismissTutorial();
     WaterReminderManager.stop();
     super.dispose();
   }
@@ -99,18 +191,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     const SizedBox(height: 8),
                     _buildHeader(greeting, displayName),
-                    // const SizedBox(height: 16),
-                    // _buildSearchBar(),
                     const SizedBox(height: 24),
-                    const WellnessSection(),
+                    WellnessSection(
+                      medicineKey: _medicineKey,
+                      waterKey: _waterKey,
+                    ),
                     const SizedBox(height: 24),
-                    const TodaysPlanSection(),
+                    TodaysPlanSection(key: _todaysPlanKey),
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            // Body Focus - Workout Programs by Category
             const SliverToBoxAdapter(child: BodyFocusWidget()),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
@@ -179,6 +271,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               builder: (context) => GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/profile'),
                 child: Container(
+                  key: _profileKey,
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(

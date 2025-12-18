@@ -11,7 +11,7 @@ import 'screens/profile_complete_screen.dart';
 import 'screens/workout/bundle_detail_screen.dart';
 import 'screens/workout/bundles_list_screen.dart';
 import 'screens/workout/exercise_detail_screen.dart';
-import 'screens/workout/exercise_timer_screen.dart';
+import 'screens/auth/initial_workout_selection_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,11 +81,6 @@ class MyApp extends StatelessWidget {
               builder: (_) => const ExerciseDetailScreen(),
               settings: settings,
             );
-          case '/exercise_timer':
-            return MaterialPageRoute(
-              builder: (_) => const ExerciseTimerScreen(),
-              settings: settings,
-            );
           case '/workout_plan':
             return MaterialPageRoute(builder: (_) => const WorkoutPlanScreen());
           case '/profile_setup':
@@ -109,8 +104,16 @@ class MyApp extends StatelessWidget {
             );
           case '/api_test':
             return MaterialPageRoute(builder: (_) => const ApiTestScreen());
+          case '/initial_workout_selection':
+            return MaterialPageRoute(
+              builder: (_) => const InitialWorkoutSelectionScreen(),
+            );
           case '/nutrition':
             return MaterialPageRoute(builder: (_) => const NutritionScreen());
+          case '/water_history':
+            return MaterialPageRoute(
+              builder: (_) => const WaterHistoryScreen(),
+            );
           default:
             return MaterialPageRoute(builder: (_) => const SplashScreen());
         }

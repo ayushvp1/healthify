@@ -7,7 +7,10 @@ import '../../../providers/providers.dart';
 import '../../../providers/water_provider.dart';
 
 class WellnessSection extends ConsumerWidget {
-  const WellnessSection({super.key});
+  final GlobalKey? medicineKey;
+  final GlobalKey? waterKey;
+
+  const WellnessSection({super.key, this.medicineKey, this.waterKey});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,10 +19,10 @@ class WellnessSection extends ConsumerWidget {
       child: Row(
         children: [
           // Medicine Reminder Card (Flex 3)
-          Expanded(flex: 3, child: _MedicineCard()),
+          Expanded(flex: 3, child: _MedicineCard(key: medicineKey)),
           const SizedBox(width: 16),
           // Water Tracker Card (Flex 2)
-          Expanded(flex: 2, child: _WaterTrackerCard()),
+          Expanded(flex: 2, child: _WaterTrackerCard(key: waterKey)),
         ],
       ),
     );
@@ -27,6 +30,8 @@ class WellnessSection extends ConsumerWidget {
 }
 
 class _MedicineCard extends StatelessWidget {
+  const _MedicineCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, String>?>(
@@ -165,113 +170,118 @@ class _MedicineCard extends StatelessWidget {
 }
 
 class _WaterTrackerCard extends ConsumerWidget {
+  const _WaterTrackerCard({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(authProvider).user?.token;
     final waterState = ref.watch(waterNotifierProvider(token));
     final progress = (waterState.currentMl / waterState.goalMl).clamp(0.0, 1.0);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F4FA), // Very light blue/cyan
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2E8B99).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Stack(
-        children: [
-          // Background Liquid (Horizontal Fill)
-          FractionallySizedBox(
-            widthFactor: progress,
-            heightFactor: 1.0,
-            alignment: Alignment.centerLeft,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF81D4FA).withOpacity(0.3),
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pushNamed('/water_history'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F4FA), // Very light blue/cyan
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2E8B99).withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          children: [
+            // Background Liquid (Horizontal Fill)
+            FractionallySizedBox(
+              widthFactor: progress,
+              heightFactor: 1.0,
+              alignment: Alignment.centerLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF81D4FA).withOpacity(0.3),
+                ),
               ),
             ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header (Icon + Add)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(
-                      Icons.water_drop_rounded,
-                      color: Color(0xFF0288D1),
-                      size: 20,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        ref
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header (Icon + Add)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Icon(
+                        Icons.water_drop_rounded,
+                        color: Color(0xFF0288D1),
+                        size: 20,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          ref
+                              .read(waterNotifierProvider(token).notifier)
+                              .addWater();
+                          final waterState = ref.read(
+                            waterNotifierProvider(token),
+                          );
+                          SnackBarUtils.showSuccess(
+                            context,
+                            '💧 Added 250ml! ${waterState.currentMl + 250}/${waterState.goalMl}ml',
+                            duration: const Duration(seconds: 2),
+                          );
+                        },
+                        onLongPress: () => ref
                             .read(waterNotifierProvider(token).notifier)
-                            .addWater();
-                        final waterState = ref.read(
-                          waterNotifierProvider(token),
-                        );
-                        SnackBarUtils.showSuccess(
-                          context,
-                          '💧 Added 250ml! ${waterState.currentMl + 250}/${waterState.goalMl}ml',
-                          duration: const Duration(seconds: 2),
-                        );
-                      },
-                      onLongPress: () => ref
-                          .read(waterNotifierProvider(token).notifier)
-                          .removeWater(),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.white.withOpacity(0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 16,
-                          color: Color(0xFF0288D1),
+                            .removeWater(),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.white.withOpacity(0.8),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            size: 16,
+                            color: Color(0xFF0288D1),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                // Content
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${waterState.currentMl}',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF01579B),
+                  // Content
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${waterState.currentMl}',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF01579B),
+                        ),
                       ),
-                    ),
-                    Text(
-                      '/ ${waterState.goalMl}ml',
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        color: const Color(0xFF0277BD),
-                        fontWeight: FontWeight.w600,
+                      Text(
+                        '/ ${waterState.goalMl}ml',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: const Color(0xFF0277BD),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

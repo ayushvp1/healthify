@@ -43,6 +43,7 @@ dependencies:
   video_player: ^2.8.3
   flutter_tts: ^4.2.3
   just_audio: ^0.9.36
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

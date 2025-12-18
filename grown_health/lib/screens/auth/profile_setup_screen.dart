@@ -224,9 +224,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       if (!mounted) return;
 
       SnackBarUtils.showSuccess(context, 'Profile setup complete!');
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/initial_workout_selection',
+        (Route<dynamic> route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -284,9 +285,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
             .updateUser(name: name, profileCompleted: true);
 
         if (mounted) {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/initial_workout_selection',
+            (Route<dynamic> route) => false,
+          );
         }
       }
     }
@@ -366,9 +368,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     await prefs.setBool('isLoggedIn', true);
 
     if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/initial_workout_selection',
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override

@@ -22,6 +22,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final email = _storageService.getEmail();
     final name = _storageService.getName();
     final profileCompleted = _storageService.getProfileCompleted();
+    final tutorialSeen = _storageService.getTutorialSeen();
 
     if (token != null && token.isNotEmpty) {
       state = AuthState(
@@ -31,6 +32,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           token: token,
           name: name,
           isProfileComplete: profileCompleted,
+          hasSeenTutorial: tutorialSeen,
         ),
       );
     } else {
@@ -53,6 +55,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final result = await _authService.login(email: email, password: password);
       final token = result['token'] as String;
       final profileCompleted = result['profileCompleted'] as bool? ?? false;
+      final tutorialSeen = result['hasSeenTutorial'] as bool? ?? false;
       final name = result['name'] as String? ?? '';
 
       await _storageService.saveToken(token);
@@ -61,6 +64,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await _storageService.saveName(name);
       }
       await _storageService.saveProfileCompleted(profileCompleted);
+      await _storageService.saveTutorialSeen(tutorialSeen);
 
       state = AuthState(
         status: AuthStatus.authenticated,
@@ -69,6 +73,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           token: token,
           name: name,
           isProfileComplete: profileCompleted,
+          hasSeenTutorial: tutorialSeen,
         ),
       );
       return {'success': true, 'profileCompleted': profileCompleted};
@@ -161,6 +166,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     state = state.copyWith(user: updatedUser);
+  }
+
+  /// Update tutorial seen status
+  Future<void> setTutorialSeen(bool seen) async {
+    await _storageService.saveTutorialSeen(seen);
+    if (state.user != null) {
+      state = state.copyWith(user: state.user!.copyWith(hasSeenTutorial: seen));
+    }
   }
 }
 

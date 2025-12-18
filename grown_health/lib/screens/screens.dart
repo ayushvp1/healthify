@@ -13,6 +13,7 @@ export 'profile_screen.dart';
 
 // Home
 export 'home/home_screen.dart';
+export 'home/water_history_screen.dart';
 
 // Nutrition
 export 'nutrition/nutrition_screen.dart';

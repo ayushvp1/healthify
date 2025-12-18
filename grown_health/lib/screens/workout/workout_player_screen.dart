@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:video_player/video_player.dart';
 import '../../api_config.dart';
 import '../../providers/auth_provider.dart';
 
@@ -34,15 +36,92 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
   bool _isResting = false;
   int _restDuration = 15; // 15 seconds rest between exercises
 
+  // Preparation Phase state
+  bool _isPrepPhase = false;
+
+  // Video & Audio
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  late FlutterTts _flutterTts;
+
+  // Mode state
+  bool _isSingleExerciseMode = false;
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
-    _loadCurrentSession();
+    _initTts();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+      if (args != null) {
+        // Single Exercise Mode
+        _isSingleExerciseMode = true;
+        _exercises = [
+          {
+            'exercise': args,
+            'targetDuration': args['duration'] ?? 30,
+            'targetReps': args['reps'] ?? 0,
+            'targetSets': args['sets'] ?? 1,
+          },
+        ];
+        _currentIndex = 0;
+        _loading = false;
+        _startPrepPhase();
+      } else {
+        // Session mode
+        _loadCurrentSession();
+      }
+      _isInitialized = true;
+    }
+  }
+
+  void _initTts() {
+    _flutterTts = FlutterTts();
+    _flutterTts.setLanguage("en-US");
+    _flutterTts.setSpeechRate(0.5);
+    _flutterTts.setVolume(1.0);
+  }
+
+  Future<void> _speak(String text) async {
+    await _flutterTts.speak(text);
+  }
+
+  void _initializeVideo(String videoUrl) async {
+    if (videoUrl.isEmpty) return;
+
+    // Dispose old controller if exists
+    await _videoController?.dispose();
+
+    _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+    try {
+      await _videoController!.initialize();
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = true;
+          _videoController!.setLooping(true);
+          if (!_isPaused && !_isResting && !_isPrepPhase) {
+            _videoController!.play();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error initializing video: $e');
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _videoController?.dispose();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -110,7 +189,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           });
 
           if (_exercises.isNotEmpty) {
-            _startCurrentExercise();
+            _startPrepPhase();
           }
         }
       } else {
@@ -129,6 +208,52 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     }
   }
 
+  void _startPrepPhase() {
+    _timer?.cancel();
+
+    if (_currentIndex >= _exercises.length) {
+      _showCompletionDialog();
+      return;
+    }
+
+    final exerciseData = _exercises[_currentIndex];
+    final exercise = exerciseData['exercise'] ?? {};
+    final videoUrl = exercise['video'] ?? '';
+
+    if (videoUrl.isNotEmpty) {
+      _initializeVideo(videoUrl);
+    }
+
+    setState(() {
+      _isPrepPhase = true;
+      _isResting = false;
+      _isPaused = false;
+      _remainingSeconds = 10;
+    });
+
+    _speak(
+      "Get ready. Next exercise is ${exercise['title'] ?? 'Exercise'}. Starting in 10 seconds.",
+    );
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_isPaused) return;
+
+      if (_remainingSeconds <= 1) {
+        timer.cancel();
+        _startCurrentExercise();
+      } else {
+        setState(() {
+          _remainingSeconds--;
+        });
+
+        if (_remainingSeconds <= 3) {
+          _speak("$_remainingSeconds");
+        }
+      }
+    });
+  }
+
   void _startCurrentExercise() {
     _timer?.cancel();
 
@@ -140,14 +265,13 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     final exerciseData = _exercises[_currentIndex];
     final exercise = exerciseData['exercise'];
 
-    // Get duration - prefer targetDuration from session, fallback to exercise duration
+    // Get duration
     int duration =
         exerciseData['targetDuration'] as int? ??
         exerciseData['duration'] as int? ??
         exercise?['duration'] as int? ??
-        30; // Default 30 seconds
+        30;
 
-    // If duration is 0, use reps-based calculation (estimate 3 seconds per rep)
     if (duration == 0) {
       final reps = exerciseData['targetReps'] as int? ?? 10;
       final sets = exerciseData['targetSets'] as int? ?? 1;
@@ -155,11 +279,15 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     }
 
     setState(() {
+      _isPrepPhase = false;
       _isResting = false;
       _isPaused = false;
       _totalDuration = duration;
       _remainingSeconds = duration;
     });
+
+    _speak("Start!");
+    _videoController?.play();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
@@ -172,6 +300,16 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         setState(() {
           _remainingSeconds--;
         });
+
+        // Voice cues during exercise
+        if (_remainingSeconds == (_totalDuration / 2).round() &&
+            _totalDuration > 15) {
+          _speak("Halfway there.");
+        } else if (_remainingSeconds == 10) {
+          _speak("10 seconds left.");
+        } else if (_remainingSeconds <= 3 && _remainingSeconds > 0) {
+          _speak("$_remainingSeconds");
+        }
       }
     });
   }
@@ -181,10 +319,14 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
 
     setState(() {
       _isResting = true;
+      _isPrepPhase = false;
       _isPaused = false;
       _totalDuration = _restDuration;
       _remainingSeconds = _restDuration;
     });
+
+    _speak("Rest. Next exercise in 15 seconds.");
+    _videoController?.pause();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
@@ -197,11 +339,20 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         setState(() {
           _remainingSeconds--;
         });
+
+        if (_remainingSeconds == 3) {
+          _speak("Get ready.");
+        }
       }
     });
   }
 
   Future<void> _completeExercise() async {
+    if (_isSingleExerciseMode) {
+      _showCompletionDialog();
+      return;
+    }
+
     // Call API to complete current exercise
     try {
       final sessionId = _session?['_id'];
@@ -335,6 +486,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
   }
 
   Future<void> _finishSession() async {
+    if (_isSingleExerciseMode) return;
     try {
       final sessionId = _session?['_id'];
       if (sessionId != null) {
@@ -431,8 +583,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Rest indicator
-            if (_isResting)
+            // Condition/Phase Indicator (Prep or Rest)
+            if (_isPrepPhase || _isResting)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.all(16),
@@ -442,8 +594,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.self_improvement,
+                    Icon(
+                      _isPrepPhase ? Icons.timer : Icons.self_improvement,
                       color: AppTheme.infoColor,
                       size: 32,
                     ),
@@ -453,7 +605,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'REST',
+                            _isPrepPhase ? 'GET READY' : 'REST',
                             style: GoogleFonts.inter(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -461,11 +613,15 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                             ),
                           ),
                           Text(
-                            'Get ready for the next exercise',
+                            _isPrepPhase
+                                ? 'Next: $exerciseName'
+                                : 'Take a breath',
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               color: AppTheme.grey600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -476,8 +632,12 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
 
             const Spacer(),
 
-            // Exercise Image/GIF
-            _buildExerciseVisual(visualUrl, exerciseName),
+            // Exercise Visual (Video or Image)
+            _buildExerciseVisual(
+              visualUrl,
+              exerciseName,
+              exercise['video'] ?? '',
+            ),
 
             const SizedBox(height: 24),
 
@@ -493,7 +653,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
             ),
 
             // Exercise info (reps/sets)
-            if (!_isResting) ...[
+            if (!_isResting && !_isPrepPhase) ...[
               const SizedBox(height: 8),
               _buildExerciseInfo(exerciseData),
             ],
@@ -645,7 +805,38 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
     );
   }
 
-  Widget _buildExerciseVisual(String imageUrl, String exerciseName) {
+  Widget _buildExerciseVisual(
+    String imageUrl,
+    String exerciseName,
+    String videoUrl,
+  ) {
+    if (videoUrl.isNotEmpty &&
+        _isVideoInitialized &&
+        _videoController != null) {
+      return Container(
+        height: 250,
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: AppTheme.black,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: AspectRatio(
+            aspectRatio: _videoController!.value.aspectRatio,
+            child: VideoPlayer(_videoController!),
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 220,
       width: double.infinity,

@@ -499,9 +499,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         height: 56,
         child: ElevatedButton.icon(
           onPressed: () {
-            Navigator.of(
-              context,
-            ).pushNamed('/exercise_timer', arguments: exercise);
+            Navigator.of(context).pushNamed('/player', arguments: exercise);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryColor,

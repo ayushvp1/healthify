@@ -8,6 +8,7 @@ class UserModel {
   final double? height;
   final String? profileImage;
   final bool? isProfileComplete;
+  final bool? hasSeenTutorial;
 
   const UserModel({
     this.email,
@@ -19,6 +20,7 @@ class UserModel {
     this.height,
     this.profileImage,
     this.isProfileComplete,
+    this.hasSeenTutorial,
   });
 
   bool get isLoggedIn => token != null && token!.isNotEmpty;
@@ -33,6 +35,7 @@ class UserModel {
     double? height,
     String? profileImage,
     bool? isProfileComplete,
+    bool? hasSeenTutorial,
   }) {
     return UserModel(
       email: email ?? this.email,
@@ -44,6 +47,7 @@ class UserModel {
       height: height ?? this.height,
       profileImage: profileImage ?? this.profileImage,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
+      hasSeenTutorial: hasSeenTutorial ?? this.hasSeenTutorial,
     );
   }
 
@@ -58,6 +62,7 @@ class UserModel {
       if (height != null) 'height': height,
       if (profileImage != null) 'profileImage': profileImage,
       if (isProfileComplete != null) 'isProfileComplete': isProfileComplete,
+      if (hasSeenTutorial != null) 'hasSeenTutorial': hasSeenTutorial,
     };
   }
 
@@ -72,6 +77,7 @@ class UserModel {
       height: (json['height'] as num?)?.toDouble(),
       profileImage: json['profileImage'] as String?,
       isProfileComplete: json['isProfileComplete'] as bool?,
+      hasSeenTutorial: json['hasSeenTutorial'] as bool?,
     );
   }
 }

@@ -5,6 +5,7 @@ class StorageService {
   static const String _emailKey = 'user_email';
   static const String _nameKey = 'user_name';
   static const String _profileCompletedKey = 'profile_completed';
+  static const String _tutorialSeenKey = 'tutorial_seen';
 
   final SharedPreferences _prefs;
 
@@ -62,12 +63,26 @@ class StorageService {
     await _prefs.remove(_profileCompletedKey);
   }
 
+  // Tutorial Seen
+  Future<void> saveTutorialSeen(bool seen) async {
+    await _prefs.setBool(_tutorialSeenKey, seen);
+  }
+
+  bool getTutorialSeen() {
+    return _prefs.getBool(_tutorialSeenKey) ?? false;
+  }
+
+  Future<void> removeTutorialSeen() async {
+    await _prefs.remove(_tutorialSeenKey);
+  }
+
   // Clear all auth data
   Future<void> clearAuth() async {
     await _prefs.remove(_tokenKey);
     await _prefs.remove(_emailKey);
     await _prefs.remove(_nameKey);
     await _prefs.remove(_profileCompletedKey);
+    await _prefs.remove(_tutorialSeenKey);
     // Also clear any other user-specific data
     await _prefs.remove('userName');
     // Clear all keys that start with 'user_' or 'profile_'

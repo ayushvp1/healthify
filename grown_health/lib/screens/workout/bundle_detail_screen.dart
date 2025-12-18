@@ -637,44 +637,60 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.cardBackground,
-        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.highlightPink.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.highlightPink.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.black.withOpacity(0.04),
-            blurRadius: 12,
+            color: AppTheme.highlightPink.withOpacity(0.05),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Row(
         children: [
-          // Person Icon
+          // Sparkle/Motivation Icon
           Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppTheme.accentColor.withOpacity(0.15),
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: AppTheme.white,
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.person,
+              Icons.auto_awesome_rounded,
               color: AppTheme.accentColor,
-              size: 28,
+              size: 24,
             ),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Text(
-              bundle.description.isNotEmpty
-                  ? bundle.description
-                  : 'Start your fitness journey with this ${bundle.totalDays}-day program!',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.black87,
-                height: 1.4,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Journey',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.accentColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  bundle.description.isNotEmpty
+                      ? bundle.description
+                      : 'Transform your body with this professional ${bundle.totalDays}-day program!',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.black87,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -685,17 +701,44 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
   Widget _buildDayCard(BundleDay day, BundleProgress progress) {
     final isCompleted = progress.isDayCompleted(day.day);
     final isExpanded = _expandedDay == day.day;
-    // Use canStartDay for date-based locking (one day per calendar day)
     final canStart = progress.canStartDay(day.day);
     final isLocked = !isCompleted && !canStart;
     final isCurrentDay = !isCompleted && canStart;
+
+    // Design attributes based on status
+    Color bgColor;
+    Color accentColor;
+    Color? borderColor;
+    double elevation = 0;
+
+    if (isCompleted) {
+      bgColor = const Color(0xFFF1F8E9); // Light green
+      accentColor = AppTheme.checkGreen;
+      borderColor = AppTheme.checkGreen.withOpacity(0.2);
+    } else if (isCurrentDay) {
+      bgColor = AppTheme.white;
+      accentColor = AppTheme.accentColor;
+      borderColor = AppTheme.accentColor;
+      elevation = 4;
+    } else if (day.isRestDay) {
+      bgColor = const Color(0xFFE1F5FE); // Light blue
+      accentColor = const Color(0xFF039BE5);
+      borderColor = const Color(0xFF039BE5).withOpacity(0.2);
+    } else if (isLocked) {
+      bgColor = AppTheme.grey50;
+      accentColor = AppTheme.grey400;
+      borderColor = AppTheme.grey200;
+    } else {
+      bgColor = AppTheme.white;
+      accentColor = AppTheme.accentColor;
+      borderColor = AppTheme.grey200;
+    }
 
     return Column(
       children: [
         GestureDetector(
           onTap: () {
             if (day.isRestDay) return;
-            // Navigate to day detail page
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -708,204 +751,251 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
             );
           },
           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.circular(16),
+              color: bgColor,
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: isCurrentDay ? AppTheme.accentColor : AppTheme.grey200,
+                color: borderColor ?? AppTheme.transparent,
                 width: isCurrentDay ? 2 : 1,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.black.withOpacity(0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              boxShadow: elevation > 0
+                  ? [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : null,
             ),
-            child: Column(
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    // Day Number
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'DAY',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.grey500,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Text(
-                          '${day.day}',
-                          style: GoogleFonts.inter(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.black,
-                          ),
-                        ),
-                      ],
+                // Day Number Indicator
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isLocked
+                          ? [AppTheme.grey300, AppTheme.grey400]
+                          : [accentColor.withOpacity(0.8), accentColor],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    const SizedBox(width: 20),
-
-                    // Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Duration
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                size: 16,
-                                color: AppTheme.grey600,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                day.isRestDay ? 'Rest Day' : day.durationText,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppTheme.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Progress Indicators (Lightning bolts)
-                          _buildProgressBolts(day, isCompleted),
-                        ],
-                      ),
-                    ),
-
-                    // Status Icon / Start Button
-                    if (day.isRestDay)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.grey100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.self_improvement,
-                          color: AppTheme.grey500,
-                          size: 24,
-                        ),
-                      )
-                    else if (isCompleted)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE8F5E9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: AppTheme.checkGreen,
-                          size: 24,
-                        ),
-                      )
-                    else if (isLocked)
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppTheme.grey100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.lock_outline,
-                          color: AppTheme.grey400,
-                          size: 24,
-                        ),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        child: CircularProgressIndicator(
-                          value: 0,
-                          strokeWidth: 3,
-                          backgroundColor: AppTheme.grey200,
-                          color: AppTheme.accentColor,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: !isLocked
+                        ? [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'DAY',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.white.withOpacity(0.8),
+                          letterSpacing: 1,
                         ),
                       ),
-                  ],
+                      Text(
+                        '${day.day}',
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 16),
 
-                // Show Start button for unlocked, incomplete days
-                if (!day.isRestDay && !isCompleted && canStart) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _startDay(day.day),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.infoColor,
-                        foregroundColor: AppTheme.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'Start',
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        day.isRestDay
+                            ? 'Rest & Recover'
+                            : (day.title.isNotEmpty
+                                  ? day.title
+                                  : 'Workout Session'),
                         style: GoogleFonts.inter(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          color: isLocked ? AppTheme.grey600 : AppTheme.black,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            day.isRestDay
+                                ? Icons.self_improvement
+                                : Icons.access_time_rounded,
+                            size: 14,
+                            color: isLocked
+                                ? AppTheme.grey400
+                                : AppTheme.grey600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            day.isRestDay ? 'Rest Day' : day.durationText,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: isLocked
+                                  ? AppTheme.grey400
+                                  : AppTheme.grey600,
+                            ),
+                          ),
+                          if (!day.isRestDay) ...[
+                            const SizedBox(width: 12),
+                            _buildSmallBoltIndicator(
+                              day,
+                              isCompleted,
+                              isLocked,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
-                ],
+                ),
+
+                // Status Action Area
+                _buildStatusAction(day, isCompleted, isLocked, canStart),
               ],
             ),
           ),
         ),
 
-        // Expanded exercise list
-        if (isExpanded && !day.isRestDay)
-          Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFAFAFA),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.grey200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Exercises',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.black,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...day.exercises.map((ex) => _buildExerciseItem(ex, day.day)),
-              ],
-            ),
-          ),
+        // Expanded exercise list (if needed in future, currently navigated)
+        if (isExpanded && !day.isRestDay) _buildExpandedExercises(day),
       ],
     );
   }
 
+  Widget _buildSmallBoltIndicator(
+    BundleDay day,
+    bool isCompleted,
+    bool isLocked,
+  ) {
+    return Row(
+      children: List.generate(3, (index) {
+        return Icon(
+          Icons.bolt,
+          size: 14,
+          color: isCompleted
+              ? AppTheme.accentColor
+              : (isLocked ? AppTheme.grey300 : AppTheme.grey200),
+        );
+      }),
+    );
+  }
+
+  Widget _buildStatusAction(
+    BundleDay day,
+    bool isCompleted,
+    bool isLocked,
+    bool canStart,
+  ) {
+    if (day.isRestDay) {
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF039BE5).withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(
+          Icons.spa_rounded,
+          color: Color(0xFF039BE5),
+          size: 20,
+        ),
+      );
+    }
+
+    if (isCompleted) {
+      return Container(
+        padding: const EdgeInsets.all(8),
+        decoration: const BoxDecoration(
+          color: AppTheme.checkGreen,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.check, color: AppTheme.white, size: 18),
+      );
+    }
+
+    if (isLocked) {
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppTheme.grey200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.lock_rounded, color: AppTheme.grey500, size: 18),
+      );
+    }
+
+    // Current Day - Show Start Button
+    return ElevatedButton(
+      onPressed: () => _startDay(day.day),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.accentColor,
+        foregroundColor: AppTheme.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Text(
+        'Start',
+        style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  Widget _buildExpandedExercises(BundleDay day) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16, left: 8, right: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.grey50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Exercises',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...day.exercises.map((ex) => _buildExerciseItem(ex, day.day)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProgressBolts(BundleDay day, bool isCompleted) {
-    // 3 bolts representing progress
-    // All filled if completed, none if not started
+    // Keep this for backward compatibility if used elsewhere,
+    // but we use _buildSmallBoltIndicator inside the card now
     final boltCount = 3;
     final filledCount = isCompleted ? 3 : 0;
 
@@ -935,9 +1025,13 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppTheme.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: AppTheme.black.withOpacity(0.03), blurRadius: 6),
+            BoxShadow(
+              color: AppTheme.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
@@ -947,7 +1041,7 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppTheme.highlightPink,
+                color: AppTheme.highlightPink.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: exercise.image.isNotEmpty
@@ -975,8 +1069,8 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   Text(
                     exercise.title,
                     style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                       color: AppTheme.black,
                     ),
                   ),
@@ -984,28 +1078,28 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                   Row(
                     children: [
                       if (ex.duration > 0) ...[
-                        Icon(
+                        const Icon(
                           Icons.timer_outlined,
-                          size: 14,
+                          size: 12,
                           color: AppTheme.grey600,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${ex.duration}s',
                           style: GoogleFonts.inter(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: AppTheme.grey600,
                           ),
                         ),
                       ],
                       if (ex.sets > 1 || ex.reps > 0) ...[
-                        if (ex.duration > 0) const SizedBox(width: 12),
+                        if (ex.duration > 0) const SizedBox(width: 8),
                         Text(
                           ex.reps > 0
-                              ? '${ex.sets} × ${ex.reps} reps'
+                              ? '${ex.sets}×${ex.reps}'
                               : '${ex.sets} sets',
                           style: GoogleFonts.inter(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: AppTheme.grey600,
                           ),
                         ),
@@ -1015,19 +1109,11 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
                 ],
               ),
             ),
-            // Play button indicator
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: AppTheme.accentColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: AppTheme.white,
-                size: 18,
-              ),
+            // Minimal Play Icon
+            const Icon(
+              Icons.play_circle_fill_rounded,
+              color: AppTheme.accentColor,
+              size: 28,
             ),
           ],
         ),
@@ -1039,75 +1125,68 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
     ExerciseBundle bundle,
     BundleProgress progress,
   ) {
-    // If schedule doesn't have all days defined, create placeholders
     final existingDays = bundle.schedule.map((d) => d.day).toSet();
     final widgets = <Widget>[];
 
     for (int i = 1; i <= bundle.totalDays; i++) {
       if (!existingDays.contains(i)) {
-        // Create placeholder day card for days not in schedule
-
         widgets.add(
           Container(
-            margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.white,
-              borderRadius: BorderRadius.circular(16),
+              color: AppTheme.grey50,
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(color: AppTheme.grey200),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.black.withOpacity(0.03),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'DAY',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.grey500,
-                        letterSpacing: 0.5,
+                // Day Number Indicator (Greyed out)
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: AppTheme.grey200,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'DAY',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.grey500,
+                          letterSpacing: 1,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '$i',
-                      style: GoogleFonts.inter(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.black,
+                      Text(
+                        '$i',
+                        style: GoogleFonts.inter(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.grey500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Text(
-                    'Coming soon...',
+                    'Next session unlocking soon',
                     style: GoogleFonts.inter(
                       fontSize: 14,
+                      fontWeight: FontWeight.w500,
                       color: AppTheme.grey500,
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.grey100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.lock_outline,
-                    color: AppTheme.grey400,
-                    size: 24,
-                  ),
+                Icon(
+                  Icons.lock_clock_rounded,
+                  color: AppTheme.grey400,
+                  size: 20,
                 ),
               ],
             ),
@@ -1115,7 +1194,6 @@ class _BundleDetailScreenState extends ConsumerState<BundleDetailScreen> {
         );
       }
     }
-
     return widgets;
   }
 }

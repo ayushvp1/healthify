@@ -9,6 +9,13 @@ import 'help/help_screen.dart';
 import 'workout/workouts_screen.dart';
 
 class MainShell extends StatefulWidget {
+  static final GlobalKey homeKey = GlobalKey();
+  static final GlobalKey workoutsKey = GlobalKey();
+  static final GlobalKey nutritionKey = GlobalKey();
+  static final GlobalKey profileKey =
+      GlobalKey(); // Using 'Help' as profile for now as per UI
+  static final GlobalKey mindKey = GlobalKey();
+
   const MainShell({super.key});
 
   @override
@@ -74,6 +81,7 @@ class _SharedBottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _BottomNavItem(
+                key: MainShell.homeKey,
                 label: 'Home',
                 index: 0,
                 currentIndex: currentIndex,
@@ -82,6 +90,7 @@ class _SharedBottomNav extends StatelessWidget {
                 selectedIcon: Icons.home_filled,
               ),
               _BottomNavItem(
+                key: MainShell.workoutsKey,
                 label: 'Body',
                 index: 1,
                 currentIndex: currentIndex,
@@ -90,6 +99,7 @@ class _SharedBottomNav extends StatelessWidget {
                 selectedIcon: Icons.accessibility_new_rounded,
               ),
               _BottomNavItem(
+                key: MainShell.nutritionKey,
                 label: 'Nutrition',
                 index: 2,
                 currentIndex: currentIndex,
@@ -98,6 +108,7 @@ class _SharedBottomNav extends StatelessWidget {
                 selectedIcon: Icons.rice_bowl,
               ),
               _BottomNavItem(
+                key: MainShell.profileKey,
                 label: 'Help',
                 index: 3,
                 currentIndex: currentIndex,
@@ -106,6 +117,7 @@ class _SharedBottomNav extends StatelessWidget {
                 selectedIcon: Icons.account_circle,
               ),
               _BottomNavItem(
+                key: MainShell.mindKey,
                 label: 'Mind',
                 index: 4,
                 currentIndex: currentIndex,
@@ -130,6 +142,7 @@ class _BottomNavItem extends StatelessWidget {
   final IconData selectedIcon;
 
   const _BottomNavItem({
+    super.key,
     required this.label,
     required this.index,
     required this.currentIndex,
