@@ -12,7 +12,7 @@ class GeminiService {
 
   // Placeholder key - in production use environment variables
   static const String _defaultApiKey =
-      'AIzaSyD8HfEVFRQ-NdJ7MtQkZ_jBGb1ME_qHPcM';
+      'AIzaSyCQeJbiQICBtBlT17DJ8VGWqfe0GqOAtJI';
 
   static void initialize({String? apiKey}) {
     _apiKey =
@@ -21,7 +21,7 @@ class GeminiService {
           'GEMINI_API_KEY',
           defaultValue: _defaultApiKey,
         );
-    _model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey!);
+    _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: _apiKey!);
   }
 
   static Future<String> chatWithAI(
@@ -174,13 +174,20 @@ Rules:
       final prompt =
           '''
 Generate a daily meal plan for $mealsPerDay meals with the goal: $goal.
+The plan should be diverse, healthy, and tailored to the goal.
+
 RETURN VALID JSON ONLY:
 {
+  "total_calories": 2000,
+  "goal_summary": "Encouraging summary about the goal",
   "meals": [
     {
-      "name": "Meal Name",
-      "time": "Approx Time",
-      "items": ["Item 1", "Item 2"]
+      "name": "Breakfast",
+      "time": "08:00 AM",
+      "calories": 450,
+      "items": [
+        {"name": "Item Name", "description": "Quick description or portion"}
+      ]
     }
   ]
 }

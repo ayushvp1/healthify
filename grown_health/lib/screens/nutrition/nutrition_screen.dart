@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:grown_health/core/constants/app_theme.dart';
 import 'package:grown_health/core/constants/app_constants.dart';
 import 'package:grown_health/providers/auth_provider.dart';
@@ -943,20 +944,162 @@ class _TodaysMealsSectionState extends ConsumerState<_TodaysMealsSection> {
     }
   }
 
-  IconData _getMealIcon(String type) {
-    switch (type) {
-      case 'Breakfast':
-        return Icons.breakfast_dining;
-      case 'Lunch':
-        return Icons.lunch_dining;
-      case 'Dinner':
-        return Icons.dinner_dining;
-      default:
-        return Icons.fastfood;
-    }
-  }
-
   int get _totalCalories => _meals.fold(0, (sum, meal) => sum + meal.calories);
+
+  void _showManualLogModal() {
+    final nameController = TextEditingController();
+    final caloriesController = TextEditingController();
+    String selectedType = 'Breakfast';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          top: 24,
+          left: 24,
+          right: 24,
+        ),
+        decoration: const BoxDecoration(
+          color: AppTheme.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Manual Food Log',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Food Name',
+                  hintText: 'e.g. Grilled Chicken Salad',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: caloriesController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Calories (kcal)',
+                  hintText: 'e.g. 350',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Meal Type',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              StatefulBuilder(
+                builder: (context, setModalState) {
+                  return Wrap(
+                    spacing: 8,
+                    children: ['Breakfast', 'Lunch', 'Dinner', 'Snack'].map((
+                      type,
+                    ) {
+                      final isSelected = selectedType == type;
+                      return ChoiceChip(
+                        label: Text(type),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setModalState(() => selectedType = type);
+                          }
+                        },
+                        selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+                        labelStyle: TextStyle(
+                          color: isSelected
+                              ? AppTheme.primaryColor
+                              : AppTheme.grey600,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (nameController.text.isEmpty ||
+                        caloriesController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please fill all fields')),
+                      );
+                      return;
+                    }
+
+                    final token = ref.read(authProvider).user?.token;
+                    if (token == null) return;
+
+                    final calories = int.tryParse(caloriesController.text);
+                    if (calories == null) return;
+
+                    final success = await NutritionService.logMeal(
+                      token: token,
+                      name: nameController.text,
+                      calories: calories,
+                      type: selectedType,
+                    );
+
+                    if (success) {
+                      Navigator.pop(context);
+                      _loadMeals();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Meal logged successfully!'),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Save Log'),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1113,6 +1256,25 @@ class _TodaysMealsSectionState extends ConsumerState<_TodaysMealsSection> {
                   ),
                 ),
               ],
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onTap: _showManualLogModal,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: AppTheme.primaryColor,
+                    size: 28,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
